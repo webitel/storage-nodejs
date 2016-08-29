@@ -1,0 +1,46 @@
+{
+  "public": {
+    "enabled": false,
+    "key": "/cdr/cert/wss.pem",
+    "cert": "/cdr/cert/wss.pem",
+    "host": "0.0.0.0",
+    "port": 10023
+  },
+  "private": {
+    "host": "0.0.0.0",
+    "port": 10021
+  },
+  "mongodb": {
+    "uri": "mongodb://pre.webitel.com:27017/webitel",
+    "collectionCDR": "cdr",
+    "collectionFile": "cdrFile",
+    "collectionAuth": "authToken",
+    "collectionEmail": "emailConfig",
+    "collectionDomain": "domains",
+    "collectionAgentStatus": "agentStatus"
+  },
+  "application": {
+    "loglevel": "trace",
+    "auth": {
+      "tokenSecretKey": "myDevKey",
+      "expiresDays": 7
+    }
+  },
+  "recordFile": {
+    "defaultProvider": "b2",
+    "maskPath": "$DOMAIN/$Y/$M/$D/$H",
+
+    "providers": [
+
+    ]
+  },
+  "mediaFile": {
+    "fileRoot": "/STORAGE_ROOT/media/",
+    "maxFieldsSizeMB": 5,
+    "collectionMedia": "mediaFile"
+  },
+  "uploadAcl": {
+    "mode": "allow",
+    "ip": "0.0.0.0/0"
+  }
+}
