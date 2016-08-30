@@ -60,4 +60,9 @@ module.exports = class LocalStorage {
             });
         })
     }
+
+    validateConfig (config) {
+        return !config || this.rootPath != config.rootPath || this.mask != config.maskPath;
+
+    }
 };

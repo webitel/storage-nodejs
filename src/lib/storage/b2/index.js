@@ -71,4 +71,11 @@ module.exports = class B2Storage {
             return B2.saveFile(this._authParams, fileConf, helper.getPath(this.mask, fileConf.domain, fileConf.name), cb);
         });
     }
+
+    validateConfig (config) {
+        console.log('validate b2');
+        return !config || this.accountId != config.accountId || this.bucketId != config.bucketId
+            || this.bucketName != config.bucketName || this.applicationKey != config.applicationKey
+
+    }
 };

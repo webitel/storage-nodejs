@@ -13,6 +13,8 @@
     "mongodb": "^2.2.8",
     "nconf": "^0.8.4",
     "node-uuid": "^1.4.7",
+    "nodemailer": "^2.5.0",
+    "nodemailer-smtp-pool": "^2.7.0",
     "request-ip": "^1.2.2",
     "winston": "^2.2.0"
   }

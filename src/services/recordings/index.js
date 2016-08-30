@@ -6,15 +6,17 @@
 
 const Storage = require(__appRoot + '/lib/storage'),
     helper = require('./helper'),
-    Collection = require(__appRoot + '/lib/collection'),
-    cache = new Collection('id'),
+    util = require('util'),
+    CacheCollection = require(__appRoot + '/lib/collection'),
     log = require(__appRoot + '/lib/log')(module),
+    cache = new CacheCollection('id'),
     CodeError = require(__appRoot + '/lib/error'),
     httpUtil = require(__appRoot + '/utils/http'),
     
     FILE_TYPES = ['local', 's3', 'b2'],
     DEF_ID = '_default_'
     ;
+
 
 const STORAGES = {
     'local': Storage.LocalStorage,
