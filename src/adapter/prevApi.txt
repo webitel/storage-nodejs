@@ -1,7 +1,7 @@
 private
 2016-08-23T14:16:42.672Z - info: [/home/igor/work/cdr/src/routes/index.js] Add: [PUT]: /sys/formLoadFile?:id +
-2016-08-23T14:16:42.672Z - info: [/home/igor/work/cdr/src/routes/index.js] Add: [POST]: /sys/cdr
-2016-08-23T14:16:42.672Z - info: [/home/igor/work/cdr/src/routes/index.js] Add: [GET]: /sys/tts/:provider
+2016-08-23T14:16:42.672Z - info: [/home/igor/work/cdr/src/routes/index.js] Add: [POST]: /sys/cdr +
+2016-08-23T14:16:42.672Z - info: [/home/igor/work/cdr/src/routes/index.js] Add: [GET]: /sys/tts/:provider +
 2016-08-23T14:16:42.672Z - info: [/home/igor/work/cdr/src/routes/index.js] Add: [GET]: /sys/media/:type/:id
 
 public

@@ -4,7 +4,9 @@
 
 "use strict";
 
-const CodeError = require(__appRoot + '/lib/error')
+const CodeError = require(__appRoot + '/lib/error'),
+    cdrService = require(__appRoot + '/services/cdr'),
+    log = require(__appRoot + '/lib/log')(module)
     ;
 
 module.exports = {
@@ -12,6 +14,18 @@ module.exports = {
 };
 
 function addRoutes(api) {
-    // TODO
-    api.post('/sys/cdr', (req, res) => res.end() )
+    api.post('/sys/cdr', save)
+}
+
+function save(req, res, next) {
+    const uuid = req.query.uuid;
+    cdrService.save(req.body, (err) => {
+        if (err) {
+            log.error(err);
+            return next(err);
+        }
+
+        log.debug(`Ok save: ${uuid}`);
+        res.status(200).end();
+    })
 }

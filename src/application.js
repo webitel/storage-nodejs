@@ -16,6 +16,8 @@ class Application extends EventEmitter2 {
     constructor () {
         super();
         this.DB = null;
+        this.elastic = null;
+
         this.once('db:connect', this.configureServer);
         this.on('db:connect', (db) => {
             this.DB = db;
@@ -28,6 +30,13 @@ class Application extends EventEmitter2 {
                 gc();
                 console.log('----------------- GC -----------------');
             }, 5000);
+        }
+
+        let elasticConf = conf.get('elastic');
+
+        if (elasticConf && elasticConf.enabled.toString() == 'true') {
+            let ElasticClient = require('./db/elastic');
+            this.elastic = new ElasticClient(elasticConf);
         }
         
         process.nextTick(this.connectDB.bind(this));

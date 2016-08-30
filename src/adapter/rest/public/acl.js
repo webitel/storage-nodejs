@@ -19,7 +19,7 @@ module.exports = {
  * Adds routes to the api.
  */
 function addRoutes(api) {
-    // api.all('/api/v2/*', checkAllow);
+    api.all('/api/v2/*', checkAllow);
 }
 
 function checkAllow(req, res, next) {

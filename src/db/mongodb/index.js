@@ -38,7 +38,8 @@ function initConnect (server) {
             auth: require('./query/auth').addQuery(db),
             file: require('./query/file').addQuery(db),
             domain: require('./query/domain').addQuery(db),
-            email: require('./query/email').addQuery(db)
+            email: require('./query/email').addQuery(db),
+            cdr: require('./query/cdr').addQuery(db)
         };
 
         server.emit('db:connect', db);
