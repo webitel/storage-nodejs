@@ -31,7 +31,7 @@ const DEFAULT_PROVIDER_CONFIG = helper.getProviderConfigByName(helper.DEFAULT_PR
 if (!DEFAULT_PROVIDER_CONFIG)
     throw `Please set config provider ${helper.DEFAULT_PROVIDER_NAME}!`;
 
-const defProvider = getProvider(DEF_ID, helper.DEFAULT_PROVIDERS_CONF, helper.DEFAULT_PROVIDER_NAME); // new STORAGES[helper.DEFAULT_PROVIDER_NAME](DEFAULT_PROVIDER_CONFIG);
+const defProvider = getProvider(DEF_ID, helper.DEFAULT_PROVIDERS_CONF, helper.DEFAULT_PROVIDER_NAME);
 
 if (!defProvider)
     throw `Error create default provider ${helper.DEFAULT_PROVIDER_NAME}`;
