@@ -5,6 +5,7 @@
 "use strict";
 
 const conf = require(__appRoot + '/config'),
+    ObjectId = require('mongodb').ObjectId,
     cdrCollectionName = conf.get('mongodb:collectionCDR');
 
 module.exports = {
@@ -36,6 +37,47 @@ function addQuery(db) {
                 .collection(cdrCollectionName)
                 .find(query)
                 .toArray(cb);
+        },
+
+        search: (query, columns, sort, skip, limit, cb) => {
+            return db
+                .collection(cdrCollectionName)
+                .find(query, columns)
+                .sort(sort)
+                .skip(skip)
+                .limit(limit)
+                .toArray(cb);
+        },
+
+        count: (query, cb) => {
+            return db
+                .collection(cdrCollectionName)
+                .find(query)
+                .count(cb);
+        },
+
+        buildFilterQuery: (filter) => {
+            let filterArray = [];
+            //filterArray.push(filterLegA); // TODO
+            if (filter) {
+                for (let key in filter) {
+                    if (key == '_id' && ObjectId.isValid(filter[key])) {
+                        filter[key] = ObjectId(filter[key]);
+                        continue;
+                    }
+                    for (let item in filter[key]) {
+                        // TODO ... parse _id
+                        if (key == '_id' && ObjectId.isValid(filter[key][item])) {
+                            filter[key][item] = ObjectId(filter[key][item]);
+                        }
+                    }
+                }
+                filterArray.push(filter)
+            }
+
+            return {
+                "$and": filterArray
+            };
         }
     }
 }

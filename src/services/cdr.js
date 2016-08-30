@@ -5,6 +5,8 @@
 "use strict";
 
 const log = require(__appRoot + '/lib/log')(module),
+    checkPermission = require(__appRoot + '/utils/acl'),
+    CodeError = require(__appRoot + '/lib/error'),
     async = require('async')
     ;
 
@@ -50,8 +52,101 @@ const Service = module.exports = {
             ],
             callback
         )
+    },
+
+    search: (caller, option, cb) => {
+        let _ro = false
+            ;
+
+        let columns = option.columns || DEF_COLUMNS,
+            sort = option.sort  || {
+                "callflow.times.created_time": -1
+            },
+            limit = parseInt(option.limit, 10) || 40,
+            pageNumber = option.pageNumber
+            ;
+
+        let query = application.DB._query.cdr.buildFilterQuery(option.filter);
+
+        if (caller.domain)
+            query['$and'].push({
+                "variables.domain_name": caller.domain
+            });
+
+        let _readAll = checkPermission(caller.acl, 'cdr', 'r');
+
+        if (!_readAll && checkPermission(caller.acl, 'cdr', 'ro', true)) {
+            query['$and'].push({
+                "variables.presence_id": caller.id
+            });
+            _ro = true;
+        }
+
+        if (!_ro && !_readAll) {
+            return cb(new CodeError(403, "Permission denied!"))
+        }
+
+        application.DB._query.cdr.search(
+            query,
+            columns,
+            sort,
+            pageNumber > 0 ? ((pageNumber - 1) * limit) : 0,
+            limit,
+            cb
+        );
+    },
+
+    count: (caller, option, cb) => {
+        let _ro = false
+            ;
+        
+        let query = application.DB._query.cdr.buildFilterQuery(option.filter);
+
+        if (caller.domain)
+            query['$and'].push({
+                "variables.domain_name": caller.domain
+            });
+
+        let _readAll = checkPermission(caller.acl, 'cdr', 'r');
+
+        if (!_readAll && checkPermission(caller.acl, 'cdr', 'ro', true)) {
+            query['$and'].push({
+                "variables.presence_id": caller.id
+            });
+            _ro = true;
+        }
+
+        if (!_ro && !_readAll) {
+            return cb(new CodeError(403, "Permission denied!"))
+        }
+
+        application.DB._query.cdr.count(
+            query,
+            cb
+        );
+    },
+
+    aggregates: (caller, option, cb) => {
+        // TODO ??
     }
     
+};
+
+const DEF_COLUMNS = {
+    "variables.uuid": 1,
+    "callflow.caller_profile.caller_id_name": 1,
+    "callflow.caller_profile.caller_id_number": 1,
+    "callflow.caller_profile.callee_id_number": 1,
+    "callflow.caller_profile.callee_id_name": 1,
+    "callflow.caller_profile.destination_number": 1,
+    "callflow.times.created_time": 1,
+    "callflow.times.answered_time": 1,
+    "callflow.times.bridged_time": 1,
+    "callflow.times.hangup_time": 1,
+    "variables.duration": 1,
+    "variables.hangup_cause": 1,
+    "variables.billsec": 1,
+    "variables.direction": 1
 };
 
 function processSaveToElastic() {
