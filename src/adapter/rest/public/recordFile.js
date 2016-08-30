@@ -16,8 +16,30 @@ module.exports = {
  * Adds routes to the api.
  */
 function addRoutes(api) {
+    api.get('/api/v2/files/stats/:id?', stats);
     api.get('/api/v2/files/:id', getFile);
 }
+const stats = (req, res, next) => {
+    let option = req.query;
+    option.uuid = req.params.id;
+
+    fileService.stats(req.webitelUser, option, (err, result) => {
+        if (err)
+            return next(err);
+
+        let _size = result instanceof Array ? result[0] : result;
+
+        if (!_size) {
+            _size = {
+                "size": 0
+            }
+        }
+
+        res
+            .status(200)
+            .json(_size);
+    });
+};
 
 const getFile = (req, res, next) => {
     let uuid = req.params.id,
@@ -33,11 +55,18 @@ const getFile = (req, res, next) => {
     };
 
     fileService.getFileFromUUID(
+        req.webitelUser,
         uuid,
         params,
         (err, response) => {
             if (err)
                 return next(err);
+
+            if (contentType === 'all')
+                return res
+                    .status(200)
+                    .json(response)
+                    ;
 
             if (!response || !response.source)
                 return next(`No source stream.`);

@@ -68,6 +68,63 @@ function addQuery(db) {
             return db
                 .collection(fileCollectionName)
                 .insert(doc, cb)
+        },
+
+        getFilesStats: (uuid, domain, option, cb) => {
+            let _q = {
+                    "$and": []
+                },
+                $and = [],
+                _date = {}
+                ;
+
+            if (option['start']) {
+                _date['$gte'] = option['start'];
+            }
+
+            if (option['end']) {
+                _date['$lte'] = option['end'];
+            }
+
+            if (Object.keys(_date).length > 0) {
+                $and.push({
+                    "createdOn": _date
+                });
+            }
+
+            if (domain) {
+                $and.push({
+                    "domain": domain
+                });
+            }
+
+            _q['$and'] = $and;
+
+            if (uuid) {
+                _q['$and'].push({
+                    "uuid": uuid
+                });
+
+                return db
+                    .collection(fileCollectionName)
+                    .findOne(_q, {"size": 1, "_id": 0}, cb);
+            } else {
+
+                let aggr = [];
+                if ($and.length > 0)
+                    aggr.push({
+                        "$match": _q
+                    });
+
+                aggr = aggr.concat(
+                    {"$group": {"_id": null, "size": {"$sum": "$size"}}},
+                    {"$project": {"_id": 0, "size": 1}}
+                );
+
+                return db
+                    .collection(fileCollectionName)
+                    .aggregate(aggr, cb);
+            }
         }
     }
 }

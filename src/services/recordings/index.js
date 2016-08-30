@@ -39,14 +39,22 @@ else log.info(`Set default provider ${helper.DEFAULT_PROVIDER_NAME} - OK`);
 
 const Service = module.exports = {
 
-    getFileFromUUID: (uuid, option, cb) => {
+    getFileFromUUID: (caller, uuid, option, cb) => {
         application.DB._query.file.get(uuid, option.pathName, option.contentType, (err, res) => {
             if (err)
                 return cb(err);
 
+            if (option.contentType === 'all') {
+                return cb(null, res);
+            }
+
             let fileDb = res && res[0];
             if (!fileDb || !fileDb.path)
                 return cb(new CodeError(404, `File ${uuid} not found!`));
+
+            if (caller.domain && caller.domain != fileDb.domain)
+                return cb(new CodeError(403, "Permission denied!"));
+
 
             let providerName = FILE_TYPES[fileDb.type];
 
@@ -147,6 +155,12 @@ const Service = module.exports = {
             });
         }
 
+    },
+    
+    // Public
+
+    stats: (caller, option, cb)  => {
+        application.DB._query.file.getFilesStats(option.uuid, caller.domain || option.domain, option, cb);
     }
 };
 
