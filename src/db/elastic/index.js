@@ -11,6 +11,9 @@ const elasticsearch = require('elasticsearch'),
     async = require('async')
 ;
 
+const CDR_NAME = 'cdr*',
+    MAX_RESULT_WINDOW = 2147483647;
+
 class ElasticClient extends EventEmitter2 {
     constructor (config) {
         super();
@@ -41,6 +44,7 @@ class ElasticClient extends EventEmitter2 {
             log.info(`Connect to elastic - OK`);
             this.connected = true;
             this.initTemplate();
+            this.initMaxResultWindow();
             this.emit('elastic:connect', this);
         })
     }
@@ -98,6 +102,49 @@ class ElasticClient extends EventEmitter2 {
                 });
             }
         });
+    }
+
+    initMaxResultWindow () {
+        this.client.indices.getSettings({
+            index: CDR_NAME,
+            name: "index.max_result_window"
+        }, (err, res) => {
+            if (err) {
+                return log.error(err);
+            }
+
+            let indexName = Object.keys(res);
+            if (indexName.length > 0) {
+                let indexSettings = res[indexName[0]] && res[indexName[0]].settings;
+                let max_result_window = +(indexSettings && indexSettings.index && indexSettings.index.max_result_window);
+
+                if (!max_result_window || max_result_window < 1000000) {
+                    this.setIndexSettings()
+                } else {
+                    log.trace('Skip set max_result_window')
+                }
+            } else {
+                this.setIndexSettings();
+            }
+        });
+    }
+
+    setIndexSettings () {
+        this.client.indices.putSettings({
+            index: CDR_NAME,
+            body: {
+                max_result_window: MAX_RESULT_WINDOW
+            }
+        }, (err, res) => {
+            if (err)
+                return log.error(err);
+
+            log.info(`Set default max_result_window - success`);
+        });
+    }
+
+    search (data, cb) {
+        return this.client.search(data, cb);
     }
 
     insertCdr (doc, cb) {

@@ -11,6 +11,7 @@ const log = require(__appRoot + '/lib/log')(module),
 let _elasticConnect = true;
     
 const Service = module.exports = {
+    
     save: (cdrData, callback) => {
         let data = replaceVariables(cdrData);
 
@@ -50,6 +51,7 @@ const Service = module.exports = {
             callback
         )
     }
+    
 };
 
 function processSaveToElastic() {

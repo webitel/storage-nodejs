@@ -5,8 +5,7 @@
 "use strict";
 
 const fileService = require(__appRoot + '/services/recordings'),
-    log = require(__appRoot + '/lib/log')(module),
-    utilsHttp = require(__appRoot + '/utils/http')
+    log = require(__appRoot + '/lib/log')(module)
     ;
 
 module.exports = {
