@@ -48,6 +48,7 @@ function searches(req, res, next) {
         res.json(data);
     })
 }
+
 function count(req, res, next) {
 
     let option = {

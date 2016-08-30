@@ -67,7 +67,7 @@ const Service = module.exports = {
                     if (err)
                         return cb(err);
 
-                    if (!domainConfig || !domainConfig.hasOwnProperty('storage') || !STORAGES[domainConfig.storage.defaultProvider] ) {
+                    if (useDefaultStorage(domainConfig)) {
                         return cb(new CodeError(400, `Please set domain storage config!`))
                     } else {
                         let provider = getProvider(fileDb.domain, domainConfig.storage, providerName);
@@ -105,7 +105,7 @@ const Service = module.exports = {
                 domainId,
                 config;
 
-            if (!domainConfig || !domainConfig.hasOwnProperty('storage') || !STORAGES[domainConfig.storage.defaultProvider]) {
+            if (useDefaultStorage(domainConfig)) {
                 domainId = DEF_ID;
                 config = helper.DEFAULT_PROVIDERS_CONF;
             } else {
@@ -175,4 +175,8 @@ function findProviderConfigByName(providers, name) {
             if (config.type === name)
                 return config;
     }
+}
+
+function useDefaultStorage(domainConfig) {
+    return !domainConfig || !domainConfig.storage || domainConfig.storage.defaultProvider == 'local' || !STORAGES[domainConfig.storage.defaultProvider]
 }

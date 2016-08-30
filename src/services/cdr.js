@@ -124,10 +124,6 @@ const Service = module.exports = {
             query,
             cb
         );
-    },
-
-    aggregates: (caller, option, cb) => {
-        // TODO ??
     }
     
 };
