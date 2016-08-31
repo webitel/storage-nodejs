@@ -17,7 +17,7 @@ public
 
 2016-08-23T14:16:42.672Z - info: [/home/igor/work/cdr/src/routes/index.js] Add: [GET]: /api/v2/files/stats/:id? +
 2016-08-23T14:16:42.672Z - info: [/home/igor/work/cdr/src/routes/index.js] Add: [GET]: /api/v2/files/:id b2+ local+ s3-
-2016-08-23T14:16:42.673Z - info: [/home/igor/work/cdr/src/routes/index.js] Add: [DELETE]: /api/v2/files/:id
+2016-08-23T14:16:42.673Z - info: [/home/igor/work/cdr/src/routes/index.js] Add: [DELETE]: /api/v2/files/:id +
 
 
 2016-08-23T14:16:42.673Z - info: [/home/igor/work/cdr/src/routes/index.js] Add: [GET]: /api/v2/media/:type?

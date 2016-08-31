@@ -18,6 +18,7 @@ module.exports = {
 function addRoutes(api) {
     api.get('/api/v2/files/stats/:id?', stats);
     api.get('/api/v2/files/:id', getFile);
+    api.delete('/api/v2/files/:id', delFile);
 }
 const stats = (req, res, next) => {
     let option = req.query;
@@ -102,6 +103,24 @@ const getFile = (req, res, next) => {
         }
     );
 };
+
+function delFile(req, res, next) {
+    let options = {
+        uuid: req.params.id,
+        delDb: req.query.db == 'true',
+        pathName: req.query.name,
+        domain: req.query.domain
+    };
+
+    fileService.delFile(req.webitelUser, options, (err, fileDb) => {
+        if (err)
+            return next(err);
+
+        return res
+            .status(200)
+            .json(fileDb);
+    })
+}
 
 function sendResponse(response, responseStatus, responseHeaders, readable) {
     //console.dir(responseStatus);

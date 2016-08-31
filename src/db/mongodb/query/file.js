@@ -52,9 +52,14 @@ function addQuery(db) {
                     break;
                 default:
                     query = {
-                        "uuid": id,
-                        "content-type": contentType
+                        "uuid": id
                     };
+                    if (contentType)
+                        query["content-type"] = contentType;
+
+                    if (pathName)
+                        query['name'] = pathName;
+
                     break;
             }
 
@@ -68,6 +73,12 @@ function addQuery(db) {
             return db
                 .collection(fileCollectionName)
                 .insert(doc, cb)
+        },
+
+        deleteById: (id, cb) => {
+            return db
+                .collection(fileCollectionName)
+                .remove({_id: id}, cb)
         },
 
         getFilesStats: (uuid, domain, option, cb) => {

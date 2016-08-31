@@ -61,6 +61,20 @@ module.exports = class LocalStorage {
         })
     }
 
+    del (fileConf, cb) {
+        fs.lstat(fileConf.path, function (err, stat) {
+            if (err)
+                return cb(err);
+
+            if (!stat.isFile()) {
+                return cb(new CodeError(404, 'Bad file.'))
+            }
+            log.debug(`Delete file ${fileConf.path}`);
+
+            fs.unlink(fileConf.path, cb)
+        });
+    }
+
     validateConfig (config) {
         return !config || this.rootPath != config.rootPath || this.mask != config.maskPath;
 

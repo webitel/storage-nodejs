@@ -72,6 +72,15 @@ module.exports = class B2Storage {
         });
     }
 
+    del (fileConf, cb) {
+        this._isAuth((err) => {
+            if (err)
+                return cb(err);
+
+            return B2.delFile(this._authParams, fileConf, cb);
+        });
+    }
+
     validateConfig (config) {
         console.log('validate b2');
         return !config || this.accountId != config.accountId || this.bucketId != config.bucketId

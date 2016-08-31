@@ -55,7 +55,6 @@ const Service = module.exports = {
             if (caller.domain && caller.domain != fileDb.domain)
                 return cb(new CodeError(403, "Permission denied!"));
 
-
             let providerName = FILE_TYPES[fileDb.type];
 
             if (!providerName)
@@ -148,6 +147,9 @@ const Service = module.exports = {
             if (response.hasOwnProperty('bucketName'))
                 doc.bucketName = response.bucketName;
 
+            if (response.hasOwnProperty('storageFileId'))
+                doc.storageFileId = response.storageFileId;
+
             application.DB._query.file.insert(doc, (err) => {
                 if (err)
                     return cb(err);
@@ -161,6 +163,64 @@ const Service = module.exports = {
 
     stats: (caller, option, cb)  => {
         application.DB._query.file.getFilesStats(option.uuid, caller.domain || option.domain, option, cb);
+    },
+
+    delFile: (caller, option, cb) => {
+        let uuid = option.uuid;
+        application.DB._query.file.get(uuid, option.pathName, option.contentType, (err, res) => {
+            if (err)
+                return cb(err);
+
+            let fileDb = res && res[0];
+            if (!fileDb || !fileDb.path)
+                return cb(new CodeError(404, `File ${uuid} not found!`));
+
+            if (caller.domain && caller.domain != fileDb.domain)
+                return cb(new CodeError(403, "Permission denied!"));
+
+            let providerName = FILE_TYPES[fileDb.type];
+
+            if (!providerName)
+                return cb(new CodeError(500, `Bad file provider.`));
+
+            if (fileDb.private) {
+                application.DB._query.domain.getByName(fileDb.domain, 'storage', (err, domainConfig) => {
+                    if (err)
+                        return cb(err);
+
+                    if (useDefaultStorage(domainConfig)) {
+                        return cb(new CodeError(400, `Please set domain storage config!`))
+                    } else {
+                        let provider = getProvider(fileDb.domain, domainConfig.storage, providerName);
+
+                        if (!provider)
+                            return cb(new CodeError(400, `Bad provider config.`));
+
+                        return provider.del(fileDb, sendResponse);
+                    }
+                })
+            } else {
+                let provider = getProvider(DEF_ID, helper.DEFAULT_PROVIDERS_CONF, providerName);
+                if (!provider)
+                    return cb(new CodeError(400, `Bad provider config.`));
+                return provider.del(fileDb, sendResponse);
+            }
+
+            function sendResponse(err) {
+                if (err)
+                    return cb(err);
+
+                if (option.delDb) {
+                    return application.DB._query.file.deleteById(fileDb._id, (err) => {
+                        if (err)
+                            return cb(err);
+                        return cb(null, fileDb);
+                    });
+                } else {
+                    return cb(null, fileDb);
+                }
+            }
+        });
     }
 };
 

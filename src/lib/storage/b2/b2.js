@@ -38,6 +38,7 @@ const B2 = module.exports = {
             if (err)
                 return cb(err);
 
+            auth.apiHost = (auth.apiUrl || '').replace('https://', '');
             return B2.setUploadUrl(auth, args.bucketId, args.bucketName, cb)
         })
     },
@@ -94,6 +95,25 @@ const B2 = module.exports = {
 
     },
 
+    delFile: (credential, fileConf, cb) => {
+
+        let data = `{"fileId":"${fileConf.storageFileId}","fileName":"${getUrlEncodedFileName(fileConf.path)}"}`;
+
+        var requestParams = {
+            method: 'POST',
+            path: '/b2api/v1/b2_delete_file_version',
+            host: credential.apiHost,
+            headers: {
+                'Authorization': credential.authorizationToken,
+                'Content-Type': 'application/json; charset=utf-8',
+                'Content-Length': data.length
+            },
+            body: data
+        };
+
+        getJson(requestParams, cb);
+    },
+
     saveFile: (credential, fileConf, fileName, cb) => {
         let mime = fileConf.contentType,
             data = fileConf.data
@@ -117,28 +137,29 @@ const B2 = module.exports = {
             log.trace(`B2 upload status code `, res.statusCode);
 
             if (res.statusCode !== 200) {
-                log.error(`Upload params: ${requestParams}`);
+                log.error(`Upload params:`, requestParams);
                 return cb(new CodeError(res.statusCode, 'Auth error.'));
             }
 
             log.trace(`Save storage file path: ${fileName}`);
 
-            return cb(null, {
-                path: fileName,
-                type: TYPE_ID,
-                bucketName: credential.bucketName
+            let data = '';
+            res.on('data', function(chunk) {
+                data += chunk;
             });
-            // let data = '';
-            // res.on('data', function(chunk) {
-            //     data += chunk;
-            // });
-            // res.on('end', function() {
-            //     try {
-            //         return cb(null, JSON.parse(data));
-            //     } catch (e) {
-            //         return cb (e)
-            //     }
-            // });
+            res.on('end', function() {
+                try {
+                    let json = JSON.parse(data);
+                    return cb(null, {
+                        path: fileName,
+                        type: TYPE_ID,
+                        bucketName: credential.bucketName,
+                        storageFileId: json.fileId
+                    });
+                } catch (e) {
+                    return cb (e)
+                }
+            });
         });
         request.on('error', (e) => {
             log.error(e);
@@ -165,8 +186,8 @@ function getUrlEncodedFileName (fileName) {
 function getJson(requestParams, cb) {
     let data = '';
     let request = https.request(requestParams, (res) => {
-        if (res.statusCode !== 200)
-            return cb(new CodeError(res.statusCode, 'Auth error.'));
+        // if (res.statusCode !== 200)
+        //     return cb(new CodeError(res.statusCode, 'Auth error.'));
 
         res.once('error', cb);
         res.on('data', function(chunk) {
@@ -174,7 +195,7 @@ function getJson(requestParams, cb) {
         });
         res.on('end', function() {
             try {
-                return cb(null, JSON.parse(data));
+                return cb(res.statusCode !== 200 ? new Error(data) : null, JSON.parse(data));
             } catch (e) {
                 return cb (e)
             }
