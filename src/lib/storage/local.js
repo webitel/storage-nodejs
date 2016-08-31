@@ -49,7 +49,7 @@ module.exports = class LocalStorage {
                 return cb(err);
 
             let filePath = pathFolder + '/' + fileConf.name;
-            fs.copy(fileConf.path, filePath, {clobber: true}, function(err) {
+            copyFile(fileConf.path, filePath, () => {
                 if (err)
                     return cb(err);
                 log.trace(`Save file: ${filePath}`);
@@ -58,6 +58,7 @@ module.exports = class LocalStorage {
                     type: TYPE_ID
                 })
             });
+
         })
     }
 
@@ -80,3 +81,27 @@ module.exports = class LocalStorage {
 
     }
 };
+
+function copyFile(source, target, cb) {
+    let cbCalled = false;
+
+    let rd = fs.createReadStream(source);
+    rd.on("error", function(err) {
+        done(err);
+    });
+    var wr = fs.createWriteStream(target);
+    wr.on("error", function(err) {
+        done(err);
+    });
+    wr.on("close", function(ex) {
+        done();
+    });
+    rd.pipe(wr);
+
+    function done(err) {
+        if (!cbCalled) {
+            cb(err);
+            cbCalled = true;
+        }
+    }
+}
