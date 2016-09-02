@@ -53,7 +53,8 @@ const getFile = (req, res, next) => {
     let params = {
         contentType: contentType,
         pathName: pathName,
-        range: req.headers['range']
+        range: req.headers['range'],
+        dispositionName: dispositionName
     };
 
     fileService.getFileFromUUID(

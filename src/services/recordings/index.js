@@ -20,7 +20,8 @@ const Storage = require(__appRoot + '/lib/storage'),
 
 const STORAGES = {
     'local': Storage.LocalStorage,
-    'b2': Storage.B2Storage
+    'b2': Storage.B2Storage,
+    's3': Storage.S3Storage
 };
 
 if (!STORAGES.hasOwnProperty(helper.DEFAULT_PROVIDER_NAME))

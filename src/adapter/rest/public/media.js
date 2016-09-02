@@ -75,7 +75,7 @@ function getFile(req, res, next) {
         }
 
         if (!response || !response.source)
-            return next(`No source stream.`);
+            return next(new Error(`No source stream.`));
 
         return streaming(response.source, res, {
             dispositionName: dispositionName,

@@ -7,5 +7,6 @@
 module.exports = {
     LocalStorage: require('./local'),
     B2Storage: require('./b2'),
+    S3Storage: require('./s3'),
     helper: require('./helper')
 };
