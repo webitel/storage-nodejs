@@ -67,7 +67,7 @@ function getFile(req, res, next) {
         range: req.headers['range']
     };
 
-    let dispositionName;
+    let dispositionName = req.query.file_name;
 
     mediaService.get(req.webitelUser, options, (err, response) => {
         if (err) {

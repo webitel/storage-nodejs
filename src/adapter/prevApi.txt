@@ -2,7 +2,7 @@ private
 2016-08-23T14:16:42.672Z - info: [/home/igor/work/cdr/src/routes/index.js] Add: [PUT]: /sys/formLoadFile?:id +
 2016-08-23T14:16:42.672Z - info: [/home/igor/work/cdr/src/routes/index.js] Add: [POST]: /sys/cdr +
 2016-08-23T14:16:42.672Z - info: [/home/igor/work/cdr/src/routes/index.js] Add: [GET]: /sys/tts/:provider +
-2016-08-23T14:16:42.672Z - info: [/home/igor/work/cdr/src/routes/index.js] Add: [GET]: /sys/media/:type/:id
+2016-08-23T14:16:42.672Z - info: [/home/igor/work/cdr/src/routes/index.js] Add: [GET]: /sys/media/:type/:id +
 
 public
 2016-08-23T14:16:42.672Z - info: [/home/igor/work/cdr/src/routes/index.js] Add: [GET]: /sounds/:id         +
@@ -20,10 +20,10 @@ public
 2016-08-23T14:16:42.673Z - info: [/home/igor/work/cdr/src/routes/index.js] Add: [DELETE]: /api/v2/files/:id +
 
 
-2016-08-23T14:16:42.673Z - info: [/home/igor/work/cdr/src/routes/index.js] Add: [GET]: /api/v2/media/:type?
-2016-08-23T14:16:42.673Z - info: [/home/igor/work/cdr/src/routes/index.js] Add: [GET]: /api/v2/media/:type/:id
-2016-08-23T14:16:42.673Z - info: [/home/igor/work/cdr/src/routes/index.js] Add: [POST]: /api/v2/media/searches
-2016-08-23T14:16:42.673Z - info: [/home/igor/work/cdr/src/routes/index.js] Add: [POST]: /api/v2/media/:type?
-2016-08-23T14:16:42.673Z - info: [/home/igor/work/cdr/src/routes/index.js] Add: [POST]: /api/v2/media/local
-2016-08-23T14:16:42.673Z - info: [/home/igor/work/cdr/src/routes/index.js] Add: [DELETE]: /api/v2/media/:type/:name
-2016-08-23T14:16:42.673Z - info: [/home/igor/work/cdr/src/routes/index.js] Add: [PUT]: /api/v2/media/:type/:id
+2016-08-23T14:16:42.673Z - info: [/home/igor/work/cdr/src/routes/index.js] Add: [GET]: /api/v2/media/:type? +
+2016-08-23T14:16:42.673Z - info: [/home/igor/work/cdr/src/routes/index.js] Add: [GET]: /api/v2/media/:type/:id +
+2016-08-23T14:16:42.673Z - info: [/home/igor/work/cdr/src/routes/index.js] Add: [POST]: /api/v2/media/searches del
+2016-08-23T14:16:42.673Z - info: [/home/igor/work/cdr/src/routes/index.js] Add: [POST]: /api/v2/media/:type? +
+2016-08-23T14:16:42.673Z - info: [/home/igor/work/cdr/src/routes/index.js] Add: [POST]: /api/v2/media/local del
+2016-08-23T14:16:42.673Z - info: [/home/igor/work/cdr/src/routes/index.js] Add: [DELETE]: /api/v2/media/:type/:name +
+2016-08-23T14:16:42.673Z - info: [/home/igor/work/cdr/src/routes/index.js] Add: [PUT]: /api/v2/media/:type/:id del

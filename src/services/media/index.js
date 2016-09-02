@@ -127,7 +127,14 @@ const Service = module.exports = {
         if (!checkPermission(caller.acl, 'cdr/media', 'r'))
             return cb(new CodeError(403, 'Forbidden!'));
 
-        let domain = caller.domain || options.domain;
+        return Service._get(
+            caller.domain || options.domain,
+            options,
+            cb
+        );
+    },
+
+    _get: (domain, options, cb) => {
 
         if (!domain)
             return cb(new CodeError(400, 'Domain is required.'));
