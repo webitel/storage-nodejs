@@ -4,7 +4,8 @@
 
 "use strict";
 
-const fs = require('fs-extra'),
+const fsExtra = require('fs-extra'),
+    fs = require('fs'),
     log = require(__appRoot + '/lib/log')(module),
     CodeError = require(__appRoot + '/lib/error'),
     path = require('path'),
@@ -31,7 +32,7 @@ module.exports = class LocalStorage {
             let readable;
 
             if (options.range) {
-                readable = fs.createReadStream(fileDb.path, {flags: 'r', start: options.range.start, end: options.range.end })
+                readable = fs.createReadStream(fileDb.path, {flags: 'r', start: options.range.Start, end: options.range.End })
             } else {
                 readable = fs.createReadStream(fileDb.path, {flags: 'r'});
             }
@@ -42,9 +43,13 @@ module.exports = class LocalStorage {
         });
     }
 
+    getFilePath(domain, fileName) {
+        return path.join(this.rootPath, helper.getPath(this.mask, domain, fileName));
+    }
+
     save (fileConf, option, cb) {
         const pathFolder = path.join(this.rootPath, helper.getPath(this.mask, fileConf.domain));
-        fs.ensureDir(pathFolder, (err) => {
+        fsExtra.ensureDir(pathFolder, (err) => {
             if (err)
                 return cb(err);
 

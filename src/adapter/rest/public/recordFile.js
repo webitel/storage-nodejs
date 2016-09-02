@@ -5,6 +5,7 @@
 "use strict";
 
 const fileService = require(__appRoot + '/services/recordings'),
+    streaming = require(__appRoot + '/utils/http').streaming,
     log = require(__appRoot + '/lib/log')(module)
     ;
 
@@ -72,34 +73,12 @@ const getFile = (req, res, next) => {
             if (!response || !response.source)
                 return next(`No source stream.`);
 
-            let responseHeaders = {},
-                source = response.source;
-            if (dispositionName) {
-                responseHeaders['Content-disposition'] = `attachment;  filename=${dispositionName}`;
-            }
-
-            if (!params.range) {
-                responseHeaders['Content-Type'] = contentType;
-                responseHeaders['Content-Length'] = response.totalLength || 0;
-                responseHeaders['Accept-Ranges'] = 'bytes';
-                return sendResponse(res, 200, responseHeaders, source);
-            }
-
-            let start = params.range.Start,
-                end = params.range.End
-                ;
-
-            if (start >= response.totalLength || end >= response.totalLength) {
-                responseHeaders['Content-Range'] = 'bytes */' + response.totalLength; // File size.
-                return sendResponse(res, 416, responseHeaders, null);
-            }
-
-            responseHeaders['Content-Range'] = 'bytes ' + start + '-' + end + '/' + response.totalLength;
-            responseHeaders['Content-Length'] = start == end ? 0 : (end - start + 1);
-            responseHeaders['Content-Type'] = contentType;
-            responseHeaders['Accept-Ranges'] = 'bytes';
-            responseHeaders['Cache-Control'] = 'no-cache';
-            return sendResponse(res, 206, responseHeaders, source);
+            return streaming(response.source, res, {
+                dispositionName: dispositionName,
+                range: response.range,
+                contentType: contentType,
+                totalLength: response.totalLength
+            });
         }
     );
 };
@@ -120,16 +99,4 @@ function delFile(req, res, next) {
             .status(200)
             .json(fileDb);
     })
-}
-
-function sendResponse(response, responseStatus, responseHeaders, readable) {
-    //console.dir(responseStatus);
-    response.writeHead(responseStatus, responseHeaders);
-
-    if (readable == null)
-        response.end();
-    else
-        readable.pipe(response);
-
-    return null;
 }

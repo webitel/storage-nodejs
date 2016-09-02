@@ -3,6 +3,8 @@
  */
 
 "use strict";
+
+const join = require('path').join;
     
 module.exports = {
     getPath: (mask, domain, fileName) => {
@@ -18,7 +20,7 @@ module.exports = {
         ;
 
         if (fileName)
-            return `${path}/${fileName}`;
+            return join(path, fileName);
         else return path;
     }
 };

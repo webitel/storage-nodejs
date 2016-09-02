@@ -29,6 +29,7 @@ class Application extends EventEmitter2 {
             setInterval(function () {
                 gc();
                 console.log('----------------- GC -----------------');
+                console.dir(process.memoryUsage())
             }, 5000);
         }
 

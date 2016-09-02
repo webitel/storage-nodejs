@@ -5,6 +5,7 @@
 "use strict";
 
 const fs = require('fs'),
+    crypto = require('crypto'),
     generateUuid = require('node-uuid')
 ;
     
@@ -13,7 +14,7 @@ const Service = module.exports = {
         let pathFile = `cache/${generateUuid.v4()}_${fileName}`,
             stream = fs.createWriteStream(pathFile),
             result = {
-                data: new Buffer([]),
+                sha1: crypto.createHash('sha1'),
                 path: pathFile,
                 name: fileName,
                 contentType: req.headers['content-type'],
@@ -22,9 +23,10 @@ const Service = module.exports = {
             ;
         req.pipe(stream);
         req.on('data', (chunk) => {
-            result.data = Buffer.concat([result.data, chunk], result.data.length + chunk.length);
+            result.sha1.update(chunk);
         });
         req.on('end', () => {
+            result.sha1 = result.sha1.digest('hex');
             return cb(null, result)
         });
         req.on('error', cb);

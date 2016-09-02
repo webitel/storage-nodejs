@@ -14,6 +14,7 @@ const log = require(__appRoot + '/lib/log')(module),
     CodeError = require(__appRoot + '/lib/error'),
     https = require('https'),
     url = require('url'),
+    fs = require('fs'),
     crypto = require('crypto')
     ;
 
@@ -48,7 +49,7 @@ const B2 = module.exports = {
         let requestParams = {
             method: 'POST',
             path: '/b2api/v1/b2_get_upload_url',
-            host: credential.apiUrl.replace('https://', ''),
+            host: credential.apiHost,
             headers: {
                 'Authorization': credential.authorizationToken,
                 'Content-Length': body.length
@@ -77,13 +78,14 @@ const B2 = module.exports = {
                 'Authorization': credential.authorizationToken
             }
         };
-        if (range)
+        if (range) {
             option.headers['Range'] = `bytes=${range.Start}-${range.End}`;
+        }
 
         let request = https.request(option, (res) => {
             log.trace(`Response code get file: ${res.statusCode}`);
 
-            if (res.statusCode !== 200)
+            if (res.statusCode !== 200 && res.statusCode !== 206)
                 return cb(new CodeError(res.statusCode, 'Auth error.'));
 
             cb(null, res);
@@ -97,7 +99,7 @@ const B2 = module.exports = {
 
     delFile: (credential, fileConf, cb) => {
 
-        let data = `{"fileId":"${fileConf.storageFileId}","fileName":"${getUrlEncodedFileName(fileConf.path)}"}`;
+        let data = `{"fileId":"${fileConf.storageFileId}","fileName":"${fileConf.path.replace(/^\//, '')}"}`;
 
         var requestParams = {
             method: 'POST',
@@ -126,20 +128,14 @@ const B2 = module.exports = {
             headers: {
                 'Authorization': credential.uploadToken,
                 'Content-Type': mime || 'b2/x-auto',
-                'Content-Length': data.length,
-                'X-Bz-File-Name': fileName,
-                'X-Bz-Content-Sha1': data ? sha1(data) : null
-            },
-            body: data
+                'Content-Length': fileConf.contentLength,
+                'X-Bz-File-Name': getUrlEncodedFileName(fileName),
+                'X-Bz-Content-Sha1': fileConf.sha1 ? fileConf.sha1 : null
+            }
         };
 
         let request = https.request(requestParams, (res) => {
             log.trace(`B2 upload status code `, res.statusCode);
-
-            if (res.statusCode !== 200) {
-                log.error(`Upload params:`, requestParams);
-                return cb(new CodeError(res.statusCode, 'Auth error.'));
-            }
 
             log.trace(`Save storage file path: ${fileName}`);
 
@@ -149,6 +145,10 @@ const B2 = module.exports = {
             });
             res.on('end', function() {
                 try {
+                    if (res.statusCode != 200) {
+                        return cb(new CodeError(res.statusCode, data || "Internal error."));
+                    }
+
                     let json = JSON.parse(data);
                     return cb(null, {
                         path: fileName,
@@ -165,20 +165,18 @@ const B2 = module.exports = {
             log.error(e);
         });
 
-        if (requestParams.body) request.write(requestParams.body);
+        let rd = fs.createReadStream(fileConf.path);
+        rd.on("error", function(e) {
+            log.error(e);
+            return cb(e);
+        });
 
-        request.end();
+        rd.on('open', () => rd.pipe(request));
     }
 };
 
-function sha1(str) {
-    let hash = crypto.createHash('sha1');
-    hash.update(str);
-    return hash.digest('hex');
-}
-
 function getUrlEncodedFileName (fileName) {
-    return fileName.split('/')
+    return fileName.replace(/^\//, '').split('/')
         .map(encodeURIComponent)
         .join('/');
 }
