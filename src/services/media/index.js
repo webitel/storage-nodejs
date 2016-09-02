@@ -51,12 +51,20 @@ const Service = module.exports = {
         if (!domain)
             return (cb(new CodeError(400, 'Domain is required.')));
 
+        if (req.headers['content-length'] && +req.headers['content-length'] > helper.maxFileSize)
+            return cb(new CodeError(400, `Bad files size.`));
+
         let form = new formidable.IncomingForm()
             ;
 
         form.maxFieldsSize = helper.maxFileSize;
         form.uploadDir = 'cache/';
         form.hash = 'sha1';
+        form.on('error', (err) => {
+            log.error(err);
+            return cb(err)
+        });
+
         form.parse(req, function (err, fields, files) {
             let _files = [];
             for (let key in files) {

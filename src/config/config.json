@@ -17,8 +17,10 @@
     "collectionAuth": "authToken",
     "collectionEmail": "emailConfig",
     "collectionDomain": "domains",
+    "collectionMedia": "mediaFile",
     "collectionAgentStatus": "agentStatus"
   },
+  "replica": ["http://pre.webitel.com/cdr/"],
   "application": {
     "loglevel": "trace",
     "auth": {
@@ -27,17 +29,41 @@
     }
   },
   "recordFile": {
-    "defaultProvider": "b2",
+    "defaultProvider": "local",
     "maskPath": "$DOMAIN/$Y/$M/$D/$H",
 
     "providers": [
-
+      {
+        "type" : "b2",
+        "accountId" : "x",
+        "bucketId" : "x",
+        "applicationKey" : "x",
+        "bucketName" : "x"
+      },
+      {
+        "type": "local",
+        "fileRoot": "/tmp/"
+      }
     ]
   },
   "mediaFile": {
-    "fileRoot": "/STORAGE_ROOT/media/",
     "maxFieldsSizeMB": 5,
-    "collectionMedia": "mediaFile"
+    "defaultProvider": "local",
+    "maskPath": "/media/$DOMAIN",
+
+    "providers": [
+      {
+        "type" : "b2",
+        "accountId" : "x",
+        "bucketId" : "x",
+        "applicationKey" : "x",
+        "bucketName" : "x"
+      },
+      {
+        "type": "local",
+        "fileRoot": "/tmp/"
+      }
+    ]
   },
   "uploadAcl": {
     "mode": "allow",
