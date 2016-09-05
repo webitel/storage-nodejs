@@ -60,14 +60,15 @@ function listMedia(req, res, next) {
 }
 
 function getFile(req, res, next) {
+    let dispositionName = req.query.file_name;
+    
     let options = {
         domain: req.query.domain,
         type: req.params.type,
         name: req.params.name,
-        range: req.headers['range']
+        range: req.headers['range'],
+        dispositionName: dispositionName
     };
-
-    let dispositionName = req.query.file_name;
 
     mediaService.get(req.webitelUser, options, (err, response) => {
         if (err) {
@@ -79,7 +80,7 @@ function getFile(req, res, next) {
 
         return streaming(response.source, res, {
             dispositionName: dispositionName,
-            range: response.range,
+            range: options.range,
             contentType: response.contentType,
             totalLength: response.totalLength
         });

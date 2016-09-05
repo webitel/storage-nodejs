@@ -76,7 +76,7 @@ const getFile = (req, res, next) => {
 
             return streaming(response.source, res, {
                 dispositionName: dispositionName,
-                range: response.range,
+                range: params.range,
                 contentType: contentType,
                 totalLength: response.totalLength
             });

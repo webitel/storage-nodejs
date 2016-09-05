@@ -30,13 +30,13 @@ if (!STORAGES.hasOwnProperty(helper.DEFAULT_PROVIDER_NAME))
 
 let providers = {};
 
-for (let config of helper.DEFAULT_PROVIDERS_CONF.providers) {
-    if (providers.hasOwnProperty(config.type))
-        throw `Already exists config provider ${config.type}`;
+for (let key in helper.DEFAULT_PROVIDERS_CONF.providers) {
+    if (providers.hasOwnProperty(key))
+        throw `Already exists config provider ${key}`;
 
-    providers[config.type] = new STORAGES[config.type](config, helper.mask);
+    providers[key] = new STORAGES[key](helper.DEFAULT_PROVIDERS_CONF.providers[key], helper.mask);
 
-    log.info(`init provider ${config.type}`);
+    log.info(`init provider ${key}`);
 }
 log.info(`use default provider ${helper.DEFAULT_PROVIDER_NAME}`);
 
@@ -159,11 +159,8 @@ const Service = module.exports = {
             if (!provider)
                 return cb(new CodeError(500, `Not found provider.`));
 
-            let opt = {
-                range: null
-            };
             if (options.range) {
-                opt.range = httpUtil.readRangeHeader(options.range, data.size);
+                options.range = httpUtil.readRangeHeader(options.range, data.size);
             }
 
             // TODO
@@ -172,7 +169,6 @@ const Service = module.exports = {
 
             let result = {
                 source: null,
-                range: opt.range,
                 totalLength: data.size,
                 contentType: data.format
             };
@@ -181,7 +177,7 @@ const Service = module.exports = {
                 path: (data.path || provider.getFilePath(domain, data.name)),
                 bucketName: data.bucketName,
                 storageFileId: data.storageFileId
-            }, opt, (err, source) => {
+            }, options, (err, source) => {
                 if (err)
                     return cb(err);
                 result.source = source;

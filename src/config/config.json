@@ -32,38 +32,34 @@
     "defaultProvider": "local",
     "maskPath": "$DOMAIN/$Y/$M/$D/$H",
 
-    "providers": [
-      {
-        "type" : "b2",
-        "accountId" : "x",
-        "bucketId" : "x",
-        "applicationKey" : "x",
-        "bucketName" : "x"
+    "providers": {
+      "b2": {
+        "accountId" : "xx",
+        "bucketId" : "xx",
+        "applicationKey" : "xx",
+        "bucketName" : "xx"
       },
-      {
-        "type": "local",
+      "local": {
         "fileRoot": "/tmp/"
       }
-    ]
+    }
   },
   "mediaFile": {
     "maxFieldsSizeMB": 5,
     "defaultProvider": "local",
     "maskPath": "/media/$DOMAIN",
 
-    "providers": [
-      {
-        "type" : "b2",
-        "accountId" : "x",
-        "bucketId" : "x",
-        "applicationKey" : "x",
-        "bucketName" : "x"
+    "providers": {
+      "b2": {
+        "accountId" : "xx",
+        "bucketId" : "xx",
+        "applicationKey" : "xx",
+        "bucketName" : "xx"
       },
-      {
-        "type": "local",
+      "local": {
         "fileRoot": "/tmp/"
       }
-    ]
+    }
   },
   "uploadAcl": {
     "mode": "allow",

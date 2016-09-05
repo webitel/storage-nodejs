@@ -78,7 +78,7 @@ const B2 = module.exports = {
                 'Authorization': credential.authorizationToken
             }
         };
-        if (range) {
+        if (range && range.Start < range.End) {
             option.headers['Range'] = `bytes=${range.Start}-${range.End}`;
         }
 

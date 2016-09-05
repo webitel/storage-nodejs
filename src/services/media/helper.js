@@ -18,8 +18,7 @@ module.exports = {
     DEFAULT_PROVIDER_NAME: defProvider,
     DEFAULT_PROVIDERS_CONF: mediaFileConfig,
     getProviderConfigByName: (name) => {
-        for (let conf of providers)
-            if (conf.type === name)
-                return conf
+        if (providers.hasOwnProperty(name))
+            return providers[name];
     }
 };

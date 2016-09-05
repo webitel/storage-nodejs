@@ -61,14 +61,14 @@ const Service = module.exports = {
             if (!providerName)
                 return cb(new CodeError(500, `Bad file provider.`));
 
-            if (option.range) {
-                option.range = httpUtil.readRangeHeader(option.range, fileDb.size);
-            }
-
             let result = {
                 source: null,
                 totalLength: fileDb.size
             };
+
+            if (option.range) {
+                option.range = httpUtil.readRangeHeader(option.range, fileDb.size);
+            }
 
             if (fileDb.private) {
                 application.DB._query.domain.getByName(fileDb.domain, 'storage', (err, domainConfig) => {
@@ -245,11 +245,8 @@ function getProvider(domainName, storageConf, nameProvider) {
 }
 
 function findProviderConfigByName(providers, name) {
-    if (providers instanceof Array) {
-        for (let config of providers)
-            if (config.type === name)
-                return config;
-    }
+    if (providers.hasOwnProperty(name))
+        return providers[name];
 }
 
 function useDefaultStorage(domainConfig) {

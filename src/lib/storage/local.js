@@ -31,7 +31,7 @@ module.exports = class LocalStorage {
 
             let readable;
 
-            if (options.range) {
+            if (options.range && options.range.Start < options.range.End) {
                 readable = fs.createReadStream(fileDb.path, {flags: 'r', start: options.range.Start, end: options.range.End })
             } else {
                 readable = fs.createReadStream(fileDb.path, {flags: 'r'});
