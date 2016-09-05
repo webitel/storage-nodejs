@@ -35,6 +35,7 @@ const B2 = module.exports = {
                 'Authorization': `Basic ${new Buffer(args.accountId + ':' + args.applicationKey).toString('base64')}`
             }
         };
+        log.debug(`Try auth B2`);
         return getJson(requestParams, (err, auth) => {
             if (err)
                 return cb(err);

@@ -8,6 +8,7 @@ const log = require(__appRoot + '/lib/log')(module),
     CodeError = require(__appRoot + '/lib/error'),
     helper = require('../helper'),
     B2 = require('./b2'),
+    async = require('async'),
     TYPE_ID = 2;
 
 module.exports = class B2Storage {
@@ -20,6 +21,12 @@ module.exports = class B2Storage {
         this.mask = mask || "$Y/$M/$D/$H";
         this._expireToken = 0;
         this.name = "b2";
+        this._uploadQueue = async.queue( (fileConf, cb) => {
+            B2.saveFile(this._authParams, fileConf, helper.getPath(this.mask, fileConf.domain, fileConf.name), cb);
+        });
+        this._uploadQueue.drain = () => {
+            log.debug('All upload files done');
+        };
     }
 
     _isAuth (cb) {
@@ -68,7 +75,7 @@ module.exports = class B2Storage {
             if (err)
                 return cb(err);
 
-            return B2.saveFile(this._authParams, fileConf, helper.getPath(this.mask, fileConf.domain, fileConf.name), cb);
+            return this._uploadQueue.push(fileConf, cb)
         });
     }
 
