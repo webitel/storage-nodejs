@@ -12,6 +12,7 @@ const log = require(__appRoot + '/lib/log')(module),
 
 module.exports = class S3Storage {
     constructor (conf = {}, mask) {
+        this.name = 's3';
         this.mask = mask;
         this._bucketName = conf.bucketName;
         this._client = new aws.S3({
@@ -80,5 +81,19 @@ module.exports = class S3Storage {
             Bucket: fileConf.bucketName,
             Key: fileConf.path
         }, cb);
+    }
+
+    existsFile (fileConf, cb) {
+        let params = {
+            Bucket: fileConf.bucketName,
+            Key: fileConf.path
+        };
+
+        this._client.headObject(params, (err, data) => {
+            if (err && err.statusCode != 404)
+                return cb(err);
+
+            return cb(null, !!data)
+        })
     }
 };

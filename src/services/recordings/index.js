@@ -38,6 +38,8 @@ if (!defProvider)
     throw `Error create default provider ${helper.DEFAULT_PROVIDER_NAME}`;
 else log.info(`Set default provider ${helper.DEFAULT_PROVIDER_NAME} - OK`);
 
+let executeRemoveNonExistentFiles = false;
+
 const Service = module.exports = {
 
     getFileFromUUID: (caller, uuid, option, cb) => {
@@ -161,6 +163,96 @@ const Service = module.exports = {
     },
     
     // Public
+
+    removeNonExistentFiles: (caller, option, cb) => {
+        // TODO add acl
+        if (executeRemoveNonExistentFiles)
+            return cb(null, 'Process running.');
+        
+        if (caller.domain)
+            return cb(new CodeError(403, "Permission denied!"));
+
+
+        let startDate = option.from,
+            endDate = option.to,
+            deleteFileCount = 0;
+
+        if (!startDate || !endDate)
+            return cb(new CodeError(400, 'Bad date parameters'));
+
+        let stream = application.DB._query.file.getStreamByDateRange(startDate, endDate);
+        
+        function done(err) {
+            if (err) {
+                log.error(err);
+                executeRemoveNonExistentFiles = false;
+                return stream.close();
+            }
+            stream.resume();
+        }
+
+        stream.on('error', (err) => {
+            log.error(err);
+            executeRemoveNonExistentFiles = false;
+        });
+        stream.on('end', () => {
+            log.debug(`End stream.`);
+            executeRemoveNonExistentFiles = false;
+        });
+
+        stream.on('data', (fileDb) => {
+            let providerName = FILE_TYPES[fileDb.type];
+            if (!providerName)
+                return done(new Error(`Bad provider type: ${fileDb.type}`));
+
+            stream.pause();
+
+            if (fileDb.private) {
+                application.DB._query.domain.getByName(fileDb.domain, 'storage', (err, domainConfig) => {
+                    if (err)
+                        return done(err);
+
+                    if (!domainConfig || !domainConfig.storage) {
+                        log.warn(`Skip ${fileDb._id}, no configure domain storage ${fileDb.domain}`);
+                        return done(null);
+                    } else {
+                        existsData(getProvider(fileDb.domain, domainConfig.storage, providerName));
+                    }
+                })
+            } else {
+                existsData(getProvider(DEF_ID, helper.DEFAULT_PROVIDERS_CONF, providerName));
+            }
+
+            function existsData(provider) {
+                if (!provider) {
+                    log.warn(`Skip ${fileDb._id} not found provider  ${providerName}`);
+                    return done();
+                }
+                log.trace(`try exists file ${fileDb._id} from provider ${provider.name}`);
+                provider.existsFile(fileDb, (err, exists) => {
+                    if (err)
+                        return done(err);
+
+                    log[exists ? 'trace' : 'warn'](`file ${fileDb.uuid} ${fileDb.name}@${fileDb.domain} (${fileDb.private || false}) exists: ${exists}`);
+                    if (!exists) {
+                        console.log(`Try delete: `, fileDb);
+                        application.DB._query.file.deleteById(fileDb._id, (err) => {
+                            if (err)
+                                return done(err);
+                            deleteFileCount++;
+                            log.debug(`delete file ${fileDb.uuid} ${fileDb.name}@${fileDb.domain}`);
+                            done(null);
+                        });
+                    } else {
+                        done(null);
+                    }
+                });
+            }
+        });
+
+        executeRemoveNonExistentFiles = true;
+        cb(null, `Process start.`);
+    },
 
     stats: (caller, option, cb)  => {
         application.DB._query.file.getFilesStats(option.uuid, caller.domain || option.domain, option, cb);

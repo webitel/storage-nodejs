@@ -136,6 +136,21 @@ function addQuery(db) {
                     .collection(fileCollectionName)
                     .aggregate(aggr, cb);
             }
+        },
+
+        getStreamByDateRange: (start, end) => {
+            return db
+                .collection(fileCollectionName)
+                .find(
+                    {
+                        // "type": 0,
+                        "createdOn": {
+                            "$gte": start,
+                            "$lte": end
+                        }
+                    }
+                )
+                .stream()
         }
     }
 }

@@ -35,7 +35,7 @@ const B2 = module.exports = {
                 'Authorization': `Basic ${new Buffer(args.accountId + ':' + args.applicationKey).toString('base64')}`
             }
         };
-        log.debug(`Try auth B2`);
+        log.debug(`Try auth B2: ${args.accountId}`);
         return getJson(requestParams, (err, auth) => {
             if (err)
                 return cb(err);
@@ -96,6 +96,23 @@ const B2 = module.exports = {
         });
         request.end();
 
+    },
+
+    getFileInfo: (credential, fileId, cb) => {
+        let data = `{"fileId":"${fileId}"}`;
+        var requestParams = {
+            method: 'POST',
+            path: '/b2api/v1/b2_get_file_info',
+            host: credential.apiHost,
+            headers: {
+                'Authorization': credential.authorizationToken,
+                'Content-Type': 'application/json; charset=utf-8',
+                'Content-Length': data.length
+            },
+            body: data
+        };
+
+        getJson(requestParams, cb);
     },
 
     delFile: (credential, fileConf, cb) => {
@@ -194,7 +211,7 @@ function getJson(requestParams, cb) {
         });
         res.on('end', function() {
             try {
-                return cb(res.statusCode !== 200 ? new Error(data) : null, JSON.parse(data));
+                return cb(res.statusCode !== 200 ? new CodeError(res.statusCode, data) : null, JSON.parse(data));
             } catch (e) {
                 return cb (e)
             }

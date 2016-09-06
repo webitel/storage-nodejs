@@ -55,7 +55,7 @@ module.exports = class B2Storage {
             }
 
             this._expireToken = Date.now() + 21600000;
-            log.trace(`Set new auth ${conf.accountId}`);
+            log.trace(`Confirm auth ${conf.accountId}`);
             this._authParams = authParam;
             return cb && cb();
         });
@@ -85,6 +85,21 @@ module.exports = class B2Storage {
                 return cb(err);
 
             return B2.delFile(this._authParams, fileConf, cb);
+        });
+    }
+
+    existsFile (fileConf, cb) {
+        if (!fileConf.storageFileId)  {
+            return cb(null, false);
+        }
+
+        this._isAuth((err) => {
+            if (err)
+                return cb(err);
+
+            B2.getFileInfo(this._authParams, fileConf.storageFileId, (err, data) => {
+                return cb(err, data && data.hasOwnProperty('fileName'))
+            })
         });
     }
 

@@ -81,6 +81,15 @@ module.exports = class LocalStorage {
         });
     }
 
+    existsFile (fileConf, cb) {
+        fs.lstat(fileConf.path, (err, stats) => {
+            if (err)
+                return cb(null, false);
+
+            return cb(null, stats.isFile())
+        });
+    }
+
     validateConfig (config) {
         return !config || this.rootPath != config.rootPath || this.mask != config.maskPath;
 

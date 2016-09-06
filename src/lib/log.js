@@ -31,9 +31,9 @@ function getLogger(module) {
     return new (winston.Logger)({
         levels: logLevels.levels,
         colors: logLevels.colors,
-        filters: [(l, msg, meta) => {
-            return maskSecrets(msg, meta);
-        }],
+        // filters: [(l, msg, meta) => {
+        //     return maskSecrets(msg, meta);
+        // }],
         transports: [
             new winston.transports.Console({
                 colorize: 'all',

@@ -20,7 +20,9 @@ function addRoutes(api) {
     api.get('/api/v2/files/stats/:id?', stats);
     api.get('/api/v2/files/:id', getFile);
     api.delete('/api/v2/files/:id', delFile);
+    api.delete('/api/v2/files/utils/removeNonExistentFiles', removeNonExistentFiles);
 }
+
 const stats = (req, res, next) => {
     let option = req.query;
     option.uuid = req.params.id;
@@ -84,7 +86,7 @@ const getFile = (req, res, next) => {
     );
 };
 
-function delFile(req, res, next) {
+const delFile = (req, res, next) => {
     let options = {
         uuid: req.params.id,
         delDb: req.query.db == 'true',
@@ -100,4 +102,23 @@ function delFile(req, res, next) {
             .status(200)
             .json(fileDb);
     })
-}
+};
+
+const removeNonExistentFiles = (req, res, next) => {
+    let options = {
+        from: req.body.from,
+        to: req.body.to
+    };
+
+    fileService.removeNonExistentFiles(req.webitelUser, options, (err, result) => {
+        if (err)
+            return next(err);
+
+        return res
+            .status(200)
+            .json({
+                "status": "OK",
+                "info": result
+            })
+    })
+};
