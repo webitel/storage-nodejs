@@ -168,7 +168,7 @@ const Service = module.exports = {
         // TODO add acl
         if (executeRemoveNonExistentFiles)
             return cb(null, 'Process running.');
-        
+
         if (caller.domain)
             return cb(new CodeError(403, "Permission denied!"));
 
@@ -235,7 +235,6 @@ const Service = module.exports = {
 
                     log[exists ? 'trace' : 'warn'](`file ${fileDb.uuid} ${fileDb.name}@${fileDb.domain} (${fileDb.private || false}) exists: ${exists}`);
                     if (!exists) {
-                        console.log(`Try delete: `, fileDb);
                         application.DB._query.file.deleteById(fileDb._id, (err) => {
                             if (err)
                                 return done(err);

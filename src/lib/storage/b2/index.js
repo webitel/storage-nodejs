@@ -97,8 +97,14 @@ module.exports = class B2Storage {
             if (err)
                 return cb(err);
 
-            B2.getFileInfo(this._authParams, fileConf.storageFileId, (err, data) => {
-                return cb(err, data && data.hasOwnProperty('fileName'))
+            B2.getFileInfo(this._authParams, fileConf.storageFileId, (err) => {
+                if (err && err.status === 404) {
+                    return cb(null, false)
+                } else if (err) {
+                    return cb(err);
+                } else {
+                    return cb(null, true);
+                }
             })
         });
     }
