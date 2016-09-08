@@ -144,7 +144,7 @@ const Service = module.exports = {
                 "private": fileConf.private === true,
                 "content-type": fileConf.contentType,
                 "type": response.type,
-                "createdOn": Date.now(),
+                "createdOn": new Date(),
                 "size": fileConf.contentLength
             };
             if (response.hasOwnProperty('bucketName'))
@@ -173,9 +173,10 @@ const Service = module.exports = {
             return cb(new CodeError(403, "Permission denied!"));
 
 
-        let startDate = option.from,
-            endDate = option.to,
+        let startDate = new Date(option.from),
+            endDate = new Date(option.to),
             deleteFileCount = 0;
+
 
         if (!startDate || !endDate)
             return cb(new CodeError(400, 'Bad date parameters'));
