@@ -14,6 +14,7 @@ module.exports = class S3Storage {
     constructor (conf = {}, mask) {
         this.name = 's3';
         this.mask = mask;
+        this._conf = conf;
         this._bucketName = conf.bucketName;
         this._client = new aws.S3({
             signatureVersion: conf.signatureVersion || 'v4',
@@ -21,6 +22,11 @@ module.exports = class S3Storage {
             secretAccessKey: conf.secretAccessKey,
             region: conf.region
         });
+    }
+
+    checkConfig (conf = {}, mask) {
+        return this.mask == mask && this._conf.accessKeyId == conf.accessKeyId && this._conf.secretAccessKey == conf.secretAccessKey
+            && this._bucketName == conf.bucketName
     }
 
     get (fileDb, options, cb) {

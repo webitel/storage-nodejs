@@ -109,10 +109,8 @@ module.exports = class B2Storage {
         });
     }
 
-    validateConfig (config) {
-        console.log('validate b2');
-        return !config || this.accountId != config.accountId || this.bucketId != config.bucketId
-            || this.bucketName != config.bucketName || this.applicationKey != config.applicationKey
-
+    checkConfig (conf = {}, mask) {
+        return this.mask == mask && this.accountId == conf.accountId && this.bucketId == conf.bucketId
+            && this.bucketName == conf.bucketName && this.applicationKey == conf.applicationKey
     }
 };

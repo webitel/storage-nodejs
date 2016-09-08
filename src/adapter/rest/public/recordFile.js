@@ -20,6 +20,7 @@ function addRoutes(api) {
     api.get('/api/v2/files/stats/:id?', stats);
     api.get('/api/v2/files/:id', getFile);
     api.delete('/api/v2/files/:id', delFile);
+    // api.delete('/api/v2/files/cache/:domain', flushCache);
     api.delete('/api/v2/files/utils/removeNonExistentFiles', removeNonExistentFiles);
 }
 
@@ -121,4 +122,8 @@ const removeNonExistentFiles = (req, res, next) => {
                 "info": result
             })
     })
+};
+
+const flushCache = (req, res, next) => {
+    
 };

@@ -77,7 +77,7 @@ const Service = module.exports = {
                     if (err)
                         return cb(err);
 
-                    if (useDefaultStorage(domainConfig)) {
+                    if (!domainConfig || !domainConfig.storage) {
                         return cb(new CodeError(400, `Please set domain storage config!`))
                     } else {
                         let provider = getProvider(fileDb.domain, domainConfig.storage, providerName);
@@ -280,7 +280,7 @@ const Service = module.exports = {
                     if (err)
                         return cb(err);
 
-                    if (useDefaultStorage(domainConfig)) {
+                    if (!domainConfig || !domainConfig.storage) {
                         return cb(new CodeError(400, `Please set domain storage config!`))
                     } else {
                         let provider = getProvider(fileDb.domain, domainConfig.storage, providerName);
@@ -322,6 +322,15 @@ function getProvider(domainName, storageConf, nameProvider) {
         id = `${domainName}_${name}`;
 
     let provider = cache.get(id);
+    if (provider) {
+        let newConf = findProviderConfigByName(storageConf.providers, name);
+        if (!provider.checkConfig(newConf, storageConf.maskPath)) {
+            log.debug(`recreate storage id: ${id}`);
+            cache.remove(id);
+            provider = null;
+        }
+    }
+
     if (!provider && STORAGES[name]) {
         let configProvider = findProviderConfigByName(storageConf.providers, name);
 
@@ -336,10 +345,11 @@ function getProvider(domainName, storageConf, nameProvider) {
 }
 
 function findProviderConfigByName(providers, name) {
-    if (providers.hasOwnProperty(name))
+    if (providers && providers.hasOwnProperty(name))
         return providers[name];
 }
 
 function useDefaultStorage(domainConfig) {
-    return !domainConfig || !domainConfig.storage || domainConfig.storage.defaultProvider == 'local' || !STORAGES[domainConfig.storage.defaultProvider]
+    return !domainConfig || !domainConfig.storage || !domainConfig.storage.defaultProvider
+        || domainConfig.storage.defaultProvider == 'local' || !STORAGES[domainConfig.storage.defaultProvider]
 }
