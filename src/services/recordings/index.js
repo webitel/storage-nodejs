@@ -13,7 +13,7 @@ const Storage = require(__appRoot + '/lib/storage'),
     CodeError = require(__appRoot + '/lib/error'),
     httpUtil = require(__appRoot + '/utils/http'),
     
-    FILE_TYPES = ['local', 's3', 'b2'],
+    FILE_TYPES = ['local', 's3', 'b2', 'gDrive'],
     DEF_ID = '_default_'
     ;
 
@@ -21,7 +21,8 @@ const Storage = require(__appRoot + '/lib/storage'),
 const STORAGES = {
     'local': Storage.LocalStorage,
     'b2': Storage.B2Storage,
-    's3': Storage.S3Storage
+    's3': Storage.S3Storage,
+    'gDrive': Storage.GDriveStorage
 };
 
 if (!STORAGES.hasOwnProperty(helper.DEFAULT_PROVIDER_NAME))
