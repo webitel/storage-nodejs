@@ -54,8 +54,8 @@ module.exports = {
                     "extension": {},
                     "times": {}
                 };
-            //console.log(('' + record.variables.duration).toHHMMSS());
-            //console.log(('' + record.variables.billsec).toHHMMSS());
+
+            let bridgeEpoch = +record.variables.bridge_epoch || +record.variables.cc_queue_answered_epoch || 0;
 
             record["Call start time"] = record.variables.start_stamp; // +
             record["Call answer time"] = record.variables.answer_stamp; // +
@@ -68,8 +68,8 @@ module.exports = {
             record["Connected call duration"] = record.variables.billsec; // +
             //record["Connected call duration"] = ('' + record.variables.billsec).toHHMMSS(); // +- todo
             record["Call end time"] = record.variables.end_stamp; // +
-            if (record.variables.bridge_epoch > 0)
-                record["Bridge time"] = record.variables.bridge_epoch * 1000; // +
+            if (bridgeEpoch > 0)
+                record["Bridge time"] = bridgeEpoch * 1000; // +
 
             record["Progress time"] = record.variables.progress_stamp; // +
             //record["Dialed User"] = record.variables.dialed_user; // +
@@ -110,15 +110,15 @@ module.exports = {
             record["User ID"] = record.variables.presence_id && ('' + record.variables.presence_id).split('@')[0]; // +
             record["Destination User"] = record.variables.dialed_user && ('' + record.variables.dialed_user).split('@')[0]; // +
 
-            record["Bridged"] = record.variables.bridge_epoch > 0;
+            record["Bridged"] = bridgeEpoch > 0;
 
             record["Ring Duration"] = (record.variables['answer_epoch'] > 0)
                 ? record.variables['answer_epoch'] - record.variables['start_epoch']
                 : record.variables['end_epoch'] - record.variables['start_epoch']
             ;
 
-            record["Before Bridge Delay"] = (record.variables.bridge_epoch > 0)
-                ? record.variables.bridge_epoch - record.variables.start_epoch
+            record["Before Bridge Delay"] = (bridgeEpoch > 0)
+                ? bridgeEpoch - record.variables.start_epoch
                 : 0
             ;
 
