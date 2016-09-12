@@ -135,8 +135,7 @@ const B2 = module.exports = {
     },
 
     saveFile: (credential, fileConf, fileName, cb) => {
-        let mime = fileConf.contentType,
-            data = fileConf.data
+        let mime = fileConf.contentType
             ;
 
         var requestParams = {

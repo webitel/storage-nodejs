@@ -9,5 +9,6 @@ module.exports = {
     B2Storage: require('./b2'),
     S3Storage: require('./s3'),
     GDriveStorage: require('./gdrive'),
+    DropBoxStorage: require('./dropBox'),
     helper: require('./helper')
 };

@@ -13,7 +13,7 @@ const Storage = require(__appRoot + '/lib/storage'),
     CodeError = require(__appRoot + '/lib/error'),
     httpUtil = require(__appRoot + '/utils/http'),
     
-    FILE_TYPES = ['local', 's3', 'b2', 'gDrive'],
+    FILE_TYPES = ['local', 's3', 'b2', 'gDrive', 'dropBox'],
     DEF_ID = '_default_'
     ;
 
@@ -22,7 +22,8 @@ const STORAGES = {
     'local': Storage.LocalStorage,
     'b2': Storage.B2Storage,
     's3': Storage.S3Storage,
-    'gDrive': Storage.GDriveStorage
+    'gDrive': Storage.GDriveStorage,
+    'dropBox': Storage.DropBoxStorage
 };
 
 if (!STORAGES.hasOwnProperty(helper.DEFAULT_PROVIDER_NAME))
@@ -215,7 +216,7 @@ const Service = module.exports = {
                         return done(err);
 
                     if (!domainConfig || !domainConfig.storage) {
-                        log.warn(`Skip ${fileDb._id}, no configure domain storage ${fileDb.domain}`);
+                        log.warn(`Skip ${fileDb._id}, no configure ${FILE_TYPES[fileDb.type] || fileDb.type} domain storage ${fileDb.domain}`);
                         return done(null);
                     } else {
                         existsData(getProvider(fileDb.domain, domainConfig.storage, providerName));
@@ -227,7 +228,7 @@ const Service = module.exports = {
 
             function existsData(provider) {
                 if (!provider) {
-                    log.warn(`Skip ${fileDb._id} not found provider  ${providerName}`);
+                    log.warn(`Skip ${fileDb._id} not found provider ${providerName}`);
                     return done();
                 }
                 log.trace(`try exists file ${fileDb._id} from provider ${provider.name}`);
@@ -340,6 +341,7 @@ function getProvider(domainName, storageConf, nameProvider) {
             return null;
 
         provider = new STORAGES[name](configProvider, configProvider.maskPath || storageConf.maskPath);
+        log.debug(`add storage id: ${id}`);
         cache.add(id, provider);
     }
 
