@@ -138,7 +138,7 @@ function addQuery(db) {
             }
         },
 
-        getStreamByDateRange: (start, end) => {
+        getStreamByDateRange: (start, end, columns) => {
             return db
                 .collection(fileCollectionName)
                 .find(
@@ -148,7 +148,8 @@ function addQuery(db) {
                             "$gte": start,
                             "$lte": end
                         }
-                    }
+                    },
+                    columns
                 )
                 .stream()
         }

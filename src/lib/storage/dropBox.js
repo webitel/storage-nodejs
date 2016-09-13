@@ -151,6 +151,8 @@ module.exports = class DropBoxStorage {
             "path": fileDb.path
         });
 
+        log.debug(`try delete file: ${fileDb.uuid}`);
+
         let request = https.request(requestParams, (res) => {
             log.trace(`Response code delete file: ${res.statusCode}`);
 

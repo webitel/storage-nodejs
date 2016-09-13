@@ -22,6 +22,7 @@ function addRoutes(api) {
     api.delete('/api/v2/files/:id', delFile);
     // api.delete('/api/v2/files/cache/:domain', flushCache);
     api.delete('/api/v2/files/utils/removeNonExistentFiles', removeNonExistentFiles);
+    api.delete('/api/v2/files/utils/removeFiles', removeFiles);
 }
 
 const stats = (req, res, next) => {
@@ -122,6 +123,28 @@ const removeNonExistentFiles = (req, res, next) => {
                 "info": result
             })
     })
+};
+
+const removeFiles = (req, res, next) => {
+    let options = {
+        from: req.body.from,
+        to: req.body.to
+    };
+    fileService.removeFileRange(
+        req.webitelUser,
+        options,
+        (err, result) => {
+            if (err)
+                return next(err);
+
+            return res
+                .status(200)
+                .json({
+                    "status": "OK",
+                    "info": result
+                })
+        }
+    )
 };
 
 const flushCache = (req, res, next) => {

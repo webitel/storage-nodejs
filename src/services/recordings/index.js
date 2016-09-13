@@ -40,7 +40,8 @@ if (!defProvider)
     throw `Error create default provider ${helper.DEFAULT_PROVIDER_NAME}`;
 else log.info(`Set default provider ${helper.DEFAULT_PROVIDER_NAME} - OK`);
 
-let executeRemoveNonExistentFiles = false;
+let executeRemoveNonExistentFiles = false,
+    executeRemoveFiles = false;
 
 const Service = module.exports = {
 
@@ -165,6 +166,55 @@ const Service = module.exports = {
     },
     
     // Public
+    removeFileRange: (caller, options = {}, cb) => {
+        if (executeRemoveFiles)
+            return cb(null, 'Process running.');
+
+        if (caller.domain)
+            return cb(new CodeError(403, "Permission denied!"));
+
+
+        let startDate = new Date(options.from),
+            endDate = new Date(options.to);
+
+        if (!startDate || !endDate)
+            return cb(new CodeError(400, 'Bad date parameters'));
+
+        let stream = application.DB._query.file.getStreamByDateRange(startDate, endDate);
+        log.warn(`remove files range from ${startDate} to ${endDate}`);
+
+        function done(err, res) {
+            if (err) {
+                log.error(err);
+                // executeRemoveFiles = false;
+                // return stream.close();
+            }
+            stream.resume();
+        }
+
+        stream.on('error', (err) => {
+            log.error(err);
+            executeRemoveFiles = false;
+        });
+        stream.on('end', () => {
+            log.debug(`End stream.`);
+            executeRemoveFiles = false;
+        });
+
+        stream.on('data', (fileDb) => {
+            let providerName = FILE_TYPES[fileDb.type];
+            if (!providerName)
+                return done(new Error(`Bad provider type: ${fileDb.type}`));
+
+            stream.pause();
+
+            Service._delFile(providerName, fileDb, { delDb: true}, done);
+        });
+
+
+        executeRemoveFiles = true;
+        cb(null, `Process start.`);
+    },
 
     removeNonExistentFiles: (caller, option, cb) => {
         // TODO add acl
@@ -260,6 +310,46 @@ const Service = module.exports = {
         application.DB._query.file.getFilesStats(option.uuid, caller.domain || option.domain, option, cb);
     },
 
+    _delFile: (providerName, fileDb, option, cb) => {
+        if (fileDb.private) {
+            application.DB._query.domain.getByName(fileDb.domain, 'storage', (err, domainConfig) => {
+                if (err)
+                    return cb(err);
+
+                if (!domainConfig || !domainConfig.storage) {
+                    return cb(new CodeError(400, `Please set domain storage config!`))
+                } else {
+                    let provider = getProvider(fileDb.domain, domainConfig.storage, providerName);
+
+                    if (!provider)
+                        return cb(new CodeError(400, `Bad provider config.`));
+
+                    return provider.del(fileDb, sendResponse);
+                }
+            })
+        } else {
+            let provider = getProvider(DEF_ID, helper.DEFAULT_PROVIDERS_CONF, providerName);
+            if (!provider)
+                return cb(new CodeError(400, `Bad provider config.`));
+            return provider.del(fileDb, sendResponse);
+        }
+
+        function sendResponse(err) {
+            if (err)
+                return cb(err);
+
+            if (option.delDb) {
+                return application.DB._query.file.deleteById(fileDb._id, (err) => {
+                    if (err)
+                        return cb(err);
+                    return cb(null, fileDb);
+                });
+            } else {
+                return cb(null, fileDb);
+            }
+        }
+    },
+
     delFile: (caller, option, cb) => {
         let uuid = option.uuid;
         application.DB._query.file.get(uuid, option.pathName, option.contentType, (err, res) => {
@@ -278,43 +368,7 @@ const Service = module.exports = {
             if (!providerName)
                 return cb(new CodeError(500, `Bad file provider.`));
 
-            if (fileDb.private) {
-                application.DB._query.domain.getByName(fileDb.domain, 'storage', (err, domainConfig) => {
-                    if (err)
-                        return cb(err);
-
-                    if (!domainConfig || !domainConfig.storage) {
-                        return cb(new CodeError(400, `Please set domain storage config!`))
-                    } else {
-                        let provider = getProvider(fileDb.domain, domainConfig.storage, providerName);
-
-                        if (!provider)
-                            return cb(new CodeError(400, `Bad provider config.`));
-
-                        return provider.del(fileDb, sendResponse);
-                    }
-                })
-            } else {
-                let provider = getProvider(DEF_ID, helper.DEFAULT_PROVIDERS_CONF, providerName);
-                if (!provider)
-                    return cb(new CodeError(400, `Bad provider config.`));
-                return provider.del(fileDb, sendResponse);
-            }
-
-            function sendResponse(err) {
-                if (err)
-                    return cb(err);
-
-                if (option.delDb) {
-                    return application.DB._query.file.deleteById(fileDb._id, (err) => {
-                        if (err)
-                            return cb(err);
-                        return cb(null, fileDb);
-                    });
-                } else {
-                    return cb(null, fileDb);
-                }
-            }
+            return Service._delFile(providerName, fileDb, option, cb);
         });
     }
 };
