@@ -17,6 +17,11 @@ const Service = module.exports = {
     save: (cdrData, callback) => {
         let data = replaceVariables(cdrData);
 
+        if (data.variables && data.variables.loopback_leg == "A") {
+            log.debug(`Skip leg A ${data.variables.uuid}`);
+            return callback(null);
+        }
+
         async.waterfall(
             [
                 (cb) => {
