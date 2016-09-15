@@ -5,12 +5,23 @@
 "use strict";
 
 // Include the cluster module
-var cluster = require('cluster'),
+let cluster = require('cluster'),
+    countWorker = parseInt(process.env['COUNT']),
     crashCount = 1;
+
+if (isFinite(countWorker)) {
+    if (countWorker === 0)
+        countWorker = require('os').cpus().length
+} else {
+    countWorker = 1;
+}
 
 // Code to run if we're in the master process
 if (cluster.isMaster) {
-    cluster.fork();
+
+    for (var i = 0; i < countWorker; i++) {
+        cluster.fork();
+    }
 
     // Listen for dying workers
     cluster.on('exit', function (worker) {
