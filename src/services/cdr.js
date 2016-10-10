@@ -6,6 +6,7 @@
 
 const log = require(__appRoot + '/lib/log')(module),
     checkPermission = require(__appRoot + '/utils/acl'),
+    recordingsService = require('./recordings'),
     CodeError = require(__appRoot + '/lib/error'),
     async = require('async')
     ;
@@ -129,6 +130,74 @@ const Service = module.exports = {
             query,
             cb
         );
+    },
+    
+    remove: (caller, option, callback) => {
+        const {uuid} = option;
+        let domain = caller.domain,
+            docId;
+        recordingsService.getFileFromUUID(caller, uuid, {contentType: 'all'}, (err, files) => {
+            if (err)
+                return callback(err);
+
+
+            const delCdr = () => {
+                async.waterfall(
+                    [
+
+                        (cb) => {
+                            if (application.elastic) {
+                                application.elastic.findByUuid(uuid, domain || "", (err, res) => {
+                                    if (err)
+                                        return cb(err);
+
+                                    const data = res && res.hits && res.hits.hits;
+                                    if (data && data.length > 0) {
+                                        docId = data[0]._id;
+                                        application.elastic.removeCdr(docId, data[0]._index, err => cb(err));
+                                    } else {
+                                        return cb();
+                                    }
+                                });
+                            } else {
+                                return cb(null)
+                            }
+                        },
+
+                        (cb) => {
+                            application.DB._query.cdr.remove(uuid, cb);
+                        }
+                    ],
+                    callback
+                );
+            };
+
+            if (files instanceof Array && files.length > 0) {
+                async.eachSeries(files,
+                    (item, cb) => {
+                        const providerName = recordingsService.getProviderNameFromFile(item);
+                        domain = item.domain;
+                        if (!providerName) {
+                            log.warn(`skip: not found provider`);
+                            return cb(null)
+                        }
+                        recordingsService._delFile(providerName, item, {delDb: true}, (err) => {
+                            if (err)
+                                log.error(err);
+                            return cb(null);
+                        });
+                    },
+                    (err) => {
+                        if (err)
+                            log.error(err);
+
+                        return delCdr();
+                    }
+                );
+            } else {
+                delCdr()
+            }
+        })
     }
     
 };

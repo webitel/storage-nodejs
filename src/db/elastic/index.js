@@ -161,6 +161,32 @@ class ElasticClient extends EventEmitter2 {
             body: _record
         }, cb);
     }
+
+    findByUuid (uuid, domain, cb) {
+        this.client.search(
+            {
+                index: `cdr-*${domain ? '-' + domain : '' }`,
+                size: 1,
+                _source: false,
+                body: {
+                    "query": {
+                        "term": {
+                            "variables.uuid": uuid
+                        }
+                    }
+                }
+            },
+            cb
+        )
+    }
+
+    removeCdr (id, indexName = "", cb) {
+        this.client.delete({
+            index: indexName,
+            type: 'collection',
+            id: id
+        }, cb)
+    }
 }
     
 module.exports = ElasticClient;

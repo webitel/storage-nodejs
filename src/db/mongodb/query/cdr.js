@@ -78,6 +78,19 @@ function addQuery(db) {
             return {
                 "$and": filterArray
             };
+        },
+
+        remove: (uuid, cb) => {
+            return db
+                .collection(cdrCollectionName)
+                .remove({"variables.uuid": uuid}, cb);
+
+        },
+
+        getIdFromUuid: (uuid, cb) => {
+            return db
+                .collection(cdrCollectionName)
+                .findOne({"variables.uuid": uuid}, {_id: 1, "variables.domain_name": 1}, cb);
         }
     }
 }

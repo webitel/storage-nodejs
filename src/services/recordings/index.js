@@ -370,6 +370,10 @@ const Service = module.exports = {
 
             return Service._delFile(providerName, fileDb, option, cb);
         });
+    },
+
+    getProviderNameFromFile: (file = {}) => {
+        return FILE_TYPES[file.type];
     }
 };
 

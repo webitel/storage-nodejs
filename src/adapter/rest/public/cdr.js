@@ -20,6 +20,8 @@ function addRoutes(api) {
     api.post('/api/v2/cdr/text', getElasticData);
     api.post('/api/v2/cdr/searches', searches);
     api.post('/api/v2/cdr/counts', count);
+
+    api.delete('/api/v2/cdr/:uuid', remove)
 }
 
 function getElasticData(req, res, next) {
@@ -56,6 +58,19 @@ function count(req, res, next) {
     };
 
     cdrService.count(req.webitelUser, option, (err, data) => {
+        if (err)
+            return next(err);
+
+        res.json(data);
+    })
+}
+
+function remove(req, res, next) {
+    let option = {
+        uuid: req.params.uuid
+    };
+
+    cdrService.remove(req.webitelUser, option, (err, data) => {
         if (err)
             return next(err);
 
