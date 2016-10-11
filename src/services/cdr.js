@@ -136,6 +136,11 @@ const Service = module.exports = {
         const {uuid} = option;
         let domain = caller.domain,
             docId;
+
+        if (!checkPermission(caller.acl, 'cdr', 'd')) {
+            return callback(new CodeError(403, "Permission denied!"))
+        }
+
         recordingsService.getFileFromUUID(caller, uuid, {contentType: 'all'}, (err, files) => {
             if (err)
                 return callback(err);
