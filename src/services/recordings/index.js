@@ -159,7 +159,19 @@ const Service = module.exports = {
             application.DB._query.file.insert(doc, (err) => {
                 if (err)
                     return cb(err);
-                return cb(err, fileConf);
+
+                if (application.elastic) {
+                    application.elastic.insertFile({
+                        variables: {uuid: doc.uuid, domain_name: doc.domain},
+                        recordings: [doc]
+                    }, (err) => {
+                        if (err)
+                            log.error(err);
+                        return cb(null, fileConf);
+                    })
+                } else {
+                    return cb(err, fileConf);
+                }
             });
         }
 

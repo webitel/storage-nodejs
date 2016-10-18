@@ -55,6 +55,7 @@ const Service = module.exports = {
                 size: limit,
                 _source: columns,
                 fields: columns,
+                ignoreUnavailable: true,
                 from: pageNumber > 0 ? ((pageNumber - 1) * limit) : 0, //Number — Starting offset (default: 0)
                 body: {
                     "fielddata_fields": columnsDate,

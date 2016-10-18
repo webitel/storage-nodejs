@@ -12,7 +12,8 @@ const elasticsearch = require('elasticsearch'),
 ;
 
 const CDR_NAME = 'cdr*',
-    MAX_RESULT_WINDOW = 2147483647;
+    MAX_RESULT_WINDOW = 2147483647,
+    CDR_TYPE_NAME = 'collection1';
 
 class ElasticClient extends EventEmitter2 {
     constructor (config) {
@@ -151,14 +152,41 @@ class ElasticClient extends EventEmitter2 {
         let currentDate = new Date(),
             indexName = `cdr-${currentDate.getMonth() + 1}.${currentDate.getFullYear()}`,
             _record = setCustomAttribute(doc),
-            _id = _record._id.toString();
+            _id = (_record.variables && _record.variables.uuid) || _record._id.toString();
         delete _record._id;
 
-        this.client.create({
+        this.client.update({
             index: (indexName + (doc.variables.domain_name ? '-' + doc.variables.domain_name : '')).toLowerCase(),
-            type: 'collection',
+            type: CDR_TYPE_NAME,
             id: _id,
-            body: _record
+            body: {
+                doc: _record,
+                parent: _id,
+                doc_as_upsert: true
+            }
+        }, cb);
+    }
+
+    insertFile (doc, cb) {
+        let currentDate = new Date(),
+            indexName = `cdr-${currentDate.getMonth() + 1}.${currentDate.getFullYear()}`,
+            _record = doc,
+            _id = _record.variables && _record.variables.uuid;
+
+        this.client.update({
+            index: (indexName + (doc.variables.domain_name ? '-' + doc.variables.domain_name : '')).toLowerCase(),
+            type: CDR_TYPE_NAME,
+            id: _id,
+            body: {
+                // parent: _id,
+                "script" : {
+                    "inline": "if (ctx._source[\"recordings\"] == null) { ctx._source.recordings = rec } else {  ctx._source.recordings += rec}",
+                    "params" : {
+                        "rec" : doc.recordings
+                    }
+                },
+                upsert: _record
+            }
         }, cb);
     }
 
@@ -183,7 +211,7 @@ class ElasticClient extends EventEmitter2 {
     removeCdr (id, indexName = "", cb) {
         this.client.delete({
             index: indexName,
-            type: 'collection',
+            type: CDR_TYPE_NAME,
             id: id
         }, cb)
     }

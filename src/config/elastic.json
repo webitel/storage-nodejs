@@ -2,7 +2,7 @@
   "elastic": {
     "enabled": true,
     "intervalMin": 1,
-    "host": "elasticsearch:9200",
+    "host": "10.10.10.122:9200",
     "keepAlive": true,
     "requestTimeout": 500000,
     "collections": [
@@ -20,11 +20,20 @@
         "body": {
           "template" : "cdr-*",
           "mappings": {
-            "collection": {
+            "collection1": {
               "dynamic_templates" : [
                 {
                   "string_fields" : {
                     "path_match" : "variables.*",
+                    "mapping" : {
+                      "type" : "string",
+                      "index" : "not_analyzed"
+                    }
+                  }
+                },
+                {
+                  "string_fields" : {
+                    "path_match" : "recordings.*",
                     "mapping" : {
                       "type" : "string",
                       "index" : "not_analyzed"
@@ -233,56 +242,6 @@
                       "type": "long"
                     }
                   }
-                }
-              }
-            }
-          }
-        }
-      },
-
-      {
-        "name": "wagents",
-        "body": {
-          "template" : "agentsstatus*",
-          "mappings": {
-            "collectionagents": {
-              "properties": {
-                "userId": {
-                  "type": "string",
-                  "store" : true,
-                  "index": "not_analyzed"
-                },
-                "domain": {
-                  "type": "string",
-                  "index": "not_analyzed"
-                },
-                "state": {
-                  "type": "string",
-                  "index": "not_analyzed"
-                },
-                "status": {
-                  "type": "string",
-                  "index": "not_analyzed"
-                },
-                "description": {
-                  "type": "string",
-                  "index": "not_analyzed"
-                },
-                "online": {
-                  "type": "boolean",
-                  "index": "not_analyzed"
-                },
-                "duration": {
-                  "type": "long",
-                  "index": "not_analyzed"
-                },
-                "date": {
-                  "type": "date",
-                  "index": "not_analyzed"
-                },
-                "endDate": {
-                  "type": "date",
-                  "index": "not_analyzed"
                 }
               }
             }
