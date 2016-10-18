@@ -183,8 +183,9 @@ function processSaveToElastic() {
 function replaceVariables(data) {
 
     for (let key in data.variables) {
-        if (isFinite(data.variables[key]))
+        if (isFinite(data.variables[key]) && +data.variables[key] < 4294967295) {
             data.variables[key] = +data.variables[key];
+        }
 
         if (/\.|\$/.test(key)) {
             data.variables[encodeKey(key)] = data.variables[key];
