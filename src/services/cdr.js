@@ -35,6 +35,9 @@ const Service = module.exports = {
                     application.DB._query.cdr.insert(data, cb);
                 },
                 (result, cb) => {
+                    if (application.replica)
+                        application.replica.sendCdr(data, result && result.insertedIds && result.insertedIds[0]);
+
                     if (application.elastic && result && result.ops && result.ops[0]) {
                         let _id = result.ops[0]._id;
                         

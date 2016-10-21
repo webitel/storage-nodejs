@@ -13,7 +13,7 @@ const elasticsearch = require('elasticsearch'),
 
 const CDR_NAME = 'cdr*',
     MAX_RESULT_WINDOW = 2147483647,
-    CDR_TYPE_NAME = 'collection1';
+    CDR_TYPE_NAME = 'collection';
 
 class ElasticClient extends EventEmitter2 {
     constructor (config) {

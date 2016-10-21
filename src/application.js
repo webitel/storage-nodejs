@@ -17,20 +17,23 @@ class Application extends EventEmitter2 {
         super();
         this.DB = null;
         this.elastic = null;
+        this.replica = null;
+        if (`${conf.get('replica:use')}` === 'true') {
+            this.replica = require('./services/replica');
+            this.replica._init();
+        }
 
-        this.once('db:connect', this.configureServer);
-        this.on('db:connect', (db) => {
-            this.DB = db;
-        });
+        // TODO
+        if (~conf._getUseApi().indexOf('public') || ~conf._getUseApi().indexOf('private')) {
+            this.once('db:connect', this.configureServer);
+            this.on('db:connect', (db) => {
+                this.DB = db;
+            });
 
-        this.on('db:error', this.reconnectDB.bind(this));
-
-        if (typeof gc == 'function') {
-            setInterval(function () {
-                gc();
-                console.log('----------------- GC -----------------');
-                console.dir(process.memoryUsage())
-            }, 5000);
+            this.on('db:error', this.reconnectDB.bind(this));
+        } else {
+            log.info(`Skip connect to mongodb`);
+            this.configureServer();
         }
 
         let elasticConf = conf.get('elastic');
@@ -41,6 +44,14 @@ class Application extends EventEmitter2 {
         }
         
         process.nextTick(this.connectDB.bind(this));
+
+        if (typeof gc == 'function') {
+            setInterval(function () {
+                gc();
+                console.log('----------------- GC -----------------');
+                console.dir(process.memoryUsage())
+            }, 5000);
+        }
     }
 
     reconnectDB () {
@@ -56,43 +67,35 @@ class Application extends EventEmitter2 {
     }
 
     startServer (api) {
-        let scope = this,
-            publicSrv,
-            privateSrv;
-        
-        function onStartPublic() {
-            log.info(`Public server listening on port ${publicSrv.address().port}`);
-            scope.emit('public:start');
-        }
-        function onStartPrivate() {
-            log.info(`Private server listening on port ${privateSrv.address().port}`);
-            scope.emit('public:start');
-        }
+        let scope = this;
 
-        if (conf.get('public:enabled').toString() == 'true') {
-            let https_options = {
-                key: fs.readFileSync(conf.get('public:ssl_key')),
-                cert: fs.readFileSync(conf.get('public:ssl_cert'))
-            };
-            publicSrv = https.createServer(https_options, api.publicApi)
-                .listen(
-                    conf.get('public:port'),
-                    conf.get('public:host'),
-                    onStartPublic
-                );
-        } else {
-            publicSrv = http.createServer(api.publicApi).listen(
-                conf.get('public:port'),
-                conf.get('public:host'),
-                onStartPublic
-            );
-        }
+        const createApi = (api, params = {}, cb) => {
+            if (`${params.use}` !== 'true')
+                return;
 
-        privateSrv = http.createServer(api.privateApi).listen(
-            conf.get('private:port'),
-            conf.get('private:host'),
-            onStartPrivate
-        );
+            if (`${params.enabled}` === 'true') {
+                const sslOptions = {
+                    key: fs.readFileSync(params.ssl_key),
+                    cert: fs.readFileSync(params.ssl_cert)
+                };
+
+                return https.createServer(sslOptions, api)
+                    .listen(params.port, params.host, cb);
+            } else {
+                return http.createServer(api)
+                    .listen(params.port, params.host, cb);
+            }
+        };
+
+        for (let key in api) {
+            if (api.hasOwnProperty(key)) {
+                let name = key.replace(/Api$/, '');
+                createApi(api[key], conf.get(name), function () {
+                    log.info(`${name} server listening on port ${this.address().port}`);
+                    scope.emit(`${name}:start`);
+                })
+            }
+        }
     }
 
     stop () {

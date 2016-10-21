@@ -1,5 +1,6 @@
 {
   "public": {
+    "use": true,
     "enabled": false,
     "key": "/cdr/cert/wss.pem",
     "cert": "/cdr/cert/wss.pem",
@@ -7,9 +8,40 @@
     "port": 10023
   },
   "private": {
+    "use": true,
     "host": "0.0.0.0",
     "port": 10021
   },
+  "archive": {
+    "use": true,
+    "host": "0.0.0.0",
+    "port": 10020,
+    "login": "igor",
+    "password": "yo"
+  },
+
+  "replica": {
+    "use": true,
+    "live": true,
+    "host": "http://10.10.10.25:10020",
+    "cdr": {
+      "method": "post",
+      "keepAlive": true,
+      "path": "/api/v1/cdr"
+    },
+    "files": {
+      "method": "post",
+      "keepAlive": true,
+      "path": "/api/v1/recordings"
+    },
+    "auth": {
+      "type": "base",
+      "login": "igor",
+      "password": "yo"
+    },
+    "headers": {}
+  },
+
   "mongodb": {
     "uri": "mongodb://pre.webitel.com:27017/webitel",
     "collectionCDR": "cdr",
@@ -18,9 +50,10 @@
     "collectionEmail": "emailConfig",
     "collectionDomain": "domains",
     "collectionMedia": "mediaFile",
+    "collectionReplica": "replica",
     "collectionAgentStatus": "agentStatus"
   },
-  "replica": ["http://pre.webitel.com/cdr/"],
+
   "application": {
     "loglevel": "trace",
     "auth": {
@@ -28,6 +61,7 @@
       "expiresDays": 7
     }
   },
+
   "recordFile": {
     "defaultProvider": "local",
     "maskPath": "$DOMAIN/$Y/$M/$D/$H",
@@ -44,6 +78,7 @@
       }
     }
   },
+
   "mediaFile": {
     "maxFieldsSizeMB": 5,
     "defaultProvider": "local",
@@ -61,6 +96,7 @@
       }
     }
   },
+
   "uploadAcl": {
     "mode": "allow",
     "ip": "0.0.0.0/0"

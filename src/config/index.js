@@ -5,7 +5,9 @@
 "use strict";
 
 const nconf = require('nconf'),
-    path = require('path');
+    path = require('path'),
+    API = ['public', 'private', 'archive']
+    ;
 
 //nconf
 nconf.argv()
@@ -18,5 +20,11 @@ nconf.argv()
         file: path.join(__dirname, 'config.json')
     })
 ;
+
+nconf._getUseApi = () => {
+    return API.filter( name => {
+        return '' + nconf.get(`${name}:use`) === 'true';
+    });
+};
 
 module.exports = nconf;

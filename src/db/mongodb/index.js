@@ -40,7 +40,8 @@ function initConnect (server) {
             domain: require('./query/domain').addQuery(db),
             email: require('./query/email').addQuery(db),
             cdr: require('./query/cdr').addQuery(db),
-            media: require('./query/media').addQuery(db)
+            media: require('./query/media').addQuery(db),
+            replica: require('./query/replica').addQuery(db)
         };
 
         server.emit('db:connect', db);

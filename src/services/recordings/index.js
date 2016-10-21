@@ -55,56 +55,62 @@ const Service = module.exports = {
             }
 
             let fileDb = res && res[0];
+
+
             if (!fileDb || !fileDb.path)
                 return cb(new CodeError(404, `File ${uuid} not found!`));
 
             if (caller.domain && caller.domain != fileDb.domain)
                 return cb(new CodeError(403, "Permission denied!"));
+            
+            Service._getFile(fileDb, option, cb);
+        });
+    },
 
-            let providerName = FILE_TYPES[fileDb.type];
+    _getFile: (fileDb, option, cb) => {
+        let providerName = FILE_TYPES[fileDb.type];
 
-            if (!providerName)
-                return cb(new CodeError(500, `Bad file provider.`));
+        if (!providerName)
+            return cb(new CodeError(500, `Bad file provider.`));
 
-            let result = {
-                source: null,
-                totalLength: fileDb.size
-            };
+        let result = {
+            source: null,
+            totalLength: fileDb.size
+        };
 
-            if (option.range) {
-                option.range = httpUtil.readRangeHeader(option.range, fileDb.size);
-            }
+        if (option.range) {
+            option.range = httpUtil.readRangeHeader(option.range, fileDb.size);
+        }
 
-            if (fileDb.private) {
-                application.DB._query.domain.getByName(fileDb.domain, 'storage', (err, domainConfig) => {
-                    if (err)
-                        return cb(err);
-
-                    if (!domainConfig || !domainConfig.storage) {
-                        return cb(new CodeError(400, `Please set domain storage config!`))
-                    } else {
-                        let provider = getProvider(fileDb.domain, domainConfig.storage, providerName);
-
-                        if (!provider)
-                            return cb(new CodeError(400, `Bad provider config.`));
-
-                        return provider.get(fileDb, option, sendResponse);
-                    }
-                })
-            } else {
-                let provider = getProvider(DEF_ID, helper.DEFAULT_PROVIDERS_CONF, providerName);
-                if (!provider)
-                    return cb(new CodeError(400, `Bad provider config.`));
-                return provider.get(fileDb, option, sendResponse);
-            }
-
-            function sendResponse(err, source) {
+        if (fileDb.private) {
+            application.DB._query.domain.getByName(fileDb.domain, 'storage', (err, domainConfig) => {
                 if (err)
                     return cb(err);
-                result.source = source;
-                return cb(null, result)
-            }
-        });
+
+                if (!domainConfig || !domainConfig.storage) {
+                    return cb(new CodeError(400, `Please set domain storage config!`))
+                } else {
+                    let provider = getProvider(fileDb.domain, domainConfig.storage, providerName);
+
+                    if (!provider)
+                        return cb(new CodeError(400, `Bad provider config.`));
+
+                    return provider.get(fileDb, option, sendResponse);
+                }
+            })
+        } else {
+            let provider = getProvider(DEF_ID, helper.DEFAULT_PROVIDERS_CONF, providerName);
+            if (!provider)
+                return cb(new CodeError(400, `Bad provider config.`));
+            return provider.get(fileDb, option, sendResponse);
+        }
+
+        function sendResponse(err, source) {
+            if (err)
+                return cb(err);
+            result.source = source;
+            return cb(null, result)
+        }
     },
 
     saveFile: (fileConf, option, cb) => {
@@ -156,17 +162,20 @@ const Service = module.exports = {
             if (response.hasOwnProperty('storageFileId'))
                 doc.storageFileId = response.storageFileId;
 
-            application.DB._query.file.insert(doc, (err) => {
-                if (err)
+            application.DB._query.file.insert(doc, (err, resInsert) => {
+                if (err && err.code !== 11000)
                     return cb(err);
 
+                if (application.replica)
+                    application.replica.sendFile(doc, resInsert && resInsert.insertedIds && resInsert.insertedIds[0]);
+                
                 if (application.elastic) {
                     application.elastic.insertFile({
                         variables: {uuid: doc.uuid, domain_name: doc.domain},
                         recordings: [doc]
                     }, (err) => {
                         if (err)
-                            log.error(err);
+                            log.error(err.response || err);
                         return cb(null, fileConf);
                     })
                 } else {

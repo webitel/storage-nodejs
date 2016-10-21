@@ -2,7 +2,7 @@
   "elastic": {
     "enabled": true,
     "intervalMin": 1,
-    "host": "10.10.10.122:9200",
+    "host": "pre.webitel.com:9200",
     "keepAlive": true,
     "requestTimeout": 500000,
     "collections": [
@@ -19,21 +19,13 @@
         "name": "webitel",
         "body": {
           "template" : "cdr-*",
+          "order": 2,
           "mappings": {
-            "collection1": {
+            "collection": {
               "dynamic_templates" : [
                 {
                   "string_fields" : {
                     "path_match" : "variables.*",
-                    "mapping" : {
-                      "type" : "string",
-                      "index" : "not_analyzed"
-                    }
-                  }
-                },
-                {
-                  "string_fields" : {
-                    "path_match" : "recordings.*",
                     "mapping" : {
                       "type" : "string",
                       "index" : "not_analyzed"
@@ -240,6 +232,44 @@
                     },
                     "write_rate": {
                       "type": "long"
+                    }
+                  }
+                },
+                "recordings": {
+                  "type": "nested",
+                  "include_in_parent": true,
+                  "properties": {
+                    "content-type": {
+                      "type": "string"
+                    },
+                    "createdOn": {
+                      "type": "date",
+                      "format": "strict_date_optional_time||epoch_millis"
+                    },
+                    "domain": {
+                      "type": "string",
+                      "index": "not_analyzed"
+                    },
+                    "name": {
+                      "type": "string",
+                      "index": "not_analyzed"
+                    },
+                    "path": {
+                      "type": "string",
+                      "index": "not_analyzed"
+                    },
+                    "private": {
+                      "type": "boolean"
+                    },
+                    "size": {
+                      "type": "long"
+                    },
+                    "type": {
+                      "type": "integer"
+                    },
+                    "uuid": {
+                      "type": "string",
+                      "index": "not_analyzed"
                     }
                   }
                 }

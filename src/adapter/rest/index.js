@@ -5,33 +5,33 @@
 "use strict";
     
 const express = require('express'),
-    publicApi = express(),
-    privateApi = express(),
     log = require(__appRoot + '/lib/log')(module),
-    bodyParser = require('body-parser')
+    conf = require(`${__appRoot}/config`),
+    bodyParser = require('body-parser'),
+    API = ['public', 'private', 'archive']
 ;
 
 module.exports = (application) => {
+    const api = conf._getUseApi();
+    const result = {};
 
-    publicApi.use(express.static(__appRoot + '/public'));
-    require('./logger').addRoutes(publicApi, privateApi);
-    require('./cors').addRoutes(publicApi, privateApi);
+    api.forEach( name => {
+        result[`${name}Api`] = express();
 
-    publicApi.use(bodyParser.json());
-    privateApi.use(bodyParser.json());
+        if (name === 'public')
+            result[`${name}Api`].use(express.static(__appRoot + '/public'));
 
-// API
-    require('./private')(privateApi);
-    require('./public')(publicApi);
+        require('./logger').addRoutes(result[`${name}Api`]);
+        require('./cors').addRoutes(result[`${name}Api`]);
 
+        result[`${name}Api`].use(bodyParser.json());
 
-// Error handle
-    require('./error').addRoutes(publicApi, privateApi);
+        require(`./${name}`)(result[`${name}Api`]);
+        require('./error').addRoutes(result[`${name}Api`]);
 
-    log.info(`--------- Public API ---------`);
-    printRoutes(publicApi);
-    log.info(`--------- Private API ---------`);
-    printRoutes(privateApi);
+        log.info(`--------- ${name} API ---------`);
+        printRoutes(result[`${name}Api`]);
+    });
 
     function printRoutes(api) {
         let route, methods;
@@ -50,8 +50,5 @@ module.exports = (application) => {
             }
         });
     }
-    return {
-        publicApi: publicApi,
-        privateApi: privateApi
-    }
+    return result
 };
