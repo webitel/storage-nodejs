@@ -38,7 +38,7 @@ module.exports = class S3Storage {
         if (options.dispositionName) {
             params.ResponseContentDisposition = 'attachment;  filename=' + options.dispositionName;
         }
-        
+        // TODO add response stream;
         this._client.getSignedUrl('getObject', params, function (err, url) {
             log.debug(`try redirect to ${url}`);
             return cb(null, {

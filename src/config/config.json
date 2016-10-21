@@ -27,12 +27,14 @@
     "cdr": {
       "method": "post",
       "keepAlive": true,
-      "path": "/api/v1/cdr"
+      "path": "/api/v1/cdr",
+      "headers": {}
     },
     "files": {
       "method": "post",
       "keepAlive": true,
-      "path": "/api/v1/recordings"
+      "path": "/api/v1/recordings?id=${uuid}&name=${name}&type=${type}&domain=${domain}",
+      "headers": {}
     },
     "auth": {
       "type": "base",

@@ -8,6 +8,7 @@ const log = require(`${__appRoot}/lib/log`)(module),
     conf = require(`${__appRoot}/config`),
     CodeError = require(`${__appRoot}/lib/error`),
     url = require('url'),
+    recordingsService = require('./recordings'),
     cdrConf = conf.get('replica:cdr'),
     filesConf = conf.get('replica:files'),
     hostConf = conf.get('replica:host'),
@@ -29,12 +30,7 @@ const Service = module.exports = {
                 return log.error(`[cdr] Bad parent id`, doc);
 
             if (live) {
-                Service._sendRequest(Service.getCdrRequestParams(), JSON.stringify(doc), (res) => {
-                    if (res.statusCode !== 200)
-                        return Service._onError(new Error(`[cdr] Bad response ${res.statusCode}`), cdrCollectionName, parentId);
-
-                    log.trace(`[cdr] Ok send ${parentId}`);
-                });
+                _sendCdr(doc, parentId);
             } else {
                 Service._saveReplica(cdrCollectionName, parentId)
             }
@@ -49,12 +45,7 @@ const Service = module.exports = {
                 return log.error(`[file] Bad parent id`, doc);
 
             if (live) {
-                Service._sendRequest(Service.getFilesRequestParams(), JSON.stringify(doc), (res) => {
-                    if (res.statusCode !== 200)
-                        return Service._onError(new Error(`[file] Bad response ${res.statusCode}`), fileCollectionName, parentId);
-
-                    log.trace(`[file] Ok send ${parentId}`);
-                });
+                _sendFile(doc, parentId);
             } else {
                 Service._saveReplica(fileCollectionName, parentId)
             }
@@ -79,7 +70,7 @@ const Service = module.exports = {
         });
     },
 
-    _sendRequest: (params = {}, body, cb) => {
+    _sendRequest: (params, body, cb) => {
         if (!Service.provider)
             return cb(new CodeError(500, `No initialize replica provider`));
 
@@ -90,13 +81,16 @@ const Service = module.exports = {
         req.end();
     },
 
-    setAuth: req => {
+    _sendStream: (params, stream, cb) => {
+        try {
+            if (!Service.provider)
+                return cb(new CodeError(500, `No initialize replica provider`));
 
-    },
-
-    getRequestOption: () => {
-        return {
-
+            const req = Service.provider.request(params, cb);
+            req.on('error', cb);
+            stream.pipe(req);
+        } catch (e) {
+            return cb(e);
         }
     },
 
@@ -150,16 +144,55 @@ const Service = module.exports = {
         }
     },
 
-    getFilesRequestParams: () => {
+    getFilesRequestParams: (params) => {
         if (!Service.files) return null;
+
+        let path = Service.files.path;
+        for (let key in params)
+            if (params.hasOwnProperty(key) && ~path.indexOf('${' + key + '}'))
+                path = path.replace('${' + key + '}', params[key]);
 
         return {
             host: Service.files.host,
             port: Service.files.port,
             method: Service.files.method,
-            path: Service.files.path,
+            path: path,
             headers: Service.files.headers,
             agent: Service.files.agent
         }
     }
+};
+
+
+const _sendCdr = (doc, parentId) => {
+    Service._sendRequest(Service.getCdrRequestParams(), JSON.stringify(doc), (res) => {
+        if (res.statusCode !== 200)
+            return Service._onError(new Error(`[cdr] Bad response ${res.statusCode}`), cdrCollectionName, parentId);
+
+        log.trace(`[cdr] Ok send ${parentId}`);
+    });
+};
+
+const _sendFile = (doc, parentId) => {
+    recordingsService._getFile(doc, {}, (err, res) => {
+        if (err)
+            return Service._onError(err, cdrCollectionName, parentId);
+
+        if (res && res.source && res.source.pipe) {
+            const option = {
+                uuid: doc.uuid,
+                type: doc['content-type'],
+                name: doc.name,
+                domain: doc.domain
+            };
+            Service._sendStream(Service.getFilesRequestParams(option), res.source, (resDest) => {
+                if (resDest.statusCode !== 200)
+                    return Service._onError(new Error(`[file] Bad response ${resDest.statusCode}`), fileCollectionName, parentId);
+
+                log.trace(`[file] Ok send ${parentId}`);
+            })
+        } else {
+            log.error(new Error(`Bad file stream`, res));
+        }
+    });
 };
