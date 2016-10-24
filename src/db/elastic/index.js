@@ -8,10 +8,11 @@ const elasticsearch = require('elasticsearch'),
     EventEmitter2 = require('eventemitter2').EventEmitter2,
     log = require(__appRoot + '/lib/log')(module),
     setCustomAttribute = require(__appRoot + '/utils/cdr').setCustomAttribute,
+    conf = require(`${__appRoot}/config`),
     async = require('async')
 ;
 
-const CDR_NAME = 'cdr*',
+const CDR_NAME = conf.get('elastic:cdrIndexName'),
     MAX_RESULT_WINDOW = 2147483647,
     CDR_TYPE_NAME = 'collection';
 
@@ -107,7 +108,7 @@ class ElasticClient extends EventEmitter2 {
 
     initMaxResultWindow () {
         this.client.indices.getSettings({
-            index: CDR_NAME,
+            index: CDR_NAME + '*',
             name: "index.max_result_window"
         }, (err, res) => {
             if (err) {
@@ -132,7 +133,7 @@ class ElasticClient extends EventEmitter2 {
 
     setIndexSettings () {
         this.client.indices.putSettings({
-            index: CDR_NAME,
+            index: CDR_NAME + '*',
             body: {
                 max_result_window: MAX_RESULT_WINDOW
             }
@@ -150,7 +151,7 @@ class ElasticClient extends EventEmitter2 {
 
     insertCdr (doc, cb) {
         let currentDate = new Date(),
-            indexName = `cdr-${currentDate.getMonth() + 1}.${currentDate.getFullYear()}`,
+            indexName = `${CDR_NAME}-${currentDate.getMonth() + 1}.${currentDate.getFullYear()}`,
             _record = setCustomAttribute(doc),
             _id = (_record.variables && _record.variables.uuid) || _record._id.toString();
         delete _record._id;
@@ -169,7 +170,7 @@ class ElasticClient extends EventEmitter2 {
 
     insertFile (doc, cb) {
         let currentDate = new Date(),
-            indexName = `cdr-${currentDate.getMonth() + 1}.${currentDate.getFullYear()}`,
+            indexName = `${CDR_NAME}-${currentDate.getMonth() + 1}.${currentDate.getFullYear()}`,
             _record = doc,
             _id = _record.variables && _record.variables.uuid;
 
@@ -193,7 +194,7 @@ class ElasticClient extends EventEmitter2 {
     findByUuid (uuid, domain, cb) {
         this.client.search(
             {
-                index: `cdr-*${domain ? '-' + domain : '' }`,
+                index: `${CDR_NAME}-*${domain ? '-' + domain : '' }`,
                 size: 1,
                 _source: false,
                 body: {

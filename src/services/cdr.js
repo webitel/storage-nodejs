@@ -63,6 +63,21 @@ const Service = module.exports = {
         )
     },
 
+    setValideAttrDoc: (doc = {}) => {
+        let data = replaceVariables(doc);
+        if (data.callflow instanceof Array &&  /^u:/.test(data.callflow[0].caller_profile.destination_number)) {
+            data.callflow[0].caller_profile.destination_number = data.variables.presence_id;
+        }
+        if (data && data.variables && !data.variables.domain_name && /@/.test(data.variables.presence_id)) {
+            data.variables.domain_name = data.variables.presence_id.split('@')[1];
+        }
+        return data;
+    },
+
+    saveToElastic: (doc, cb) => {
+        application.elastic.insertCdr(Service.setValideAttrDoc(doc), cb);
+    },
+
     search: (caller, option, cb) => {
         let _ro = false
             ;

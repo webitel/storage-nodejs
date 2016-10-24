@@ -113,6 +113,43 @@ const Service = module.exports = {
         }
     },
 
+    saveToLocalProvider: (fileConf, option, cb) => {
+        const provider = getProvider(DEF_ID, helper.DEFAULT_PROVIDERS_CONF);
+
+        if (!provider)
+            return cb(new CodeError(400, `Bad provider config.`));
+
+        return provider.save(fileConf, option, cb);
+    },
+
+    saveInfoToElastic: (doc, cb) => {
+        application.elastic.insertFile({
+            variables: {uuid: doc.uuid, domain_name: doc.domain},
+            recordings: [doc]
+        }, cb);
+    },
+
+    getSchema: (fileConf, options = {}) => {
+        const doc = {
+            "uuid": fileConf.uuid,
+            "name": fileConf.queryName,
+            "path": options.path,
+            "domain": fileConf.domain,
+            "private": fileConf.private === true,
+            "content-type": fileConf.contentType,
+            "type": options.type,
+            "createdOn": new Date(),
+            "size": fileConf.contentLength
+        };
+        if (options.hasOwnProperty('bucketName'))
+            doc.bucketName = options.bucketName;
+
+        if (options.hasOwnProperty('storageFileId'))
+            doc.storageFileId = options.storageFileId;
+
+        return doc
+    },
+
     saveFile: (fileConf, option, cb) => {
         application.DB._query.domain.getByName(option.domain, 'storage', (err, domainConfig) => {
             if (err)
@@ -145,22 +182,7 @@ const Service = module.exports = {
             if (err)
                 return cb(err);
 
-            let doc = {
-                "uuid": fileConf.uuid,
-                "name": fileConf.queryName,
-                "path": response.path,
-                "domain": fileConf.domain,
-                "private": fileConf.private === true,
-                "content-type": fileConf.contentType,
-                "type": response.type,
-                "createdOn": new Date(),
-                "size": fileConf.contentLength
-            };
-            if (response.hasOwnProperty('bucketName'))
-                doc.bucketName = response.bucketName;
-
-            if (response.hasOwnProperty('storageFileId'))
-                doc.storageFileId = response.storageFileId;
+            const doc = Service.getSchema(fileConf, response);
 
             application.DB._query.file.insert(doc, (err, resInsert) => {
                 if (err && err.code !== 11000)

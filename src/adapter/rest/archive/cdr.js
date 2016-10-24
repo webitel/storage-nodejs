@@ -4,6 +4,10 @@
 
 "use strict";
 
+const log = require(`${__appRoot}/lib/log`)(module),
+    cdrService = require(`${__appRoot}/services/cdr`)
+;
+
 module.exports = {
     addRoutes: api => {
         api.post('/api/v1/cdr', create)
@@ -11,5 +15,14 @@ module.exports = {
 };
 
 const create = (req, res, next) => {
-    return res.send('OK');
+    const uuid = req.body.variables  && req.body.variables.uuid;
+    cdrService.saveToElastic(req.body, (err) => {
+        if (err) {
+            log.error(err);
+            return next(err);
+        }
+
+        log.debug(`Ok save: ${uuid}`);
+        res.status(200).end();
+    })
 };

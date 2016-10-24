@@ -110,6 +110,8 @@ const Service = module.exports = {
                 = `Basic ${new Buffer(`${authConf.login}:${authConf.password}`).toString('base64')}`;
         }
 
+        cdr.headers['Content-Type'] = "application/json";
+
         Service.provider = ~hostParams.protocol.indexOf('https:') ? require('https') : require('http');
 
         if (`${cdrConf.keepAlive}` === 'true')
@@ -166,7 +168,7 @@ const Service = module.exports = {
 
 const _sendCdr = (doc, parentId) => {
     Service._sendRequest(Service.getCdrRequestParams(), JSON.stringify(doc), (res) => {
-        if (res.statusCode !== 200)
+        if (res.statusCode !== 200 || res.statusCode !== 204)
             return Service._onError(new Error(`[cdr] Bad response ${res.statusCode}`), cdrCollectionName, parentId);
 
         log.trace(`[cdr] Ok send ${parentId}`);
@@ -181,12 +183,12 @@ const _sendFile = (doc, parentId) => {
         if (res && res.source && res.source.pipe) {
             const option = {
                 uuid: doc.uuid,
-                type: doc['content-type'],
+                type: getTypeFromContentType(doc['content-type']),
                 name: doc.name,
                 domain: doc.domain
             };
             Service._sendStream(Service.getFilesRequestParams(option), res.source, (resDest) => {
-                if (resDest.statusCode !== 200)
+                if (resDest.statusCode !== 200 || resDest.statusCode !== 204)
                     return Service._onError(new Error(`[file] Bad response ${resDest.statusCode}`), fileCollectionName, parentId);
 
                 log.trace(`[file] Ok send ${parentId}`);
@@ -195,4 +197,16 @@ const _sendFile = (doc, parentId) => {
             log.error(new Error(`Bad file stream`, res));
         }
     });
+};
+
+const getTypeFromContentType = (contentType = "") => {
+    switch (contentType) {
+        case 'application/pdf':
+            return 'pdf';
+        case 'audio/wav':
+            return 'wav';
+        case 'audio/mpeg':
+        default:
+            return 'mp3'
+    }
 };

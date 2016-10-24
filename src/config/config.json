@@ -1,27 +1,29 @@
 {
   "public": {
-    "use": true,
-    "enabled": false,
+    "use": false,
+    "ssl": false,
     "key": "/cdr/cert/wss.pem",
     "cert": "/cdr/cert/wss.pem",
     "host": "0.0.0.0",
     "port": 10023
   },
   "private": {
-    "use": true,
+    "use": false,
+    "ssl": false,
     "host": "0.0.0.0",
     "port": 10021
   },
   "archive": {
     "use": true,
+    "ssl": false,
     "host": "0.0.0.0",
-    "port": 10020,
+    "port": 10040,
     "login": "igor",
     "password": "yo"
   },
 
   "replica": {
-    "use": true,
+    "use": false,
     "live": true,
     "host": "http://10.10.10.25:10020",
     "cdr": {
@@ -76,7 +78,7 @@
         "bucketName" : "xx"
       },
       "local": {
-        "fileRoot": "/tmp/"
+        "fileRoot": "/tmp/archive/"
       }
     }
   },

@@ -5,20 +5,12 @@
     "host": "pre.webitel.com:9200",
     "keepAlive": true,
     "requestTimeout": 500000,
-    "collections": [
-      {
-        "name": "cdr",
-        "index": "cdr",
-        "type": "collection",
-        "fields": ["_id", "variables"],
-        "_fn": "exportCollectionCdr"
-      }
-    ],
+    "cdrIndexName": "archive",
     "templates": [
       {
-        "name": "webitel",
+        "name": "webitelarchive",
         "body": {
-          "template" : "cdr-*",
+          "template" : "archive-*",
           "order": 2,
           "mappings": {
             "collection": {

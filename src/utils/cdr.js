@@ -146,7 +146,7 @@ module.exports = {
             delete record._ttl;
             delete record.callStats;
 
-            record["CreatedOnStorage"] = record._id.getTimestamp().getTime();
+            record["CreatedOnStorage"] = record._id.getTimestamp && record._id.getTimestamp().getTime();
 
         } catch (e) {
             log.error(e);

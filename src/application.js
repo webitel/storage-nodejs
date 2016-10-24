@@ -31,9 +31,11 @@ class Application extends EventEmitter2 {
             });
 
             this.on('db:error', this.reconnectDB.bind(this));
+
+            process.nextTick(this.connectDB.bind(this));
         } else {
             log.info(`Skip connect to mongodb`);
-            this.configureServer();
+            process.nextTick(this.configureServer.bind(this));
         }
 
         let elasticConf = conf.get('elastic');
@@ -42,8 +44,6 @@ class Application extends EventEmitter2 {
             let ElasticClient = require('./db/elastic');
             this.elastic = new ElasticClient(elasticConf);
         }
-        
-        process.nextTick(this.connectDB.bind(this));
 
         if (typeof gc == 'function') {
             setInterval(function () {
