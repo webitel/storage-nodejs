@@ -175,7 +175,7 @@ const Service = module.exports = {
 
 const _sendCdr = (doc, parentId) => {
     Service._sendRequest(Service.getCdrRequestParams(), JSON.stringify(doc), (res) => {
-        if (res.statusCode !== 200 || res.statusCode !== 204)
+        if (res.statusCode !== 200 && res.statusCode !== 204)
             return Service._onError(new Error(`[cdr] Bad response ${res.statusCode}`), cdrCollectionName, parentId);
 
         log.trace(`[cdr] Ok send ${parentId}`);
@@ -197,7 +197,7 @@ const _sendFile = (doc, parentId) => {
                 domain: doc.domain
             };
             Service._sendStream(Service.getFilesRequestParams(option), res.source, (resDest) => {
-                if (resDest.statusCode !== 200 || resDest.statusCode !== 204)
+                if (resDest.statusCode !== 200 && resDest.statusCode !== 204)
                     return Service._onError(new Error(`[file] Bad response ${resDest.statusCode}`), fileCollectionName, parentId);
 
                 log.trace(`[file] Ok send ${parentId}`);
