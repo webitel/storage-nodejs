@@ -31,7 +31,9 @@ const getResource = (req, res, next) => {
     const uuid = req.params.id;
 
     recordingsService.getFileFromHash(req.webitelUser, uuid, params, (err, response) => {
-
+        if (err)
+            return next(err);
+        
         if (!response || !response.source)
             return next(`No source stream.`);
 

@@ -75,7 +75,7 @@ const Service = module.exports = {
                 return cb(err);
 
             if (!fileDb)
-                return cb(new CodeError(404, `Not found ${hash}`));
+                return cb(new CodeError(404, `Not found ${params.hash}`));
 
             let providerName = FILE_TYPES[fileDb.type];
 
