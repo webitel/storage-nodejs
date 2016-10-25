@@ -208,6 +208,46 @@ class ElasticClient extends EventEmitter2 {
             cb
         )
     }
+    /*
+     * TODO add UUID ??
+     */
+    findRecFromHash (hash, domain, cb) {
+        this.client.search(
+            {
+                index: `${CDR_NAME}-*${domain ? '-' + domain : '' }`,
+                size: 1,
+                _source: ["recordings.*"],
+                body: {
+                    "query": {
+                        "constant_score" : {
+                            "filter" : {
+                                "bool" : {
+                                    "must" : [
+                                        { "term" : { "recordings.hash" : hash } }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            (err, res) => {
+                if (err)
+                    return cb(err);
+
+                const data = res && res.hits && res.hits.hits;
+                if (!data || data.length !== 1)
+                    return cb();
+
+                for (let rec of data[0]._source.recordings) {
+                    if (rec.hash === hash)
+                        return cb(null, rec);
+                }
+
+                return cb();
+            }
+        )
+    }
 
     removeCdr (id, indexName = "", cb) {
         this.client.delete({

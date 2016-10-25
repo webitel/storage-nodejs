@@ -6,14 +6,42 @@
 
 const fileService = require(`${__appRoot}/services/file`),
     recordingsService = require(`${__appRoot}/services/recordings`),
+    streaming = require(`${__appRoot}/utils/http`).streaming,
     log = require(`${__appRoot}/lib/log`)(module)
     ;
 
 module.exports = {
     addRoutes: api => {
         api.post('/api/v1/recordings', create);
-        api.get('/api/v1/recordings/:id', create);
+        api.get('/api/v1/recordings/:id', getResource);
     }
+};
+
+const getResource = (req, res, next) => {
+    const dispositionName = req.query.file_name;
+    const params = {
+        domain: req.query.domain,
+        dispositionName: dispositionName,
+        hash: req.query.hash
+    };
+
+    if (req.headers.range)
+        params.range = req.headers.range;
+
+    const uuid = req.params.id;
+
+    recordingsService.getFileFromHash(req.webitelUser, uuid, params, (err, response) => {
+
+        if (!response || !response.source)
+            return next(`No source stream.`);
+
+        return streaming(response.source, res, {
+            range: params.range,
+            dispositionName: dispositionName,
+            totalLength: response.totalLength,
+            contentType: response.contentType
+        });
+    })
 };
 
 const create = (req, res, next) => {
@@ -45,7 +73,7 @@ const create = (req, res, next) => {
                 if (err)
                     return next(err);
 
-                return res.status(204).end();
+                return res.status(200).end();
 
             });
 

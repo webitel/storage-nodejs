@@ -149,10 +149,17 @@ const Service = module.exports = {
     getFilesRequestParams: (params) => {
         if (!Service.files) return null;
 
-        let path = Service.files.path;
+        let path = Service.files.path,
+            headers = Service.files.headers;
         for (let key in params)
             if (params.hasOwnProperty(key) && ~path.indexOf('${' + key + '}'))
                 path = path.replace('${' + key + '}', params[key]);
+
+        if (params.contentType)
+            headers['content-type'] = params.contentType;
+
+        if (params.contentLength)
+            headers['content-length'] = params.contentLength;
 
         return {
             host: Service.files.host,
@@ -184,6 +191,8 @@ const _sendFile = (doc, parentId) => {
             const option = {
                 uuid: doc.uuid,
                 type: getTypeFromContentType(doc['content-type']),
+                contentType: doc['content-type'],
+                contentLength: doc.size,
                 name: doc.name,
                 domain: doc.domain
             };

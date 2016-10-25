@@ -12,7 +12,8 @@ const Storage = require(__appRoot + '/lib/storage'),
     cache = new CacheCollection('id'),
     CodeError = require(__appRoot + '/lib/error'),
     httpUtil = require(__appRoot + '/utils/http'),
-    
+    crypto = require('crypto'),
+
     FILE_TYPES = ['local', 's3', 'b2', 'gDrive', 'dropBox'],
     DEF_ID = '_default_'
     ;
@@ -64,6 +65,45 @@ const Service = module.exports = {
                 return cb(new CodeError(403, "Permission denied!"));
             
             Service._getFile(fileDb, option, cb);
+        });
+    },
+
+    getFileFromHash: (caller, uuid, params = {}, cb) => {
+        // TODO use uuid
+        application.elastic.findRecFromHash(params.hash, caller.domain || params.domain, (err, fileDb) => {
+            if (err)
+                return cb(err);
+
+            if (!fileDb)
+                return cb(new CodeError(404, `Not found ${hash}`));
+
+            let providerName = FILE_TYPES[fileDb.type];
+
+            if (!providerName)
+                return cb(new CodeError(500, `Bad file provider.`));
+
+            if (params.range) {
+                params.range = httpUtil.readRangeHeader(params.range, fileDb.size);
+            }
+
+            let provider = getProvider(DEF_ID, helper.DEFAULT_PROVIDERS_CONF, providerName);
+            if (!provider)
+                return cb(new CodeError(400, `Bad provider config.`));
+
+            function sendResponse(err, source) {
+                if (err)
+                    return cb(err);
+                result.source = source;
+                return cb(null, result)
+            }
+
+            let result = {
+                source: null,
+                totalLength: fileDb.size,
+                contentType: fileDb['content-type'] || "audio/mpeg"
+            };
+
+            return provider.get(fileDb, params, sendResponse);
         });
     },
 
@@ -139,7 +179,8 @@ const Service = module.exports = {
             "content-type": fileConf.contentType,
             "type": options.type,
             "createdOn": new Date(),
-            "size": fileConf.contentLength
+            "size": fileConf.contentLength,
+            "hash": crypto.createHash('md5').update(`${fileConf.uuid}:${options.path}`).digest('hex')
         };
         if (options.hasOwnProperty('bucketName'))
             doc.bucketName = options.bucketName;
