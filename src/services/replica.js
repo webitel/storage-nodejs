@@ -15,14 +15,31 @@ const log = require(`${__appRoot}/lib/log`)(module),
     authConf = conf.get('replica:auth'),
     live = `${conf.get('replica:live')}` === 'true',
     headersConf = conf.get('replica:headers'),
-    cdrCollectionName = conf.get('mongodb:collectionCDR'),
-    fileCollectionName = conf.get('mongodb:collectionFile')
+    cdrCollectionName = "cdr", //TODO rename collectionCDR
+    fileCollectionName = "cdrFile", //TODO rename collectionFile
+    Scheduler = require(`${__appRoot}/lib/scheduler`),
+    async = require('async')
 ;
+
+const getDoc = {
+    [cdrCollectionName]: (objId, cb) => {
+        application.DB._query.cdr.getByObjId(objId, cb);
+    },
+    [fileCollectionName]: (objId, cb) => {
+        application.DB._query.file.getByObjId(objId, cb);
+    }
+};
+
+const sendDoc = {
+    [cdrCollectionName]: _sendCdr,
+    [fileCollectionName]: _sendFile
+};
 
 const Service = module.exports = {
     cdr: {},
     files: {},
     provider: null,
+    scheduler: null,
 
     sendCdr: (doc, parentId) => {
         try {
@@ -94,6 +111,44 @@ const Service = module.exports = {
         }
     },
 
+    _huntOne: (cb) => {
+
+        async.waterfall([
+            application.DB._query.replica.getOne,
+            (doc, cb) => {
+                const val = doc && doc.value;
+                if (!val)
+                    return cb(new CodeError(404, `Not found`));
+
+                if (typeof getDoc[val.collection] !== "function" || typeof sendDoc[val.collection] !== "function")
+                    return cb(new CodeError(500, `Bad collection name ${val.collection}`));
+
+                const fnName = val.collection;
+
+                getDoc[fnName](val.docId, (err, res) => {
+                    if (err)
+                        return cb(err);
+
+                    sendDoc[fnName](res, res._id, cb);
+                })
+            }
+        ], cb);
+    },
+
+    process: (cb) => {
+        const process = err => {
+            if (err && err.status === 404) {
+                return cb();
+            } else if (err) {
+                log.error(err);
+                return cb();
+            } else {
+                Service._huntOne(process);
+            }
+        };
+        Service._huntOne(process);
+    },
+
     _init: () => {
         const cdr = {headers: {}},
             files = {headers: {}},
@@ -131,6 +186,7 @@ const Service = module.exports = {
 
         Service.cdr = cdr;
         Service.files = files;
+        Service.scheduler = new Scheduler(conf.get('replica:cronJob'), Service.process);
     },
 
     getCdrRequestParams: () => {
@@ -173,19 +229,24 @@ const Service = module.exports = {
 };
 
 
-const _sendCdr = (doc, parentId) => {
+function _sendCdr (doc, parentId, cb) {
     Service._sendRequest(Service.getCdrRequestParams(), JSON.stringify(doc), (res) => {
-        if (res.statusCode !== 200 && res.statusCode !== 204)
-            return Service._onError(new Error(`[cdr] Bad response ${res.statusCode}`), cdrCollectionName, parentId);
+        if (res.statusCode !== 200 && res.statusCode !== 204) {
+            Service._onError(new Error(`[cdr] Bad response ${res.statusCode}`), cdrCollectionName, parentId);
+            return cb && cb(new CodeError(500, `Bad response code ${res.statusCode}`));
+        }
 
         log.trace(`[cdr] Ok send ${parentId}`);
+        return cb && cb(null);
     });
-};
+}
 
-const _sendFile = (doc, parentId) => {
+function _sendFile (doc, parentId, cb) {
     recordingsService._getFile(doc, {}, (err, res) => {
-        if (err)
-            return Service._onError(err, cdrCollectionName, parentId);
+        if (err) {
+            Service._onError(err, cdrCollectionName, parentId);
+            return cb && cb(err);
+        }
 
         if (res && res.source && res.source.pipe) {
             const option = {
@@ -197,16 +258,20 @@ const _sendFile = (doc, parentId) => {
                 domain: doc.domain
             };
             Service._sendStream(Service.getFilesRequestParams(option), res.source, (resDest) => {
-                if (resDest.statusCode !== 200 && resDest.statusCode !== 204)
-                    return Service._onError(new Error(`[file] Bad response ${resDest.statusCode}`), fileCollectionName, parentId);
+                if (resDest.statusCode !== 200 && resDest.statusCode !== 204) {
+                    Service._onError(new Error(`[file] Bad response ${resDest.statusCode}`), fileCollectionName, parentId);
+                    return cb && cb(new CodeError(500, `Bad response code ${resDest.statusCode}`));
+                }
 
                 log.trace(`[file] Ok send ${parentId}`);
+                return cb && cb(null);
             })
         } else {
             log.error(new Error(`Bad file stream`, res));
+            return cb && cb(new CodeError(500, `Bad file stream`));
         }
     });
-};
+}
 
 const getTypeFromContentType = (contentType = "") => {
     switch (contentType) {

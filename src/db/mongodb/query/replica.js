@@ -14,6 +14,24 @@ module.exports = {
                 return db
                     .collection(replicaCollectionName)
                     .insert(doc, cb)
+            },
+
+            getOne: cb => {
+                return db
+                    .collection(replicaCollectionName)
+                    .findOneAndDelete(
+                        {},
+                        {
+                            sort: {createdOn: 1}
+                        },
+                        cb
+                    )
+            },
+
+            removeById: id => {
+                return db
+                    .collection(replicaCollectionName)
+                    .removeOne({_id: id})
             }
         }
     }

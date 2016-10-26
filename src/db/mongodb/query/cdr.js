@@ -20,6 +20,12 @@ function addQuery(db) {
                 .insert(doc, cb);
         },
 
+        getByObjId: (id, cb) => {
+            return db
+                .collection(cdrCollectionName)
+                .findOne({_id: id}, cb);
+        },
+
         setById: (id, properties, cb) => {
             return db
                 .collection(cdrCollectionName)

@@ -69,6 +69,12 @@ function addQuery(db) {
                 .toArray(cb);
         },
 
+        getByObjId: (id, cb) => {
+            return db
+                .collection(fileCollectionName)
+                .findOne({_id: id}, cb);
+        },
+
         insert: (doc, cb) => {
             return db
                 .collection(fileCollectionName)

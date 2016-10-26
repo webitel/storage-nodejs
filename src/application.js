@@ -18,17 +18,13 @@ class Application extends EventEmitter2 {
         this.DB = null;
         this.elastic = null;
         this.replica = null;
-        if (`${conf.get('replica:use')}` === 'true') {
-            this.replica = require('./services/replica');
-            this.replica._init();
-        }
 
         // TODO
         if (~conf._getUseApi().indexOf('public') || ~conf._getUseApi().indexOf('private')) {
-            this.once('db:connect', this.configureServer);
             this.on('db:connect', (db) => {
                 this.DB = db;
             });
+            this.once('db:connect', this.configureServer);
 
             this.on('db:error', this.reconnectDB.bind(this));
 
@@ -63,6 +59,11 @@ class Application extends EventEmitter2 {
     }
 
     configureServer () {
+        if (`${conf.get('replica:use')}` === 'true') {
+            this.replica = require('./services/replica');
+            this.replica._init();
+        }
+
         this.startServer(require('./adapter/rest')(this));
     }
 
