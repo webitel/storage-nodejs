@@ -71,10 +71,10 @@ class Application extends EventEmitter2 {
         let scope = this;
 
         const createApi = (api, params = {}, cb) => {
-            if (`${params.use}` !== 'true')
+            if (`${params.enabled}` !== 'true')
                 return;
 
-            if (`${params.enabled}` === 'true') {
+            if (`${params.ssl}` === 'true') {
                 const sslOptions = {
                     key: fs.readFileSync(params.ssl_key),
                     cert: fs.readFileSync(params.ssl_cert)
