@@ -1,6 +1,6 @@
 {
   "public": {
-    "use": true,
+    "enabled": true,
     "ssl": false,
     "key": "/cdr/cert/wss.pem",
     "cert": "/cdr/cert/wss.pem",
@@ -8,22 +8,22 @@
     "port": 10023
   },
   "private": {
-    "use": true,
+    "enabled": true,
     "ssl": false,
     "host": "0.0.0.0",
     "port": 10021
   },
   "archive": {
-    "use": false,
+    "enabled": false,
     "ssl": false,
     "host": "0.0.0.0",
     "port": 10040,
-    "login": "igor",
-    "password": "yo"
+    "login": "xx",
+    "password": "xx"
   },
 
   "replica": {
-    "use": true,
+    "enabled": false,
     "live": true,
     "host": "http://10.10.10.25:10020",
     "cronJob": "1-59/5 * * * * *",

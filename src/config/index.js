@@ -23,7 +23,7 @@ nconf.argv()
 
 nconf._getUseApi = () => {
     return API.filter( name => {
-        return '' + nconf.get(`${name}:use`) === 'true';
+        return '' + nconf.get(`${name}:enabled`) === 'true';
     });
 };
 
