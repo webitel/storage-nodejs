@@ -27,14 +27,24 @@ const Service = module.exports = {
         let filter = {
             "bool": {
                 "must": [
-
+                    {
+                        "query_string": {
+                            "analyze_wildcard": true,
+                            "query": option.query || "*"
+                        }
+                    }
                 ],
                 "must_not": []
             }
         };
 
-        if (option.filter)
-            filter.bool.must.push(option.filter);
+        if (option.filter) {
+            if (option.filter instanceof Array) {
+                filter.bool.must = filter.bool.must.concat(option.filter)
+            } else {
+                filter.bool.must.push(option.filter);
+            }
+        }
 
         if (_ro)
             filter.bool.must.push({
@@ -43,7 +53,6 @@ const Service = module.exports = {
 
         let columns = option.columns,
             columnsDate = option.columnsDate || [],
-            query = option.query || "*",
             limit = parseInt(option.limit, 10) || 40,
             pageNumber = option.pageNumber,
             sort = (option.sort && Object.keys(option.sort).length > 0) ? option.sort : {"Call start time":{"order":"desc","unmapped_type":"boolean"}}
@@ -53,25 +62,14 @@ const Service = module.exports = {
             {
                 index: `cdr-*${caller.domain ? '-' + caller.domain : '' }`,
                 size: limit,
-                _source: columns,
-                fields: columns,
+                storedFields: columns,
+                docvalueFields: columns,
                 ignoreUnavailable: true,
                 from: pageNumber > 0 ? ((pageNumber - 1) * limit) : 0, //Number — Starting offset (default: 0)
                 body: {
-                    "fielddata_fields": columnsDate,
                     "sort": [sort],
-                    "query": {
-                        "filtered": {
-                            "query": {
-                                "query_string": {
-                                    "analyze_wildcard": true,
-                                    //"default_operator": "AND",
-                                    "query": query
-                                }
-                            },
-                            "filter": filter
-                        }
-                    }
+                    "fielddata_fields": columnsDate,
+                    "query": filter
                 }
             },
             cb

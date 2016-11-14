@@ -181,7 +181,8 @@ class ElasticClient extends EventEmitter2 {
             body: {
                 // parent: _id,
                 "script" : {
-                    "inline": "if (ctx._source[\"recordings\"] == null) { ctx._source.recordings = rec } else {  ctx._source.recordings += rec}",
+                    "inline": "if (ctx._source[\"recordings\"] == null) { ctx._source.recordings = params.rec } else {  ctx._source.recordings.add(params.rec[0])}",
+                    "lang": "painless",
                     "params" : {
                         "rec" : doc.recordings
                     }
