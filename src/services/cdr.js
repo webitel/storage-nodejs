@@ -15,14 +15,18 @@ let _elasticConnect = true;
     
 const Service = module.exports = {
     
-    save: (cdrData, callback) => {
+    save: (cdrData, params, callback) => {
+        if (typeof params === 'function') {
+            callback = params;
+            params = {}
+        }
+
         let data = replaceVariables(cdrData);
 
         if (data.variables && data.variables.loopback_leg == "A") {
             log.debug(`Skip leg A ${data.variables.uuid}`);
             return callback(null);
         }
-
         async.waterfall(
             [
                 (cb) => {
@@ -32,16 +36,31 @@ const Service = module.exports = {
                     if (data && data.variables && !data.variables.domain_name && /@/.test(data.variables.presence_id)) {
                         data.variables.domain_name = data.variables.presence_id.split('@')[1];
                     }
-                    application.DB._query.cdr.insert(data, cb);
-                },
-                (result, cb) => {
-                    if (application.replica)
-                        application.replica.sendCdr(data, result && result.insertedIds && result.insertedIds[0]);
 
-                    if (application.elastic && result && result.ops && result.ops[0]) {
-                        let _id = result.ops[0]._id;
+                    if (params && params.skipMongo === true) {
+                        if (!data._id)
+                            return cb(new CodeError(403, `Bad cdr. Field _id is require`));
+                        return cb(null, data, data._id)
+                    } else {
+                        application.DB._query.cdr.insert(data, (err, result) => {
+                            if (err)
+                                return cb(err);
+
+                            if (result && result.ops) {
+                                return cb(null, result.ops[0], result.insertedIds && result.insertedIds[0])
+                            }
+                            return cb (new CodeError(500, `Bad create db record.`));
+                        });
+                    }
+                },
+                (result, newId, cb) => {
+                    if (application.replica)
+                        application.replica.sendCdr(data, newId);
+
+                    if (application.elastic && result) {
+                        let _id = result._id;
                         
-                        application.elastic.insertCdr(result.ops[0], (err) => {
+                        application.elastic.insertCdr(result, (err) => {
                             if (err && !~err.message.indexOf('document_already_exists_exception')) {
                                 log.warn(`no save elastic: ${err}`);
                                 _elasticConnect = false;

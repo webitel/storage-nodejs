@@ -19,8 +19,7 @@
                   "string_fields" : {
                     "path_match" : "variables.*",
                     "mapping" : {
-                      "type" : "string",
-                      "index" : "not_analyzed"
+                      "type" : "keyword"
                     }
                   }
                 },
@@ -28,8 +27,7 @@
                   "notanalyzed": {
                     "match":              "*",
                     "mapping": {
-                      "type":        "string",
-                      "index":       "not_analyzed"
+                      "type":        "keyword"
                     }
                   }
                 }
@@ -40,115 +38,91 @@
                 },
                 "Call start time": {
                   "type": "date",
-                  "format": "yyyy-MM-dd HH:mm:ss",
-                  "index" : "not_analyzed"
+                  "format": "yyyy-MM-dd HH:mm:ss"
                 },
                 "Call answer time": {
                   "type": "date",
-                  "format": "yyyy-MM-dd HH:mm:ss",
-                  "index" : "not_analyzed"
+                  "format": "yyyy-MM-dd HH:mm:ss"
                 },
                 "Call direction": {
-                  "type": "string",
-                  "index" : "not_analyzed"
+                  "type": "keyword"
                 },
                 "Hangup cause": {
-                  "type": "string",
-                  "index" : "not_analyzed"
+                  "type": "keyword"
                 },
                 "User ID": {
-                  "type": "string",
-                  "index" : "not_analyzed"
+                  "type": "keyword"
                 },
                 "Destination User": {
-                  "type": "string",
-                  "index" : "not_analyzed"
+                  "type": "keyword"
                 },
                 "Q850 Hangup Code": {
-                  "type": "long",
-                  "index" : "not_analyzed"
+                  "type": "long"
                 },
                 "Call duration": {
-                  "type": "long",
-                  "index" : "not_analyzed"
+                  "type": "long"
                 },
                 "Queue start time": {
-                  "type": "date",
-                  "index": "not_analyzed"
+                  "type": "date"
                 },
                 "Queue answer time": {
-                  "type": "date",
-                  "index": "not_analyzed"
+                  "type": "date"
                 },
                 "Queue stop time": {
-                  "type": "date",
-                  "index": "not_analyzed"
+                  "type": "date"
                 },
                 "Queue Answer Delay": {
-                  "type": "long",
-                  "index": "not_analyzed"
+                  "type": "long"
                 },
                 "Queue call duration": {
-                  "type": "long",
-                  "index": "not_analyzed"
+                  "type": "long"
                 },
                 "Queue connected call duration": {
-                  "type": "long",
-                  "index": "not_analyzed"
+                  "type": "long"
                 },
                 "Queue Answered": {
                   "type": "boolean",
-                  "index": "not_analyzed"
+                  "store": true
                 },
                 "Connected call duration": {
-                  "type": "long",
-                  "index" : "not_analyzed"
+                  "type": "long"
                 },
                 "Call end time": {
                   "type": "date",
-                  "format": "yyyy-MM-dd HH:mm:ss",
-                  "index" : "not_analyzed"
+                  "format": "yyyy-MM-dd HH:mm:ss"
                 },
                 "Bridge time": {
-                  "type": "date",
-                  "index" : "not_analyzed"
+                  "type": "date"
                 },
                 "Progress time": {
                   "type": "date",
-                  "format": "yyyy-MM-dd HH:mm:ss",
-                  "index" : "not_analyzed"
+                  "format": "yyyy-MM-dd HH:mm:ss"
                 },
                 "Agent ID": {
-                  "type": "string",
-                  "index" : "not_analyzed"
+                  "type": "keyword"
                 },
                 "Queue ID": {
-                  "type": "string",
-                  "index" : "not_analyzed"
+                  "type": "keyword"
                 },
                 "Destination number": {
-                  "type": "string",
-                  "index" : "not_analyzed"
+                  "type": "keyword"
                 },
                 "Call record duration": {
-                  "type": "integer",
-                  "index" : "not_analyzed"
+                  "type": "integer"
                 },
                 "CallerID number": {
-                  "type": "string",
-                  "index" : "not_analyzed"
+                  "type": "keyword"
                 },
                 "Domain name": {
-                  "type": "string",
-                  "index" : "not_analyzed"
+                  "type": "keyword"
                 },
                 "Bridged": {
                   "type": "boolean",
-                  "index" : "not_analyzed"
+                  "store": true
                 },
                 "Answered": {
                   "type": "boolean",
-                  "index" : "not_analyzed"
+                  "store": true
                 },
                 "Ring Duration": {
                   "type": "long"
@@ -161,7 +135,7 @@
                 },
                 "CreatedOnStorage": {
                   "type": "long",
-                  "store": "yes",
+                  "store": true,
                   "include_in_all": false
                 },
                 "variables": {
@@ -232,26 +206,24 @@
                   "include_in_parent": true,
                   "properties": {
                     "content-type": {
-                      "type": "string"
+                      "type": "keyword"
                     },
                     "createdOn": {
                       "type": "date",
                       "format": "strict_date_optional_time||epoch_millis"
                     },
                     "domain": {
-                      "type": "string",
-                      "index": "not_analyzed"
+                      "type": "keyword"
                     },
                     "name": {
-                      "type": "string",
-                      "index": "not_analyzed"
+                      "type": "keyword"
                     },
                     "path": {
-                      "type": "string",
-                      "index": "not_analyzed"
+                      "type": "keyword"
                     },
                     "private": {
-                      "type": "boolean"
+                      "type": "boolean",
+                      "store": true
                     },
                     "size": {
                       "type": "long"
@@ -260,8 +232,7 @@
                       "type": "integer"
                     },
                     "uuid": {
-                      "type": "string",
-                      "index": "not_analyzed"
+                      "type": "keyword"
                     }
                   }
                 }

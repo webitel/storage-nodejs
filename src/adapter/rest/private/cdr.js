@@ -19,7 +19,7 @@ function addRoutes(api) {
 
 function save(req, res, next) {
     const uuid = req.query.uuid;
-    cdrService.save(req.body, (err) => {
+    cdrService.save(req.body, {skipMongo: req.query.skip_mongo === 'true'}, (err) => {
         if (err) {
             log.error(err);
             return next(err);
