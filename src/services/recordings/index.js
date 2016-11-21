@@ -6,6 +6,7 @@
 
 const Storage = require(__appRoot + '/lib/storage'),
     helper = require('./helper'),
+    checkPermission = require(__appRoot + '/utils/acl'),
     util = require('util'),
     CacheCollection = require(__appRoot + '/lib/collection'),
     log = require(__appRoot + '/lib/log')(module),
@@ -13,6 +14,7 @@ const Storage = require(__appRoot + '/lib/storage'),
     CodeError = require(__appRoot + '/lib/error'),
     httpUtil = require(__appRoot + '/utils/http'),
     crypto = require('crypto'),
+    Scheduler = require(`${__appRoot}/lib/scheduler`),
 
     FILE_TYPES = ['local', 's3', 'b2', 'gDrive', 'dropBox'],
     DEF_ID = '_default_'
@@ -44,6 +46,12 @@ else log.info(`Set default provider ${helper.DEFAULT_PROVIDER_NAME} - OK`);
 let executeRemoveNonExistentFiles = false,
     executeRemoveFiles = false;
 
+if (helper.cronJobDeleteOldFile && helper.cronJobDeleteOldFile !== 'false') {
+    new Scheduler(helper.cronJobDeleteOldFile, function cronJobDeleteOldFile(cb) {
+        Service._removeOldFile({}, cb);
+    });
+}
+
 const Service = module.exports = {
 
     getFileFromUUID: (caller, uuid, option, cb) => {
@@ -66,6 +74,18 @@ const Service = module.exports = {
             
             Service._getFile(fileDb, option, cb);
         });
+    },
+
+    updateFile: (caller, uuid, id, data = {}, cb) => {
+        if (!checkPermission(caller.acl, 'cdr', 'd'))
+            return cb(new CodeError(403, "Permission denied!"));
+
+        application.DB._query.file.updateFile(
+            uuid,
+            id,
+            data,
+            cb
+        )
     },
 
     getFileFromHash: (caller, uuid, params = {}, cb) => {
@@ -248,7 +268,37 @@ const Service = module.exports = {
         }
 
     },
-    
+
+
+    _removeOldFile: (options = {}, cb) => {
+        let stream = application.DB._query.file.getStreamByAggregateOldFile();
+
+        stream.on('error', (err) => {
+            log.error(err);
+        });
+        stream.on('end', () => {
+            log.debug(`End stream.`);
+            cb();
+        });
+
+        function done(err, res) {
+            if (err) {
+                log.error(err.message);
+            }
+            stream.resume();
+        }
+
+        stream.on('data', (fileDb) => {
+            stream.pause();
+            log.trace(`Try delete old file: ${fileDb._id} > ${fileDb.uuid}`);
+            const providerName = FILE_TYPES[fileDb.type];
+            if (!providerName)
+                return done(new Error(`Bad provider type: ${fileDb.type}`));
+
+            Service._delFile(providerName, fileDb, { delDb: true}, done);
+        });
+    },
+
     // Public
     removeFileRange: (caller, options = {}, cb) => {
         if (executeRemoveFiles)
@@ -419,10 +469,16 @@ const Service = module.exports = {
         }
 
         function sendResponse(err) {
-            if (err)
+            if (err && !option.delDb)
                 return cb(err);
 
             if (option.delDb) {
+                if (application.elastic) {
+                    application.elastic.removeFile(fileDb.uuid, fileDb._id, fileDb.domain, e => {
+                        if (e)
+                            log.error(e);
+                    })
+                }
                 return application.DB._query.file.deleteById(fileDb._id, (err) => {
                     if (err)
                         return cb(err);

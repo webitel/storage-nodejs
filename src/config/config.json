@@ -71,6 +71,9 @@
     "defaultProvider": "local",
     "maskPath": "$DOMAIN/$Y/$M/$D/$H",
 
+    "cronJobDeleteOldFile": false,
+    "defaultDaysLifeFiles": 365,
+
     "providers": {
       "b2": {
         "accountId" : "xx",

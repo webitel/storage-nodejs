@@ -19,6 +19,9 @@ module.exports = {
 function addRoutes(api) {
     api.get('/api/v2/files/stats/:id?', stats);
     api.get('/api/v2/files/:id', getFile);
+
+    api.put('/api/v2/files/:uuid/:id', setFileParams);
+
     api.delete('/api/v2/files/:id', delFile);
     // api.delete('/api/v2/files/cache/:domain', flushCache);
     api.delete('/api/v2/files/utils/removeNonExistentFiles', removeNonExistentFiles);
@@ -86,6 +89,23 @@ const getFile = (req, res, next) => {
             });
         }
     );
+};
+
+const setFileParams = (req, res, next) => {
+    let uuid = req.params.uuid,
+        _id = req.params.id;
+
+    fileService.updateFile(req.webitelUser, uuid, _id, req.body, (err, result) => {
+        if (err)
+            return next(err);
+
+        return res
+            .status(200)
+            .json({
+                "status": "OK",
+                "info": result
+            });
+    });
 };
 
 const delFile = (req, res, next) => {

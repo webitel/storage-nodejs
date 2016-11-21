@@ -13,15 +13,22 @@ class Scheduler {
         let _timer = null;
         const interval = parser.parseExpression(cronFormat);
         const _c = cronFormat;
-        
+        log.info(`Create job: ${fn.name || ''}`);
+
         (function shed() {
             if (_timer)
                 clearTimeout(_timer);
 
+            let n = -1;
+            do {
+                n = interval.next().getTime() - Date.now()
+            } while (n < 0);
+
+            log.trace(`Next exec schedule: ${fn.name || ''} ${n}`);
             _timer = setTimeout( function tick() {
-                log.trace(`Exec schedule ${_c}`);
+                log.trace(`Exec schedule: ${fn.name || ''} ${_c}`);
                 fn.apply(null, [shed]);
-            }, interval.next().getTime() - Date.now());
+            }, n);
         })()
     }
 }

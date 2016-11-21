@@ -192,6 +192,41 @@ class ElasticClient extends EventEmitter2 {
         }, cb);
     }
 
+    removeFile (uuid = "", _id = "", domain = "", cb) {
+        const indexName = `${CDR_NAME}*`;
+
+        this.client.updateByQuery({
+            index: (indexName + (domain ? '-' + domain : '')).toLowerCase(),
+            type: CDR_TYPE_NAME,
+            body: {
+                "query": {
+                    "bool": {
+                        "must": [
+                            {
+                                "term": {
+                                    "recordings._id": _id.toString()
+                                }
+                            },
+                            {
+                                "term": {
+                                    "variables.uuid": uuid
+                                }
+                            }
+                        ],
+                        "must_not": []
+                    }
+                },
+                "script" : {
+                    "inline": "if (ctx._source[\"recordings\"] != null) { for (int i = 0; i < ctx._source.recordings.size(); i++) { if (ctx._source.recordings[i]._id == params.fileId) {ctx._source.recordings.remove(i); break;}} }",
+                    "lang": "painless",
+                    "params" : {
+                        "fileId" : _id
+                    }
+                }
+            }
+        }, cb);
+    }
+
     findByUuid (uuid, domain, cb) {
         this.client.search(
             {

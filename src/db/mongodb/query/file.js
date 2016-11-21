@@ -5,7 +5,9 @@
 "use strict";
 
 const conf = require(__appRoot + '/config'),
-    fileCollectionName = conf.get('mongodb:collectionFile');
+    ObjectId = require('mongodb').ObjectId,
+    fileCollectionName = conf.get('mongodb:collectionFile'),
+    domainsCollectionName = conf.get('mongodb:collectionDomain');
 
 module.exports = {
     addQuery: addQuery
@@ -144,6 +146,21 @@ function addQuery(db) {
             }
         },
 
+        updateFile: (uuid, id, data, cb) => {
+            const $set = {};
+            for (let key in data) {
+                if (data.hasOwnProperty(key) && key !== "domain")
+                    $set[key] = data[key];
+            }
+
+            return db
+                .collection(fileCollectionName)
+                .update({
+                    _id: ObjectId.isValid(id) ? ObjectId(id) : id,
+                    uuid: uuid
+                }, {$set}, cb);
+        },
+
         getStreamByDateRange: (start, end, columns) => {
             return db
                 .collection(fileCollectionName)
@@ -157,6 +174,126 @@ function addQuery(db) {
                     },
                     columns
                 )
+                .stream()
+        },
+
+        getStreamByAggregateOldFile: (configServerDays = 30) => {
+            return db
+                .collection(fileCollectionName)
+                .aggregate([
+                    // Skip lock file
+                    {
+                        $match: {"_lock": {$ne: true}}
+                    },
+                    {
+                        $unwind: "$domain"
+                    },
+                    {
+                        $lookup:
+                        {
+                            from: domainsCollectionName,
+                            localField: "domain",
+                            foreignField: "name",
+                            as: "_domain"
+                        }
+                    },
+                    // Calc times expires days
+                    {
+                        $project: {
+                            "uuid": 1,
+
+                            "private": 1,
+                            "domain": 1,
+                            "bucketName": 1,
+                            "path": 1,
+                            "storageFileId": 1,
+                            "type": 1,
+
+                            "_expiresDays": {
+                                $arrayElemAt: ["$_domain.storage.expiresDays", 0]
+                            },
+                            "createdOn": 1
+                        }
+                    },
+                    // set server value if no domain config
+                    {
+                        $project: {
+                            "uuid": 1,
+
+                            "private": 1,
+                            "domain": 1,
+                            "bucketName": 1,
+                            "path": 1,
+                            "storageFileId": 1,
+                            "type": 1,
+
+                            "_expiresDays": {
+                                $ifNull: ["$_expiresDays", configServerDays]
+                            },
+                            "createdOn": 1
+                        }
+                    },
+                    // set 0 - never delete
+                    {
+                        $match: {"_expiresDays": {$ne: 0}}
+                    },
+                    // calc deadline
+                    {
+                        $project: {
+                            "uuid": 1,
+
+                            "private": 1,
+                            "domain": 1,
+                            "bucketName": 1,
+                            "path": 1,
+                            "storageFileId": 1,
+                            "type": 1,
+
+                            "_deadlineMS": {
+                                $multiply: ["$_expiresDays", 86400000] //24*60*60000
+                            },
+                            "createdOn": 1
+                        }
+                    },
+                    {
+                        $project: {
+                            "uuid": 1,
+                            "createdOn": 1,
+
+                            "private": 1,
+                            "domain": 1,
+                            "bucketName": 1,
+                            "path": 1,
+                            "storageFileId": 1,
+                            "type": 1,
+
+                            "deadlineDate": {
+                                $add: ["$createdOn", "$_deadlineMS"]
+                            }
+                        }
+                    },
+                    {
+                        $project: {
+                            "uuid": 1,
+                            "createdOn": 1,
+
+                            "private": 1,
+                            "domain": 1,
+                            "bucketName": 1,
+                            "path": 1,
+                            "storageFileId": 1,
+                            "type": 1,
+
+                            "deadline": {
+                                $subtract: ["$deadlineDate", new Date()]
+                            }
+                        }
+                    },
+                    {
+                        $match: {"deadline": {$lte: 0}}
+                    }
+
+                ])
                 .stream()
         }
     }
