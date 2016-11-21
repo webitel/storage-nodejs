@@ -9,12 +9,14 @@ const config = require(__appRoot + '/config'),
     recordFileConfig = config.get('recordFile'),
     defProvider = config.get('recordFile:defaultProvider'),
     mask = config.get('recordFile:maskPath'),
-    cronJobDeleteOldFile = `${config.get('recordFile:cronJobDeleteOldFile')}`
+    cronJobDeleteOldFile = `${config.get('recordFile:cronJobDeleteOldFile')}`,
+    defaultDaysLifeFiles = `${config.get('recordFile:defaultDaysLifeFiles')}`
     ;
     
 module.exports = {
     mask: mask,
     cronJobDeleteOldFile: cronJobDeleteOldFile,
+    defaultDaysLifeFiles: defaultDaysLifeFiles,
     DEFAULT_PROVIDER_NAME: defProvider,
     DEFAULT_PROVIDERS_CONF: recordFileConfig,
     getProviderConfigByName: (name) => {

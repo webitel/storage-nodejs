@@ -177,7 +177,10 @@ function addQuery(db) {
                 .stream()
         },
 
-        getStreamByAggregateOldFile: (configServerDays = 30) => {
+        getStreamByAggregateOldFile: (configServerDays) => {
+            if (!isFinite(configServerDays)) {
+                configServerDays = 365
+            }
             return db
                 .collection(fileCollectionName)
                 .aggregate([

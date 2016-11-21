@@ -271,7 +271,7 @@ const Service = module.exports = {
 
 
     _removeOldFile: (options = {}, cb) => {
-        let stream = application.DB._query.file.getStreamByAggregateOldFile();
+        let stream = application.DB._query.file.getStreamByAggregateOldFile(+helper.defaultDaysLifeFiles);
 
         stream.on('error', (err) => {
             log.error(err);
