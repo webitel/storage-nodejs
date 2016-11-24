@@ -18,8 +18,8 @@
     "ssl": false,
     "host": "0.0.0.0",
     "port": 10024,
-    "login": "xx",
-    "password": "xx"
+    "login": "webitel",
+    "password": "webitel"
   },
 
   "replica": {
@@ -41,8 +41,8 @@
     },
     "auth": {
       "type": "base",
-      "login": "igor",
-      "password": "yo"
+      "login": "webitel",
+      "password": "webitel"
     },
     "headers": {}
   },
