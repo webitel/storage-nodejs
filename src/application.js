@@ -59,7 +59,7 @@ class Application extends EventEmitter2 {
     }
 
     configureServer () {
-        if (`${conf.get('replica:use')}` === 'true') {
+        if (`${conf.get('replica:enabled')}` === 'true') {
             this.replica = require('./services/replica');
             this.replica._init();
         }
