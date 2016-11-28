@@ -179,15 +179,15 @@ function getCommands () {
                         const stream = c.aggregate([
                             {$match: filter || {}},
                             {
+                                $sort : { "_id": -1}
+                            },
+                            {
                                 $lookup: {
                                     from: conf.get('mongodb:collectionFile'),
                                     localField: "variables.uuid",
                                     foreignField: "uuid",
                                     as: "recordings"
                                 }
-                            },
-                            {
-                                $sort : { "_id": -1}
                             }
                         ], {allowDiskUse: true}).stream();
 
