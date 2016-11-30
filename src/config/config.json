@@ -56,7 +56,8 @@
     "collectionDomain": "domains",
     "collectionMedia": "mediaFile",
     "collectionReplica": "replica",
-    "collectionAgentStatus": "agentStatus"
+    "collectionAgentStatus": "agentStatus",
+    "collectionLocation": "location"
   },
 
   "application": {

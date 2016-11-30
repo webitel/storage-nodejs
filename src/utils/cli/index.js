@@ -244,6 +244,37 @@ function getCommands () {
                 }
 
             )
+        },
+        location: (config = {}) => {
+            let {collection, mongo} = config;
+            if (!mongo)
+                throw `Bad mongo uri`;
+            if (!collection)
+                throw `Bad collection name`;
+
+            console.log(`Start export location to collection ${collection}`)
+
+            createMongoInstance(mongo, {}, (err, db) => {
+                if (err) {
+                    throw err;
+                }
+                const c = db.collection(collection);
+                const location = require("./location.js");
+
+                async.each(
+                    location,
+                    (item, cb) => {
+                        console.log(`Inserting ${item.country} code ${item.code}`);
+                        c.insert(item, cb)
+                    },
+                    err => {
+                        if (err) {
+                            throw err;
+                        }
+                        process.exit(1);
+                    }
+                )
+            });
         }
     }
 }
@@ -262,6 +293,8 @@ function parseArgs(args = []) {
         parsed.collection = conf.get('mongodb:collectionFile')
     } else if (args[0] === 'cdr') {
         parsed.collection = conf.get('mongodb:collectionCDR')
+    } else if (args[0] === 'location') {
+        parsed.collection = conf.get('mongodb:collectionLocation')
     }
 
     let i = 0;
