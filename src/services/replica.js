@@ -129,6 +129,9 @@ const Service = module.exports = {
                     if (err)
                         return cb(err);
 
+                    if (!res)
+                        return cb(new CodeError(404, `Not found ${val.docId}`));
+
                     sendDoc[fnName](res, res._id, cb);
                 })
             }
