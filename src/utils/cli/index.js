@@ -94,6 +94,7 @@ function getCommands () {
                         };
 
                         stream.on('data', doc => {
+                            stream.pause();
                             recServices._getFile(doc, {}, (err, res) => {
                                 // inserted++;
                                 if (err) {
@@ -124,7 +125,6 @@ function getCommands () {
                                 }
 
                             });
-                            stream.pause();
                         });
 
                         stream.on('error', e => {
