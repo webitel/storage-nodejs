@@ -62,6 +62,15 @@ const create = (req, res, next) => {
         file.queryName = name;
 
         recordingsService.saveToLocalProvider(file, req.query, (err, response = {}) => {
+            if (err) {
+                log.error(err);
+                fileService.deleteFile(file.path, (err) => {
+                    if (err)
+                        log.error(err);
+                });
+
+                return next(err);
+            }
 
             const doc = recordingsService.getSchema(file, response);
 
