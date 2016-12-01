@@ -62,6 +62,7 @@
 
   "application": {
     "loglevel": "trace",
+    "compression": false,
     "auth": {
       "tokenSecretKey": "myDevKey",
       "expiresDays": 7

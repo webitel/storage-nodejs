@@ -34,7 +34,7 @@ function checkAllow(req, res, next) {
         }
 
         if (decoded.exp <= Date.now()) {
-            return next(new CodeError(400, "Token Expired"));
+            return next(new CodeError(401, "Token Expired"));
         }
 
         // Authorize the user to see if s/he can access our resources

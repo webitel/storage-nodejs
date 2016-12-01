@@ -5,11 +5,14 @@
 "use strict";
     
 const express = require('express'),
+    compression = require('compression'),
     log = require(__appRoot + '/lib/log')(module),
     conf = require(`${__appRoot}/config`),
     bodyParser = require('body-parser'),
     API = ['public', 'private', 'archive']
 ;
+
+const UseCompression = `${conf.get('application:compression')}` === 'true';
 
 module.exports = (application) => {
     const api = conf._getUseApi();
@@ -17,6 +20,9 @@ module.exports = (application) => {
 
     api.forEach( name => {
         result[`${name}Api`] = express();
+
+        if (UseCompression)
+            result[`${name}Api`].use(compression());
 
         if (name === 'public')
             result[`${name}Api`].use(express.static(__appRoot + '/public'));
