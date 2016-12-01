@@ -58,6 +58,7 @@ function getCommands () {
                         const c = mongoDb.collection(collection);
                         const stream = c.find(filter || {})
                             .sort({"_id": 1})
+                            .addCursorFlag('noCursorTimeout',true)
                             .stream();
 
                         console.log(`Start: ${new Date().toLocaleString()}`);
@@ -65,7 +66,7 @@ function getCommands () {
                         const bar = new ProgressBar(' exports [:bar] :percent :etas  failed :failedCount err :lastError', {
                             complete: '=',
                             incomplete: ' ',
-                            width: 50,
+                            width: 100,
                             total: count
                         });
 
