@@ -188,6 +188,9 @@ function getCommands () {
                                     foreignField: "uuid",
                                     as: "recordings"
                                 }
+                            },
+                            {
+                                $project: {"core-uuid": 1, "_id": 1, "switchname": 1, "variables": 1, "callflow": 1}
                             }
                         ], {allowDiskUse: true}).stream();
 

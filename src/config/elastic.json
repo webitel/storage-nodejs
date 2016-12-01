@@ -2,7 +2,7 @@
   "elastic": {
     "enabled": true,
     "intervalMin": 1,
-    "host": "elasticsearch:9200",
+    "host": "pre.webitel.com:9200",
     "keepAlive": true,
     "requestTimeout": 500000,
     "cdrIndexName": "cdr",
