@@ -23,10 +23,10 @@
   },
 
   "replica": {
-    "enabled": true,
+    "enabled": false,
     "live": true,
     "host": "http://10.10.10.25:10025",
-    "cronJob": "1-59/5 * 1-23/5 * * *",
+    "cronJob": "1-59/5 * * * * *",
     "cdr": {
       "method": "post",
       "keepAlive": true,
