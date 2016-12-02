@@ -8,6 +8,7 @@ const MongoClient = require("mongodb").MongoClient,
     request = require('request'),
     async = require('async'),
     ProgressBar = require('progress'),
+    ObjectId = require('mongodb').ObjectId,
     path = require('path')
     ;
 
@@ -29,7 +30,7 @@ fn[args[0]](config);
 function getCommands () {
     return {
         file: (config = {}) => {
-            let {filter = {}, url, collection, mongo} = config;
+            let {filter = {}, url, collection, mongo, lastInsertedId} = config;
             if (!mongo)
                 throw `Bad mongo uri`;
             if (!collection)
@@ -37,7 +38,6 @@ function getCommands () {
 
             if (!url)
                 throw `Bad url`;
-
 
             async.waterfall(
                 [
@@ -96,6 +96,7 @@ function getCommands () {
 
                         stream.on('data', doc => {
                             stream.pause();
+                            lastInsertedId = doc._id;
                             recServices._getFile(doc, {}, (err, res) => {
                                 // inserted++;
                                 if (err) {
@@ -115,7 +116,7 @@ function getCommands () {
                                             .source
                                             .pipe(request.post(makeUrl(doc), (e, v) => {
                                                 if (e) {
-                                                    tick(e);
+                                                    cb(e);
                                                 } else if (v.statusCode !== 200) {
                                                     tick(new Error(`Bad response status code ${v.statusCode}`));
                                                 } else {
@@ -136,8 +137,18 @@ function getCommands () {
                     }
                 ],
                 (err, res) => {
-                    if (err)
-                        console.error(err.message);
+                    if (err) {
+                        console.error(err);
+                        if (lastInsertedId) {
+                            config.lastInsertedId = lastInsertedId;
+                            config.filter = {_id: {$gte: ObjectId(lastInsertedId)}};
+                            console.log(`Try recovery 5sec`);
+                            setTimeout(() => {
+                                fn.file(config);
+                            }, 5000);
+                            return;
+                        }
+                    }
 
 
                     console.log(`End: ${new Date().toLocaleString()}\n`);
@@ -147,7 +158,7 @@ function getCommands () {
             );
         },
         cdr: (config = {}) => {
-            let {filter = {}, url, collection, mongo} = config;
+            let {filter = {}, url, collection, mongo, lastInsertedId} = config;
             if (!mongo)
                 throw `Bad mongo uri`;
             if (!collection)
@@ -180,7 +191,7 @@ function getCommands () {
                         const stream = c.aggregate([
                             {$match: filter || {}},
                             {
-                                $sort : { "_id": -1}
+                                $sort : { "_id": 1}
                             },
                             {
                                 $lookup: {
@@ -206,7 +217,7 @@ function getCommands () {
                         let inserted = 0;
                         stream.on('data', doc => {
                             stream.pause();
-
+                            lastInsertedId = doc._id;
                             request({
                                 method: "POST",
                                 url: url,
@@ -239,8 +250,18 @@ function getCommands () {
                     }
                 ],
                 (err, res) => {
-                    if (err)
+                    if (err) {
                         console.error(err.message);
+                        if (lastInsertedId) {
+                            config.lastInsertedId = lastInsertedId;
+                            config.filter = {_id: {$gte: ObjectId(lastInsertedId)}};
+                            console.log(`Try recovery 5sec`);
+                            setTimeout(() => {
+                                fn.cdr(config);
+                            }, 5000);
+                            return;
+                        }
+                    }
 
 
                     console.log(`End: ${new Date().toLocaleString()}\n`);
