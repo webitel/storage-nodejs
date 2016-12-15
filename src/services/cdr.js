@@ -23,8 +23,10 @@ const Service = module.exports = {
 
         let data = replaceVariables(cdrData);
 
-        if (data.variables && data.variables.loopback_leg == "A") {
-            log.debug(`Skip leg A ${data.variables.uuid}`);
+        if (data.variables &&
+            ( (data.variables.loopback_leg === "A" && data.variables.loopback_bowout_on_execute !== 'true')
+                || (data.variables.loopback_bowout_on_execute === 'true' && data.variables.loopback_leg === "B") )) {
+            log.debug(`Skip leg ${data.variables.loopback_leg} ${data.variables.uuid}`);
             return callback(null);
         }
         async.waterfall(
