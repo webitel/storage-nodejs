@@ -54,6 +54,7 @@
     "collectionAuth": "authToken",
     "collectionEmail": "emailConfig",
     "collectionDomain": "domains",
+    "collectionAcl": "aclPermissions",
     "collectionMedia": "mediaFile",
     "collectionReplica": "replica",
     "collectionAgentStatus": "agentStatus",

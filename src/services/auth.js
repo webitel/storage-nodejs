@@ -28,11 +28,16 @@ let Service = {
 
     getUserByKey: (key, cb) => {
         try {
-            var authDb = application.DB._query.auth;
+            const authDb = application.DB._query.auth;
             authDb.getByKey(key, cb);
         } catch (e){
             cb(e);
         }
+    },
+
+    getDomainToken: (domainName, uuid, cb) => {
+        const authDb = application.DB._query.auth;
+        authDb.getDomainToken(domainName, uuid, cb);
     }
 };
 

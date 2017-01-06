@@ -22,21 +22,54 @@ function addRoutes(api) {
     api.all('/api/v2/*', checkAllow);
 }
 
+function decodeToken(token) {
+    try {
+        return jwt.decode(token, tokenSecretKey);
+    } catch (e) {
+        return null
+    }
+}
+
 function checkAllow(req, res, next) {
     const token = (req.body && req.body.access_token) || (req.query && req.query.access_token) || req.headers['x-access-token'],
         key = (req.body && req.body.x_key) || (req.query && req.query.x_key) || req.headers['x-key'];
 
-    if (token && key) {
-        try {
-            var decoded = jwt.decode(token, tokenSecretKey);
-        } catch (e) {
-            return next(new CodeError(401, "Invalid Token or Key"));
-        }
+    if (!token)
+        return next(new CodeError(401, "Invalid token"));
 
-        if (decoded.exp <= Date.now()) {
-            return next(new CodeError(401, "Token Expired"));
-        }
+    const decoded = decodeToken(token);
 
+    if (!decoded)
+        return next(new CodeError(401, "Invalid token"));
+
+    if (decoded.exp <= Date.now()) {
+        return next(new CodeError(401, "Token Expired"));
+    }
+
+
+    if (decoded.v === 2 && decoded.t === 'domain') {
+
+        authService.getDomainToken(decoded.d, decoded.id, (err, dbTokenData) => {
+            if (err)
+                    return next(err);
+
+            const tokenData = dbTokenData && dbTokenData[0];
+            if (!tokenData)
+                return next(new CodeError(401, "Not found token"));
+
+            req.webitelUser = {
+                id: `${decoded.id}@${decoded.d}`,
+                domain: decoded.d,
+                role: tokenData.roleName,
+                roleName: tokenData.roleName,
+                expires: decoded.exp,
+                acl: tokenData.aclList
+                //testLeak: new Array(1e6).join('X')
+            };
+            next()
+        });
+
+    } else if (key) {
         // Authorize the user to see if s/he can access our resources
 
         authService.getUserByKey(key, function (err, dbUser) {
