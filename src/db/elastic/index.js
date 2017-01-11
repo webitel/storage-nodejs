@@ -149,6 +149,10 @@ class ElasticClient extends EventEmitter2 {
         return this.client.search(data, cb);
     }
 
+    scroll (params = {}, cb) {
+        return this.client.scroll(params, cb);
+    }
+
     insertCdr (doc, cb) {
         let currentDate = new Date(),
             indexName = `${CDR_NAME}-${currentDate.getMonth() + 1}.${currentDate.getFullYear()}`,

@@ -9,7 +9,7 @@ const checkPermission = require(__appRoot + '/utils/acl'),
     ;
     
 const Service = module.exports = {
-    search (caller, option, cb) {
+    search (caller, option = {}, cb) {
         let acl = caller.acl,
             _ro = false
             ;
@@ -53,6 +53,7 @@ const Service = module.exports = {
 
         let columns = option.columns,
             columnsDate = option.columnsDate || [],
+            scroll = option.scroll,
             limit = parseInt(option.limit, 10) || 40,
             pageNumber = option.pageNumber,
             sort = (option.sort && Object.keys(option.sort).length > 0) ? option.sort : {"Call start time":{"order":"desc","unmapped_type":"boolean"}}
@@ -65,12 +66,26 @@ const Service = module.exports = {
                 storedFields: columns,
                 docvalueFields: columns,
                 ignoreUnavailable: true,
+                scroll,
                 from: pageNumber > 0 ? ((pageNumber - 1) * limit) : 0, //Number — Starting offset (default: 0)
                 body: {
                     "sort": [sort],
                     "fielddata_fields": columnsDate,
                     "query": filter
                 }
+            },
+            cb
+        );
+    },
+
+    scroll: (caller, option = {}, cb) => {
+        if (!caller)
+            return cb(new CodeError(401, ""));
+
+        application.elastic.scroll(
+            {
+                scrollId: option.scrollId,
+                scroll: option.scroll
             },
             cb
         );

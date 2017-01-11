@@ -18,6 +18,8 @@ module.exports = {
  */
 function addRoutes(api) {
     api.post('/api/v2/cdr/text', getElasticData);
+    api.post('/api/v2/cdr/text/scroll', scrollElasticData);
+
     api.post('/api/v2/cdr/searches', searches);
     api.post('/api/v2/cdr/counts', count);
 
@@ -26,6 +28,15 @@ function addRoutes(api) {
 
 function getElasticData(req, res, next) {
     return elasticService.search(req.webitelUser, req.body, (err, result) => {
+        if (err)
+            return next(err);
+
+        res.json(result);
+    });
+}
+
+function scrollElasticData(req, res, next) {
+    return elasticService.scroll(req.webitelUser, req.body, (err, result) => {
         if (err)
             return next(err);
 
