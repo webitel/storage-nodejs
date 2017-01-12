@@ -12,6 +12,7 @@ const MongoClient = require("mongodb").MongoClient,
     path = require('path')
     ;
 
+//mongoimport --host 10.10.10.25:27017 --db webitel --collection location --file mongo_location.json
 
 global.__appRoot = path.normalize(`${__dirname}/../..`);
 
@@ -277,19 +278,20 @@ function getCommands () {
             if (!collection)
                 throw `Bad collection name`;
 
-            console.log(`Start export location to collection ${collection}`)
+            console.log(`Start export location to collection ${collection}`);
 
             createMongoInstance(mongo, {}, (err, db) => {
                 if (err) {
                     throw err;
                 }
                 const c = db.collection(collection);
-                const location = require("./location.js");
 
+                const location = require("./location.js");
                 async.each(
                     location,
                     (item, cb) => {
                         console.log(`Inserting ${item.country} code ${item.code}`);
+                        item._id = ObjectId(item._id);
                         c.insert(item, cb)
                     },
                     err => {
