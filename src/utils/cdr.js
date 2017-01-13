@@ -90,16 +90,21 @@ module.exports = {
             if (_queueStopTime > 0)
                 record["Queue stop time"] =  _queueStopTime * 1000;
 
+            record["Queue call duration"] = (record.variables.cc_queue_canceled_epoch || record.variables.cc_queue_terminated_epoch)
+                - record.variables.cc_queue_joined_epoch;
+
             record["Queue Answer Delay"] = record.variables.cc_queue_answered_epoch
                 ? record.variables.cc_queue_answered_epoch - record.variables.cc_queue_joined_epoch
                 : 0; // +
 
-            record["Queue call duration"] = (record.variables.cc_queue_canceled_epoch || record.variables.cc_queue_terminated_epoch)
-                - record.variables.cc_queue_joined_epoch;
-
             record["Queue connected call duration"] = record.variables.cc_queue_answered_epoch
                 ? record.variables.cc_queue_terminated_epoch - record.variables.cc_queue_answered_epoch
                 : 0; // +
+
+            if (record["Queue ID"]) {
+                record["Queue waiting duration"] = (record.variables.cc_queue_answered_epoch || record.variables.cc_queue_canceled_epoch || record.variables.cc_queue_terminated_epoch)
+                    - record.variables.cc_queue_joined_epoch;
+            }
 
             record["Queue Answered"] = record.variables.cc_queue_answered_epoch > 0; // +
 

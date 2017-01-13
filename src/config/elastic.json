@@ -74,6 +74,9 @@
                 "Queue Answer Delay": {
                   "type": "long"
                 },
+                "Queue waiting duration": {
+                  "type": "long"
+                },
                 "Queue call duration": {
                   "type": "long"
                 },
