@@ -98,7 +98,7 @@ module.exports = {
                 : 0; // +
 
             record["Queue connected call duration"] = record.variables.cc_queue_answered_epoch
-                ? record.variables.cc_queue_terminated_epoch - record.variables.cc_queue_answered_epoch
+                ? (record.variables.cc_queue_terminated_epoch || record.variables.end_epoch)- record.variables.cc_queue_answered_epoch
                 : 0; // +
 
             if (record["Queue ID"]) {
