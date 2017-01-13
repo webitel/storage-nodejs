@@ -86,11 +86,11 @@ module.exports = {
             if (record.variables.cc_queue_answered_epoch)
                 record["Queue answer time"] = record.variables.cc_queue_answered_epoch * 1000; // +
 
-            let _queueStopTime = record.variables.cc_queue_canceled_epoch || record.variables.cc_queue_terminated_epoch;
+            let _queueStopTime = record.variables.cc_queue_canceled_epoch || record.variables.cc_queue_terminated_epoch || record.variables.end_epoch;
             if (_queueStopTime > 0)
                 record["Queue stop time"] =  _queueStopTime * 1000;
 
-            record["Queue call duration"] = (record.variables.cc_queue_canceled_epoch || record.variables.cc_queue_terminated_epoch)
+            record["Queue call duration"] = (record.variables.cc_queue_canceled_epoch || record.variables.cc_queue_terminated_epoch || record.variables.end_epoch)
                 - record.variables.cc_queue_joined_epoch;
 
             record["Queue Answer Delay"] = record.variables.cc_queue_answered_epoch
