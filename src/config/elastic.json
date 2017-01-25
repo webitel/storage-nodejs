@@ -243,6 +243,46 @@
             }
           }
         }
+      },
+      {
+        "name": "accounts",
+        "body": {
+          "template": "accounts-*",
+          "order": 3,
+          "mappings": {
+            "collection": {
+              "properties": {
+                "date": {
+                  "type": "date"
+                },
+                "timeSec": {
+                  "type": "long"
+                },
+                "endDate": {
+                  "type": "date"
+                },
+                "domain": {
+                  "type": "keyword"
+                },
+                "account": {
+                  "type": "keyword"
+                },
+                "status": {
+                  "type": "keyword"
+                },
+                "state": {
+                  "type": "keyword"
+                },
+                "description": {
+                  "type": "keyword"
+                },
+                "online": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        }
       }
     ]
   }

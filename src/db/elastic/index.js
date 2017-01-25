@@ -296,6 +296,25 @@ class ElasticClient extends EventEmitter2 {
             id: id
         }, cb)
     }
+
+    insertUserStatus (data = {}, cb) {
+        this.client.create({
+            index: `accounts-${data.domain}`,
+            type: 'accounts',
+            id: data._id,
+            body: {
+                "domain" : data.domain,
+                "account" : data.account,
+                "status" : data.status,
+                "state" : data.state,
+                "description" : data.description,
+                "online" : data.online,
+                "date" : data.date,
+                "endDate" : data.endDate,
+                "timeSec" : data.timeSec
+            }
+        }, cb);
+    }
 }
     
 module.exports = ElasticClient;

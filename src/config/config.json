@@ -111,5 +111,19 @@
   "uploadAcl": {
     "mode": "allow",
     "ip": "0.0.0.0/0"
+  },
+  "broker": {
+    "enable": false,
+    "connectionString": "amqp://webitel:secret@pre.webitel.com:5672?heartbeat=0",
+    "events": [
+    ],
+    "commands": [
+      {
+        "name": "Storage.Commands",
+        "type": "topic",
+        "rpc": false,
+        "format": "storage.commands.inbound"
+      }
+    ]
   }
 }
