@@ -8,7 +8,8 @@ const authService = require(__appRoot + '/services/auth'),
     jwt = require('jwt-simple'),
     config = require(__appRoot + '/conf'),
     CodeError = require(__appRoot + '/lib/error'),
-    tokenSecretKey = config.get('application:auth:tokenSecretKey')
+    fs = require('fs'),
+    tokenSecretKey = fs.readFileSync(config.get('application:auth:tokenSecretKey'));
     ;
 
 module.exports = {

@@ -65,7 +65,7 @@
     "loglevel": "trace",
     "compression": false,
     "auth": {
-      "tokenSecretKey": "myDevKey",
+      "tokenSecretKey": "/ssl/token.key",
       "expiresDays": 7
     }
   },
