@@ -4,7 +4,7 @@
 
 "use strict";
 
-const conf = require(__appRoot + '/config'),
+const conf = require(__appRoot + '/conf'),
     ObjectId = require('mongodb').ObjectId,
     fileCollectionName = conf.get('mongodb:collectionFile'),
     domainsCollectionName = conf.get('mongodb:collectionDomain');

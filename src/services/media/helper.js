@@ -4,7 +4,7 @@
 
 "use strict";
 
-const config = require(__appRoot + '/config'),
+const config = require(__appRoot + '/conf'),
     providers = config.get('mediaFile:providers'),
     mediaFileConfig = config.get('mediaFile'),
     defProvider = config.get('mediaFile:defaultProvider'),

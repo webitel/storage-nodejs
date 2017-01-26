@@ -5,7 +5,7 @@
 "use strict";
 
 const log = require(`${__appRoot}/lib/log`)(module),
-    conf = require(`${__appRoot}/config`),
+    conf = require(`${__appRoot}/conf`),
     CodeError = require(`${__appRoot}/lib/error`),
     url = require('url'),
     recordingsService = require('./recordings'),

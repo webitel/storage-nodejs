@@ -7,7 +7,7 @@
 const express = require('express'),
     compression = require('compression'),
     log = require(__appRoot + '/lib/log')(module),
-    conf = require(`${__appRoot}/config`),
+    conf = require(`${__appRoot}/conf`),
     bodyParser = require('body-parser'),
     API = ['public', 'private', 'archive']
 ;

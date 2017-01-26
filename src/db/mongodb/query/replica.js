@@ -4,7 +4,7 @@
 
 "use strict";
 
-const conf = require(__appRoot + '/config'),
+const conf = require(__appRoot + '/conf'),
     replicaCollectionName = conf.get('mongodb:collectionReplica');
 
 module.exports = {

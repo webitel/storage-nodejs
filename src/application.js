@@ -8,7 +8,7 @@ const log = require(__appRoot + '/lib/log')(module),
     http = require('http'),
     https = require('https'),
     fs = require('fs'),
-    conf = require(__appRoot + '/config'),
+    conf = require(__appRoot + '/conf'),
     EventEmitter2 = require('eventemitter2').EventEmitter2
     ;
     

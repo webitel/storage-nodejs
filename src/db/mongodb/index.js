@@ -6,7 +6,7 @@
 
 const MongoClient = require("mongodb").MongoClient,
     mongoClient = new MongoClient(),
-    config = require(__appRoot + '/config'),
+    config = require(__appRoot + '/conf'),
     log = require(__appRoot + '/lib/log')(module)
     ;
 

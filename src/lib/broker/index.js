@@ -6,7 +6,7 @@
 
 const Amqp = require('amqplib'),
     log = require(__appRoot + '/lib/log')(module),
-    conf = require(__appRoot + '/config'),
+    conf = require(__appRoot + '/conf'),
     EventEmitter2 = require('eventemitter2').EventEmitter2;
 
     

@@ -4,7 +4,7 @@
 
 "use strict";
 
-const conf = require(__appRoot + '/config'),
+const conf = require(__appRoot + '/conf'),
     emailCollectionName = conf.get('mongodb:collectionEmail');
 
 module.exports = {

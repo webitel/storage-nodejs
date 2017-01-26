@@ -8,7 +8,7 @@ const elasticsearch = require('elasticsearch'),
     EventEmitter2 = require('eventemitter2').EventEmitter2,
     log = require(__appRoot + '/lib/log')(module),
     setCustomAttribute = require(__appRoot + '/utils/cdr').setCustomAttribute,
-    conf = require(`${__appRoot}/config`),
+    conf = require(`${__appRoot}/conf`),
     async = require('async')
 ;
 

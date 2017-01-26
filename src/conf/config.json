@@ -113,7 +113,7 @@
     "ip": "0.0.0.0/0"
   },
   "broker": {
-    "enable": false,
+    "enable": true,
     "connectionString": "amqp://webitel:secret@pre.webitel.com:5672?heartbeat=0",
     "events": [
     ],

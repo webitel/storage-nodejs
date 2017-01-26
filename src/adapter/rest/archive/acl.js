@@ -5,7 +5,7 @@
 "use strict";
 
 const CodeError = require(`${__appRoot}/lib/error`),
-    conf = require(`${__appRoot}/config`),
+    conf = require(`${__appRoot}/conf`),
     BASE_LOGIN = conf.get('archive:login'),
     BASE_PASSWORD = conf.get('archive:password'),
     BASE_TOKEN = new Buffer(`${BASE_LOGIN}:${BASE_PASSWORD}`).toString('base64')

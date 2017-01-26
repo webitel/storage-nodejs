@@ -5,7 +5,7 @@
 "use strict";
 
 const winston = require('winston'),
-    conf = require(__appRoot + '/config');
+    conf = require(__appRoot + '/conf');
 
 function getLogger(module) {
     let pathDirectory = module.filename.split(/\/+/).slice(-3);

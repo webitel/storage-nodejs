@@ -4,7 +4,7 @@
 
 "use strict";
 
-const conf = require(__appRoot + '/config'),
+const conf = require(__appRoot + '/conf'),
     mediaCollectionName = conf.get('mongodb:collectionMedia');
 
 module.exports = {

@@ -4,7 +4,7 @@
 
 "use strict";
 
-const config = require(__appRoot + '/config'),
+const config = require(__appRoot + '/conf'),
     CodeError = require(__appRoot + '/lib/error'),
     log = require(__appRoot + '/lib/log')(module),
     inSubnet = require('insubnet')

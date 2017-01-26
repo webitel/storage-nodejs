@@ -4,7 +4,7 @@
 
 "use strict";
 
-const config = require(__appRoot + '/config'),
+const config = require(__appRoot + '/conf'),
     providers = config.get('recordFile:providers'),
     recordFileConfig = config.get('recordFile'),
     defProvider = config.get('recordFile:defaultProvider'),
