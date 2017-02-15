@@ -16,7 +16,7 @@ const MongoClient = require("mongodb").MongoClient,
 
 global.__appRoot = path.normalize(`${__dirname}/../..`);
 
-const conf = require(`${__appRoot}/config`),
+const conf = require(`${__appRoot}/conf`),
     recServices = require(`${__appRoot}/services/recordings`);
 
 const args = process.argv.slice(2);
