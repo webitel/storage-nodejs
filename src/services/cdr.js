@@ -32,7 +32,7 @@ const Service = module.exports = {
         async.waterfall(
             [
                 (cb) => {
-                    if (data.callflow instanceof Array &&  /^u:/.test(data.callflow[0].caller_profile.destination_number)) {
+                    if (data.callflow instanceof Array && data.callflow[0] && /^u:/.test(data.callflow[0].caller_profile.destination_number)) {
                         data.callflow[0].caller_profile.destination_number = data.variables.presence_id;
                     }
                     if (data && data.variables && !data.variables.domain_name && /@/.test(data.variables.presence_id)) {
@@ -86,7 +86,7 @@ const Service = module.exports = {
 
     setValideAttrDoc: (doc = {}) => {
         let data = replaceVariables(doc);
-        if (data.callflow instanceof Array &&  /^u:/.test(data.callflow[0].caller_profile.destination_number)) {
+        if (data.callflow instanceof Array &&  data.callflow[0] && /^u:/.test(data.callflow[0].caller_profile.destination_number)) {
             data.callflow[0].caller_profile.destination_number = data.variables.presence_id;
         }
         if (data && data.variables && !data.variables.domain_name && /@/.test(data.variables.presence_id)) {

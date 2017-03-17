@@ -59,9 +59,11 @@ const Service = module.exports = {
             sort = (option.sort && Object.keys(option.sort).length > 0) ? option.sort : {"Call start time":{"order":"desc","unmapped_type":"boolean"}}
             ;
 
+        const domain = caller.domain || option.domain;
+        
         application.elastic.search(
             {
-                index: `cdr-*${caller.domain ? '-' + caller.domain : '' }`,
+                index: `cdr-*${domain ? '-' + domain : '' }`,
                 size: limit,
                 storedFields: columns,
                 docvalueFields: columns,
