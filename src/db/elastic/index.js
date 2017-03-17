@@ -155,7 +155,7 @@ class ElasticClient extends EventEmitter2 {
 
     insertCdr (doc, cb) {
         let currentDate = new Date(),
-            indexName = `${CDR_NAME}-${currentDate.getMonth() + 1}.${currentDate.getFullYear()}`,
+            indexName = `${CDR_NAME}-${currentDate.getFullYear()}`,
             _record = setCustomAttribute(doc),
             _id = (_record.variables && _record.variables.uuid) || _record._id.toString();
         delete _record._id;
@@ -174,7 +174,7 @@ class ElasticClient extends EventEmitter2 {
 
     insertFile (doc, cb) {
         let currentDate = new Date(),
-            indexName = `${CDR_NAME}-${currentDate.getMonth() + 1}.${currentDate.getFullYear()}`,
+            indexName = `${CDR_NAME}-${currentDate.getFullYear()}`,
             _record = doc,
             _id = _record.variables && _record.variables.uuid;
 
