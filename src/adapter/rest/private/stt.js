@@ -38,11 +38,11 @@ function sttStream(req, res, next) {
         setVar,
         key = DEF_KEY,
         codec = 'audio/l16',
-        rate = '48000'
+        rate
     } = req.query;
 
-    if (!callId || !reply) {
-        log.error(`Bad request: callId or reply is required, url: ${req.originalUrl}`);
+    if (!callId || !reply || !rate) {
+        log.error(`Bad request: callId, rate or reply is required, url: ${req.originalUrl}`);
         return sendResponse(res)
     }
 
@@ -56,7 +56,7 @@ function sttStream(req, res, next) {
     };
 
     const r = http.request(requestParams, (resGoog) => {
-        log.trace(`Response for call ${callId}: ${resGoog.statusCode} `);
+        log.debug(`Response for call ${callId}: ${resGoog.statusCode} `);
 
         let resData = '';
         resGoog.on('data', c => resData += c);
@@ -68,6 +68,7 @@ function sttStream(req, res, next) {
                 stt = parseJson(text[1]);
 
             }
+            log.trace(`Call ${callId} stt: ${resData}`);
             return sendResponse(res, {stt, callId, setVar}, reply);
         });
 
