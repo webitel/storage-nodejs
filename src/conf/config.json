@@ -70,6 +70,10 @@
     }
   },
 
+  "stt": {
+    "defaultKey": "AIzaSyCPYK77NqpUfWoHof_HlhnKaGZAsaMT02Q"
+  },
+
   "recordFile": {
     "defaultProvider": "local",
     "maskPath": "$DOMAIN/$Y/$M/$D/$H",

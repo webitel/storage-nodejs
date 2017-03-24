@@ -7,6 +7,7 @@
 const Amqp = require('amqplib'),
     log = require(__appRoot + '/lib/log')(module),
     conf = require(__appRoot + '/conf'),
+    ApiMsg = require('./commandsMsg'),
     EventEmitter2 = require('eventemitter2').EventEmitter2;
 
     
@@ -183,6 +184,25 @@ class RPC extends EventEmitter2 {
 
     }
 
+    sendToQueue (queueName, data, params = {}, cb) {
+
+        if (!this.channel)
+            return cb(new Error("No live connect"));
+
+        if (!queueName)
+            return cb(new Error('Queue name is required.'));
+
+        if (data instanceof Object) {
+            this
+                .channel
+                .sendToQueue(queueName, new Buffer(JSON.stringify(data)), params, cb);
+        } else {
+            this
+                .channel
+                .sendToQueue(queueName, new Buffer(data), params, cb);
+        }
+    }
+
     checkExchange (ex) {
         return this.channel.checkExchange(ex)
     }
@@ -196,7 +216,10 @@ class RPC extends EventEmitter2 {
         })
     }
 }
-const ApiMsg = require('./commandsMsg');
-const rpc = new RPC(conf.get('broker'));
 
-module.exports = rpc;
+if (`${conf.get('broker:enable')}` === 'true') {
+    const rpc = new RPC(conf.get('broker'));
+    module.exports = () => rpc;
+} else {
+    module.exports = () => null;
+}

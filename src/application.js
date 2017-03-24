@@ -19,9 +19,7 @@ class Application extends EventEmitter2 {
         this.elastic = null;
         this.replica = null;
 
-        if (`${conf.get('broker:enable')}` === 'true') {
-            require(__appRoot + '/lib/broker');
-        }
+        require(__appRoot + '/lib/broker');
 
         // TODO
         if (~conf._getUseApi().indexOf('public') || ~conf._getUseApi().indexOf('private')) {
