@@ -15,7 +15,13 @@ module.exports = initConnect;
 
 function initConnect (server) {
 
-    mongoClient.connect(config.get('mongodb:uri'), function(err, db) {
+    const options = {
+        autoReconnect: true,
+        reconnectTries: Infinity,
+        reconnectInterval: 1000
+    };
+
+    mongoClient.connect(config.get('mongodb:uri'), options, function(err, db) {
         if (err) {
             log.error('Connect db error: %s', err.message);
             return server.emit('db:error', err);
