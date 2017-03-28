@@ -73,6 +73,9 @@
   "stt": {
     "defaultKey": "AIzaSyCPYK77NqpUfWoHof_HlhnKaGZAsaMT02Q"
   },
+  "tts": {
+    "defaultProvider": ""
+  },
 
   "recordFile": {
     "defaultProvider": "local",
@@ -118,7 +121,7 @@
   },
   "broker": {
     "enable": true,
-    "connectionString": "amqp://webitel:secret@pre.webitel.com:5672?heartbeat=0",
+    "connectionString": "amqp://webitel:ROOT_PASSWORD@172.17.0.1:5672?heartbeat=0",
     "events": [
     ],
     "commands": [

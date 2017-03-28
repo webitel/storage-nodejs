@@ -6,11 +6,38 @@
 
 const https = require('https'),
     log = require(__appRoot + '/lib/log')(module),
-    aws = require('./aws4')
+    aws = require('./aws4'),
+    conf = require(__appRoot + '/conf'),
+    defSettings = conf.get('tts'),
+    defProviders = new Map()
     ;
+
+let defProviderName = null;
+
+if (defSettings) {
+    for (let key in defSettings) {
+        if (key === 'defaultProvider') {
+            defProviderName = defSettings[key]
+        } else {
+            defProviders.set(key, defSettings[key])
+        }
+    }
+}
+
+if (defProviderName && !defProviders.has(defProviderName)) {
+    throw `No settings default provider ${defProviderName}`
+}
+
+function getDefaultSetting(providerName) {
+    const provider = providerName || defProviderName;
+    if (!defProviders.has(provider))
+        return {};
+
+    return defProviders.get(provider);
+}
     
 module.exports = (req, res, next) => {
-    let provider = req.params.provider;
+    let provider = req.params.provider === 'default' ? defProviderName : req.params.provider;
     if (PROVIDERS.hasOwnProperty(provider) && PROVIDERS[provider] instanceof Function) {
         return PROVIDERS[provider](req, res, next);
     } else {
@@ -21,6 +48,14 @@ module.exports = (req, res, next) => {
 
 const PROVIDERS = {
     ivona: (req, res, next) => {
+        const ivonaDefaultSettings = getDefaultSetting('ivona');
+        const accessKeyId = req.query.accessKey || ivonaDefaultSettings.accessKey;
+        const secretAccessKey = req.query.accessToken || ivonaDefaultSettings.accessToken;
+
+        if (!accessKeyId || !secretAccessKey) {
+            log.error(`Polly bad request accessKey or accessToken is required`);
+            return res.status(400).send(`Ivona bad request accessKey or accessToken is required`);
+        }
 
         let voiceSettings = {
             Input: {
@@ -28,7 +63,7 @@ const PROVIDERS = {
                 Type : 'text/plain'
             },
             OutputFormat: {
-                Codec : 'MP3',
+                Codec : req.query.format === '.wav' ? 'OGG' : 'MP3',
                 SampleRate : 22050
             },
             Parameters: {
@@ -53,14 +88,53 @@ const PROVIDERS = {
             body: JSON.stringify(voiceSettings)
         };
 
-        aws.sign(requestParams, {accessKeyId: req.query.key, secretAccessKey: req.query.token});
+        aws.sign(requestParams, {accessKeyId, secretAccessKey});
+
+        return _sendRequest(requestParams, res);
+    },
+    polly: (req, res, next) => {
+
+        const polyDefaultSettings = getDefaultSetting('polly');
+        const accessKeyId = req.query.accessKey || polyDefaultSettings.accessKey;
+        const secretAccessKey = req.query.accessToken || polyDefaultSettings.accessToken;
+        const voice = req.query.voice || polyDefaultSettings.voice || 'Salli';
+
+        if (!accessKeyId || !secretAccessKey) {
+            log.error(`Polly bad request accessKey or accessToken is required`);
+            return res.status(400).send(`Polly bad request accessKey or accessToken is required`);
+        }
+
+        let voiceSettings = {
+            Text: req.query.text,
+            TextType: "text",
+            OutputFormat: req.query.format === '.wav' ? 'ogg_vorbis' : 'mp3',
+            SampleRate: req.query.rate || 8000,
+            VoiceId: voice
+        };
+
+        let requestParams = {
+            path: `/v1/speech`,
+            host: 'polly.eu-west-1.amazonaws.com',
+            service: 'polly',
+            method: 'POST',
+            region: 'eu-west-1',
+            body: JSON.stringify(voiceSettings)
+        };
+
+        aws.sign(requestParams, {accessKeyId, secretAccessKey});
 
         return _sendRequest(requestParams, res);
     },
     microsoft: (req, res, next) => {
-        let keyId = req.query.key1,
-            keySecret = req.query.key2,
-            appId = req.query.appId;
+
+        const microsoftDefaultSettings = getDefaultSetting('microsoft');
+        const keyId = req.query.accessKey || microsoftDefaultSettings.accessKey;
+        const keySecret = req.query.accessToken || microsoftDefaultSettings.accessToken;
+
+        if (!keyId || !keySecret) {
+            log.error(`Microsoft bad request accessKey or accessToken is required`);
+            return res.status(400).send(`Polly bad request accessKey or accessToken is required`);
+        }
 
         microsoftAccessToken(keyId, keySecret, 'https://speech.platform.bing.com', (err, token) => {
             if (err || (!token || !token.access_token))
@@ -76,12 +150,13 @@ const PROVIDERS = {
                 host: 'speech.platform.bing.com',
                 method: 'POST',
                 headers: {
-                    'X-Search-AppId': appId,
-                    'X-Search-ClientID': keyId,
-                    'X-Microsoft-OutputFormat': 'riff-8khz-8bit-mono-mulaw',
                     'Authorization': `Bearer ${token.access_token}`,
-                    'User-Agent': 'WebitelACR',
-                    'Content-Type': 'audio/wav; samplerate=8000'
+                    'Content-Type': 'application/ssml+xml',
+                    'X-Microsoft-OutputFormat': req.query.format === '.wav' ? 'riff-8khz-8bit-mono-mulaw' : 'audio-16khz-32kbitrate-mono-mp3',
+
+                    // 'X-Search-AppId': appId,
+                    // 'X-Search-ClientID': keyId,
+                    'User-Agent': 'WebitelACR'
                 },
                 body: `<speak version='1.0' xml:lang='${voice.lang}'>
                         <voice xml:lang='${voice.lang}' xml:gender='${voice.gender}' name='Microsoft Server Speech Text to Speech Voice (${microsoftLocalesNameMaping(voice.lang, voice.gender)})'>${req.query.text}
@@ -116,6 +191,12 @@ function _handleResponseTTS(responseTTS, res) {
 
     if (responseTTS.statusCode !== 200) {
         log.error(responseTTS.headers);
+        let d = '';
+        responseTTS.on('data', c => d+=c);
+        responseTTS.on('end', () => {
+            log.error(d);
+        });
+
         return res.status(responseTTS.statusCode).send('Bad response');
     }
     responseTTS.pause();
