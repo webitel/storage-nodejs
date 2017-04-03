@@ -86,7 +86,7 @@ const Service = module.exports = {
 
         application.elastic.scroll(
             {
-                scrollId: option.scrollId,
+                scroll_id: option.scrollId,
                 scroll: option.scroll
             },
             cb
