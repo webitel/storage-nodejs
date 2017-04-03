@@ -138,8 +138,7 @@
                 },
                 "CreatedOnStorage": {
                   "type": "long",
-                  "store": true,
-                  "include_in_all": false
+                  "store": true
                 },
                 "variables": {
                   "type": "object",

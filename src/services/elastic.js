@@ -72,7 +72,7 @@ const Service = module.exports = {
                 from: pageNumber > 0 ? ((pageNumber - 1) * limit) : 0, //Number — Starting offset (default: 0)
                 body: {
                     "sort": [sort],
-                    "fielddata_fields": columnsDate,
+                    "docvalue_fields": columnsDate,
                     "query": filter
                 }
             },

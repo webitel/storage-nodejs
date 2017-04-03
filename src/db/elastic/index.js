@@ -46,7 +46,7 @@ class ElasticClient extends EventEmitter2 {
             log.info(`Connect to elastic - OK`);
             this.connected = true;
             this.initTemplate();
-            this.initMaxResultWindow();
+            // this.initMaxResultWindow();
             this.emit('elastic:connect', this);
         })
     }
