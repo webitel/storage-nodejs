@@ -6,6 +6,7 @@
 
 const conf = require(__appRoot + '/conf'),
     ObjectId = require('mongodb').ObjectId,
+    generateUuid = require('node-uuid'),
     cdrCollectionName = conf.get('mongodb:collectionCDR');
 
 module.exports = {
@@ -93,10 +94,76 @@ function addQuery(db) {
 
         },
 
+        _setTryToElastic: (count, iterator, bulkCb, finishCb) => {
+            const collection = db
+                .collection(cdrCollectionName);
+
+            const operationId = generateUuid.v4();
+            const bulk = collection.initializeUnorderedBulkOp();
+
+            const len = count < 10000 ? count : 10000;
+            for (let i = 0; i < len; i++) {
+                bulk.find( { _elasticExportError: true} ).updateOne( { $set: { _elasticExportError: operationId } } );
+            }
+
+            const endCallProcess = (err, errIds) => {
+                if (err) {
+                    resetProcessBulk(collection, operationId, true);
+                    return finishCb(err);
+                }
+
+                if (errIds && errIds.length > 0) {
+                    return resetProcessBulkFromIds(collection, operationId, errIds, err => {
+                        finishCb(err);
+                    })
+                } else {
+                    resetProcessBulk(collection, operationId, null)
+                }
+
+                return finishCb(null);
+            };
+
+            console.time(`Bulk operation export to elastic ${operationId}`);
+            bulk.execute((err) => {
+                if (err)
+                    return finishCb(err);
+
+                console.timeEnd(`Bulk operation export to elastic ${operationId}`);
+                const cursor = collection.find({_elasticExportError: operationId});
+                let data = [];
+                cursor.each( (err, doc) => {
+                    if (err) {
+                        return endCallProcess(err);
+                    }
+
+                    if (doc) {
+                        iterator(doc, data);
+                    } else {
+                        bulkCb(data, endCallProcess);
+                    }
+                })
+
+            });
+
+        },
+
         getIdFromUuid: (uuid, cb) => {
             return db
                 .collection(cdrCollectionName)
                 .findOne({"variables.uuid": uuid}, {_id: 1, "variables.domain_name": 1}, cb);
         }
     }
+}
+
+function resetProcessBulk(collection, operationId, value) {
+    collection.update({ _elasticExportError: operationId}, {$set: { _elasticExportError: value}}, {multi: true});
+}
+
+
+function resetProcessBulkFromIds(collection, operationId, ids, cb) {
+    const bulk = collection.initializeUnorderedBulkOp();
+    for (let i = 0; i < ids.length; i++) {
+        bulk.find( { _elasticExportError: operationId, _id: ObjectId(ids[i])} ).updateOne( { $set: { _elasticExportError: true } } );
+    }
+    bulk.execute(cb);
 }

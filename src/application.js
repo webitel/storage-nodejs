@@ -21,10 +21,19 @@ class Application extends EventEmitter2 {
 
         require(__appRoot + '/lib/broker');
 
+        let elasticConf = conf.get('elastic');
+
+        if (elasticConf && elasticConf.enabled.toString() == 'true') {
+            let ElasticClient = require('./db/elastic');
+            this.elastic = new ElasticClient(elasticConf);
+        }
+
         // TODO
         if (~conf._getUseApi().indexOf('public') || ~conf._getUseApi().indexOf('private')) {
             this.on('db:connect', (db) => {
                 this.DB = db;
+                if (this.elastic)
+                    require('./services/cdr').processSaveToElastic();
             });
             this.once('db:connect', this.configureServer);
 
@@ -34,13 +43,6 @@ class Application extends EventEmitter2 {
         } else {
             log.info(`Skip connect to mongodb`);
             process.nextTick(this.configureServer.bind(this));
-        }
-
-        let elasticConf = conf.get('elastic');
-
-        if (elasticConf && elasticConf.enabled.toString() == 'true') {
-            let ElasticClient = require('./db/elastic');
-            this.elastic = new ElasticClient(elasticConf);
         }
 
         if (typeof gc == 'function') {

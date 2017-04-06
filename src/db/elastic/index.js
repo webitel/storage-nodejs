@@ -153,14 +153,32 @@ class ElasticClient extends EventEmitter2 {
         return this.client.scroll(params, cb);
     }
 
-    insertCdr (doc, cb) {
+    _getCdrInsertParamBulk (doc) {
         let currentDate = new Date(),
             indexName = `${CDR_NAME}-${currentDate.getFullYear()}`,
             _record = setCustomAttribute(doc),
             _id = (_record.variables && _record.variables.uuid) || _record._id.toString();
         delete _record._id;
+        return {
+            update: {
+                _index: (indexName + (doc.variables.domain_name ? '-' + doc.variables.domain_name : '')).toLowerCase(),
+                _type: CDR_TYPE_NAME,
+                _id: _id
+            },
+            body: {
+                doc: _record,
+                doc_as_upsert: true
+            }
+        };
+    }
 
-        this.client.update({
+    getCdrInsertParam (doc) {
+        let currentDate = new Date(),
+            indexName = `${CDR_NAME}-${currentDate.getFullYear()}`,
+            _record = setCustomAttribute(doc),
+            _id = (_record.variables && _record.variables.uuid) || _record._id.toString();
+        delete _record._id;
+        return {
             index: (indexName + (doc.variables.domain_name ? '-' + doc.variables.domain_name : '')).toLowerCase(),
             type: CDR_TYPE_NAME,
             id: _id,
@@ -169,7 +187,17 @@ class ElasticClient extends EventEmitter2 {
                 parent: _id,
                 doc_as_upsert: true
             }
-        }, cb);
+        };
+    }
+
+    insertCdr (doc, cb) {
+        this.client.update(this.getCdrInsertParam(doc), cb);
+    }
+
+    bulk (body, cb) {
+        this.client.bulk({
+            body
+        }, cb)
     }
 
     insertFile (doc, cb) {

@@ -12,9 +12,12 @@ const log = require(__appRoot + '/lib/log')(module),
     ;
 
 let _elasticConnect = true;
+
+let elasticRequestCount = 0;
+const bufferElastic = [];
     
 const Service = module.exports = {
-    
+
     save: (cdrData, params, callback) => {
         if (typeof params === 'function') {
             callback = params;
@@ -22,6 +25,7 @@ const Service = module.exports = {
         }
 
         let data = replaceVariables(cdrData);
+        const uuid = data.variables.uuid;
 
         if (data.variables &&
             ( (data.variables.loopback_leg === "A" && data.variables.loopback_bowout_on_execute !== 'true')
@@ -29,46 +33,62 @@ const Service = module.exports = {
             log.debug(`Skip leg ${data.variables.loopback_leg} ${data.variables.uuid}`);
             return callback(null);
         }
+
         async.waterfall(
             [
                 (cb) => {
-                    if (data.callflow instanceof Array && data.callflow[0] && /^u:/.test(data.callflow[0].caller_profile.destination_number)) {
-                        data.callflow[0].caller_profile.destination_number = data.variables.presence_id;
-                    }
-                    if (data && data.variables && !data.variables.domain_name && /@/.test(data.variables.presence_id)) {
-                        data.variables.domain_name = data.variables.presence_id.split('@')[1];
-                    }
+
 
                     if (params && params.skipMongo === true) {
                         if (!data._id)
                             return cb(new CodeError(403, `Bad cdr. Field _id is require`));
-                        return cb(null, data, data._id)
+                        return cb(null, data, data._id, true)
                     } else {
+                        if (elasticRequestCount > 10) {
+                            data._elasticExportError = true;
+                        }
                         application.DB._query.cdr.insert(data, (err, result) => {
                             if (err)
                                 return cb(err);
 
+                            log.trace(`Save ${uuid} to mongo - OK`);
                             if (result && result.ops) {
-                                return cb(null, result.ops[0], result.insertedIds && result.insertedIds[0])
+                                return cb(null, result.ops[0], result.insertedIds && result.insertedIds[0], false)
                             }
                             return cb (new CodeError(500, `Bad create db record.`));
                         });
                     }
                 },
-                (result, newId, cb) => {
+                (result, newId, skipMongo, cb) => {
                     if (application.replica)
                         application.replica.sendCdr(data, newId);
 
+                    if (!skipMongo)
+                        callback();
+
                     if (application.elastic && result) {
+                        if (data._elasticExportError)
+                            return cb();
+
                         let _id = result._id;
-                        
+
+                        elasticRequestCount++;
                         application.elastic.insertCdr(result, (err) => {
+                            elasticRequestCount--;
+
                             if (err && !~err.message.indexOf('document_already_exists_exception')) {
+                                if (skipMongo)
+                                    callback(err);
+
                                 log.warn(`no save elastic: ${err}`);
                                 _elasticConnect = false;
                                 return application.DB._query.cdr.setById(_id, {"_elasticExportError": true}, cb);
                             } else {
-                                if (_elasticConnect === false)
+                                if (skipMongo)
+                                    callback(err);
+
+                                log.trace(`Save ${uuid} to elastic - OK; request count ${elasticRequestCount}`);
+                                if (_elasticConnect === false || elasticRequestCount === 9 || elasticRequestCount > 100)
                                     processSaveToElastic();
                                 _elasticConnect = true;
                             }
@@ -80,18 +100,15 @@ const Service = module.exports = {
                     }
                 }
             ],
-            callback
+            (err) => {
+                if (err)
+                    log.error(err);
+            }
         )
     },
 
     setValideAttrDoc: (doc = {}) => {
         let data = replaceVariables(doc);
-        if (data.callflow instanceof Array &&  data.callflow[0] && /^u:/.test(data.callflow[0].caller_profile.destination_number)) {
-            data.callflow[0].caller_profile.destination_number = data.variables.presence_id;
-        }
-        if (data && data.variables && !data.variables.domain_name && /@/.test(data.variables.presence_id)) {
-            data.variables.domain_name = data.variables.presence_id.split('@')[1];
-        }
         return data;
     },
 
@@ -99,14 +116,16 @@ const Service = module.exports = {
         application.elastic.insertCdr(Service.setValideAttrDoc(doc), cb);
     },
 
+    processSaveToElastic: processSaveToElastic,
+
     search: (caller, option, cb) => {
         let _ro = false
             ;
 
         let columns = option.columns || DEF_COLUMNS,
             sort = option.sort  || {
-                "callflow.times.created_time": -1
-            },
+                    "callflow.times.created_time": -1
+                },
             limit = parseInt(option.limit, 10) || 40,
             pageNumber = option.pageNumber
             ;
@@ -144,7 +163,7 @@ const Service = module.exports = {
     count: (caller, option, cb) => {
         let _ro = false
             ;
-        
+
         let query = application.DB._query.cdr.buildFilterQuery(option.filter);
 
         if (caller.domain)
@@ -170,7 +189,7 @@ const Service = module.exports = {
             cb
         );
     },
-    
+
     remove: (caller, option, callback) => {
         const {uuid} = option;
         let domain = caller.domain,
@@ -263,7 +282,9 @@ const DEF_COLUMNS = {
     "variables.direction": 1
 };
 
+/*
 function processSaveToElastic() {
+    return;
     application.DB._query.cdr.find({"_elasticExportError": true}, (err, data) => {
         if (err) {
             return log.error(err);
@@ -292,8 +313,71 @@ function processSaveToElastic() {
         }
     })
 }
+*/
+// TODO add command reset db.getCollection('cdr').update({_elasticExportError: {$type: "string"}}, {$set: {_elasticExportError: true}}, {multi: true})
 
-function replaceVariables(data) {
+let p = false;
+function processSaveToElastic() {
+    if (p) return;
+    p = true;
+
+    application.DB._query.cdr.count({"_elasticExportError": true}, (err, count) => {
+        p = false;
+        if (err) {
+            return log.error(err);
+        }
+
+        if (!count) {
+            return log.trace(`Skip export to elastic, no found data`);
+        }
+
+        p = true;
+        log.debug(`Found ${count} export data to elastic`);
+
+        let inserted = 0;
+        const errors = [];
+        console.time(`Export mongo -> elastic`);
+
+        application.DB._query.cdr._setTryToElastic(
+            count,
+            (doc, data) => { //Iterate documents
+                const {update, body} = application.elastic._getCdrInsertParamBulk(doc);
+                data.push({update}, body);
+            },
+            (query, cb) => { // exec bulk
+                console.time(`Execute elastic bulk operation`);
+                application.elastic.bulk(query, (err, res) => {
+                    console.timeEnd(`Execute elastic bulk operation`);
+                    if (err) {
+                        return cb(err);
+                    }
+
+                    res.items.forEach( i => {
+                        if (i.update.status < 200 || i.update.status > 299) {
+                            errors.push(i.update._id);
+                        } else {
+                            inserted++;
+                        }
+                    });
+
+                    return cb(null, errors);
+                });
+            },
+            (err) => {
+                p = false;
+                if (err)
+                    return log.error(err);
+                console.timeEnd(`Export mongo -> elastic`);
+
+                log.info(`Process export to elastic end: inserted = ${inserted}, errors = ${errors.length}`);
+                if (inserted > 0)
+                    processSaveToElastic()
+            }
+        );
+    });
+}
+
+function replaceVariables(data = {}) {
 
     for (let key in data.variables) {
         if (isFinite(data.variables[key]))
@@ -312,6 +396,14 @@ function replaceVariables(data) {
                 }
             }
         }
+
+        if (data.callflow[0] && /^u:/.test(data.callflow[0].caller_profile.destination_number)) {
+            data.callflow[0].caller_profile.destination_number = data.variables.presence_id;
+        }
+    }
+
+    if (data.variables && !data.variables.domain_name && /@/.test(data.variables.presence_id)) {
+        data.variables.domain_name = data.variables.presence_id.split('@')[1];
     }
     return data
 }
