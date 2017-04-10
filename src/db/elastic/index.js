@@ -194,6 +194,16 @@ class ElasticClient extends EventEmitter2 {
         this.client.update(this.getCdrInsertParam(doc), cb);
     }
 
+    insertCdrBulk (data = [], cb) {
+        const req = [];
+        for (let doc of data) {
+            const {update, body} = this._getCdrInsertParamBulk(doc);
+            req.push({update}, body);
+        }
+
+        this.bulk(req, cb);
+    }
+
     bulk (body, cb) {
         this.client.bulk({
             body

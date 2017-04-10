@@ -10,11 +10,24 @@ const log = require(`${__appRoot}/lib/log`)(module),
 
 module.exports = {
     addRoutes: api => {
-        api.post('/api/v1/cdr', create)
+        api.post('/api/v1/cdr', create);
     }
 };
 
 const create = (req, res, next) => {
+
+    if (req.body instanceof Array) {
+        return cdrService.saveToElasticBulk(req.body, (err, result) => {
+            if (err) {
+                log.error(err);
+                return next(err);
+            }
+
+            log.debug(`Ok save bulk count ${req.body.length}`);
+            res.json(result);
+        });
+    }
+
     const uuid = req.body.variables  && req.body.variables.uuid;
     cdrService.saveToElastic(req.body, (err) => {
         if (err) {

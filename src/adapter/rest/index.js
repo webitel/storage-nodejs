@@ -30,7 +30,7 @@ module.exports = (application) => {
         require('./logger').addRoutes(result[`${name}Api`]);
         require('./cors').addRoutes(result[`${name}Api`]);
 
-        result[`${name}Api`].use(bodyParser.json({limit: '1000kb'}));
+        result[`${name}Api`].use(bodyParser.json({limit: '100mb'}));
 
         require(`./${name}`)(result[`${name}Api`]);
         require('./error').addRoutes(result[`${name}Api`]);

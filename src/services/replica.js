@@ -139,17 +139,87 @@ const Service = module.exports = {
     },
 
     process: (cb) => {
-        const process = err => {
-            if (err && err.status === 404) {
-                return cb();
-            } else if (err) {
-                log.error(err);
-                return cb();
-            } else {
-                Service._huntOne(process);
-            }
+        log.trace(`Start export.`);
+        const cdrRequest = (data, cb) => {
+            _sendCdr(data, null, (err, res) => {
+                if (err)
+                    return cb(err);
+
+                let response = '';
+                res.on('error', cb);
+                res.on('data', chunk => response += chunk);
+                res.on('end', () => {
+                    let json;
+                    try {
+                        json = JSON.parse(response);
+                        if (!(json.items instanceof Array))
+                            return cb(new Error("Bad response replica client"));
+
+                        if (!json.errors) // OK save to client;
+                            return cb(null, null);
+
+                        const errorsIds = [];
+                        json.items.forEach(item => {
+                            if (item.update.status < 200 || item.update.status > 299) {
+                                errorsIds.push(item.update._id)
+                            }
+                        });
+                        return cb(null, errorsIds);
+                    } catch (e) {
+                        log.error(e);
+                        return cb(e);
+                    }
+
+
+                });
+            });
         };
-        Service._huntOne(process);
+
+        const exportCdr = () => {
+            console.time(`Replica cdr`);
+            application.DB._query.replica.sync(
+                cdrCollectionName,
+                10000,
+                cdrRequest,
+                (err) => {
+                    console.timeEnd(`Replica cdr`);
+                    if (err) {
+                        log.error(err);
+                        return cb();
+                    }
+                    exportCdr()
+                }
+            );
+        };
+
+        exportCdr();
+        // cursor.each( (err, item) => {
+        //     if (err) {
+        //         log.error(err);
+        //         return cb(err);
+        //     }
+        //
+        //     console.log(item);
+        //
+        //     if (item) {
+        //
+        //     } else {
+        //
+        //     }
+        // });
+
+
+        // const process = err => {
+        //     if (err && err.status === 404) {
+        //         return cb();
+        //     } else if (err) {
+        //         log.error(err);
+        //         return cb();
+        //     } else {
+        //         Service._huntOne(process);
+        //     }
+        // };
+        // Service._huntOne(process);
     },
 
     _init: () => {
@@ -189,6 +259,8 @@ const Service = module.exports = {
 
         Service.cdr = cdr;
         Service.files = files;
+
+        // Service.process( () => {});
         Service.scheduler = new Scheduler(conf.get('replica:cronJob'), Service.process);
     },
 
@@ -235,12 +307,14 @@ const Service = module.exports = {
 function _sendCdr (doc, parentId, cb) {
     Service._sendRequest(Service.getCdrRequestParams(), JSON.stringify(doc), (res) => {
         if (res.statusCode !== 200 && res.statusCode !== 204) {
-            Service._onError(new Error(`[cdr] Bad response ${res.statusCode}`), cdrCollectionName, parentId);
+            if (parentId)
+                Service._onError(new Error(`[cdr] Bad response ${res.statusCode}`), cdrCollectionName, parentId);
+
             return cb && cb(new CodeError(500, `Bad response code ${res.statusCode}`));
         }
 
-        log.trace(`[cdr] Ok send ${parentId}`);
-        return cb && cb(null);
+        log.trace(`[cdr] Ok send ${parentId || 'bulk data'}`);
+        return cb && cb(null, res);
     });
 }
 

@@ -116,6 +116,10 @@ const Service = module.exports = {
         application.elastic.insertCdr(Service.setValideAttrDoc(doc), cb);
     },
 
+    saveToElasticBulk: (docs, cb) => {
+        application.elastic.insertCdrBulk(docs, cb);
+    },
+
     processSaveToElastic: processSaveToElastic,
 
     search: (caller, option, cb) => {
