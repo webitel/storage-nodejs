@@ -17,6 +17,7 @@
               "dynamic_templates" : [
                 {
                   "string_fields" : {
+                    "match_mapping_type": "*",
                     "path_match" : "variables.*",
                     "mapping" : {
                       "type" : "keyword"
