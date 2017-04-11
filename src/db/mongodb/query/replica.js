@@ -44,6 +44,8 @@ module.exports = {
                     .sort({createdOn: 1})
                     .limit(maxCount);
 
+                let countData = 0;
+
                 cursor.each( (err, item) => {
                     if (err) {
                         return end(err);
@@ -53,7 +55,7 @@ module.exports = {
                         bulk.find({_id: item._id, process: null}).updateOne({$set: {process: processId}})
                     } else {
                         if (!bulk.length) {
-                            return end(new Error('No found data'));
+                            return end();
                         }
                         bulk.execute( (err, res) => {
                             if (err)
@@ -105,7 +107,9 @@ module.exports = {
 
                 const setOkProcess = (cb) => {
                     mapIds.clear();
-                    collectionReplica.remove({process: processId}, {multi: true}, cb)
+                    collectionReplica.remove({process: processId}, {multi: true}, e => {
+                        return cb(e, countData);
+                    })
                 };
 
                 const getData = () => {
@@ -134,6 +138,7 @@ module.exports = {
                                 mapIds.set(item.doc.variables.uuid, item._id);
                             }
                         } else {
+                            countData = data.length;
                             send(data, end);
                         }
                     })

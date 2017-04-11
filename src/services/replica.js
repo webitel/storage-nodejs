@@ -169,57 +169,59 @@ const Service = module.exports = {
                         log.error(e);
                         return cb(e);
                     }
-
-
                 });
             });
         };
-
-        const exportCdr = () => {
+        const maxCountCdr = 10000;
+        const exportCdr = (cb) => {
             console.time(`Replica cdr`);
             application.DB._query.replica.sync(
                 cdrCollectionName,
-                10000,
+                maxCountCdr,
                 cdrRequest,
-                (err) => {
+                (err, count) => {
                     console.timeEnd(`Replica cdr`);
                     if (err) {
                         log.error(err);
+                        return cb(err);
+                    }
+                    if (count && count > 0 && count >= maxCountCdr) {
+                        exportCdr();
+                    } else {
+                        log.debug(`End export CDR data.`);
                         return cb();
                     }
-                    exportCdr()
                 }
             );
         };
 
-        exportCdr();
-        // cursor.each( (err, item) => {
-        //     if (err) {
-        //         log.error(err);
-        //         return cb(err);
-        //     }
-        //
-        //     console.log(item);
-        //
-        //     if (item) {
-        //
-        //     } else {
-        //
-        //     }
-        // });
+        const exportOtherFile = (cb) => {
+            const process = err => {
+                if (err && err.status === 404) {
+                    return cb();
+                } else if (err) {
+                    log.error(err);
+                    return cb();
+                } else {
+                    Service._huntOne(process);
+                }
+            };
+            Service._huntOne(process);
+        };
 
-
-        // const process = err => {
-        //     if (err && err.status === 404) {
-        //         return cb();
-        //     } else if (err) {
-        //         log.error(err);
-        //         return cb();
-        //     } else {
-        //         Service._huntOne(process);
-        //     }
-        // };
-        // Service._huntOne(process);
+        async.waterfall(
+            [
+                exportCdr,
+                exportOtherFile
+                
+            ],
+            err => {
+                if (err)
+                    log.error(err);
+                log.debug(`End export replica data.`);
+                cb();
+            }
+        );
     },
 
     _init: () => {
