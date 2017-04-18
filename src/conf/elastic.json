@@ -18,9 +18,18 @@
                 {
                   "string_fields" : {
                     "match_mapping_type": "*",
-                    "path_match" : "variables.*",
+                    "match" : "variables.*",
                     "mapping" : {
                       "type" : "keyword"
+                    }
+                  }
+                },
+                {
+                  "integers": {
+                    "match_mapping_type": "long",
+                    "path_match" : "variables.*",
+                    "mapping": {
+                      "type": "keyword"
                     }
                   }
                 },
