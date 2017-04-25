@@ -108,7 +108,7 @@ module.exports = {
 
             record["Queue Answered"] = record.variables.cc_queue_answered_epoch > 0; // +
 
-            record["Destination number"] = callflow.caller_profile.destination_number; // +
+            record["Destination number"] = record.variables.destination_number || callflow.caller_profile.destination_number; // +
             record["Call record duration"] = record.variables.record_seconds; // +
             record["CallerID number"] = callflow.caller_profile.caller_id_number; // +
             record["Domain name"] = record.variables.domain_name; // +
