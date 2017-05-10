@@ -78,11 +78,20 @@ module.exports = class GoogleStorage {
 
     }
 
+    copyTo(fileDb, to, cb) {
+        this.get(fileDb, {}, (err, stream) => {
+            if (err)
+                return cb(err);
+
+            to.save(fileDb, {stream}, cb);
+        });
+    }
+
     getFilePath(domain, fileName) {
 
     }
 
-    save (fileConf, option, cb) {
+    save (fileConf, option = {}, cb) {
         if (!this.folderId)
             return cb(new Error(`No initialize folder id.`));
 
@@ -93,7 +102,7 @@ module.exports = class GoogleStorage {
                 parents: [this.folderId]
             },
             media: {
-                body: fs.createReadStream(fileConf.path),
+                body: option.stream || fs.createReadStream(fileConf.path),
                 mimeType: fileConf.contentType
             }
         }, (err, res) => {

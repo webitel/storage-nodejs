@@ -37,9 +37,21 @@ module.exports = class LocalStorage {
                 readable = fs.createReadStream(fileDb.path, {flags: 'r'});
             }
 
+            if (options.skipOpen) {
+                return cb(null, readable);
+            }
             readable.on('open', () => {
                 return cb(null, readable);
             })
+        });
+    }
+
+    copyTo (fileDb, to, cb) {
+        this.get(fileDb, {skipOpen: true}, (err, stream) => {
+            if (err)
+                return cb(err);
+
+            to.save(fileDb, {stream}, cb);
         });
     }
 
@@ -47,23 +59,36 @@ module.exports = class LocalStorage {
         return path.join(this.rootPath, helper.getPath(this.mask, domain, fileName));
     }
 
-    save (fileConf, option, cb) {
+    save (fileConf, option = {}, cb) {
         const pathFolder = path.join(this.rootPath, helper.getPath(this.mask, fileConf.domain));
         fsExtra.ensureDir(pathFolder, (err) => {
             if (err)
                 return cb(err);
 
-            let filePath = pathFolder + '/' + fileConf.name;
-            copyFile(fileConf.path, filePath, () => {
-                if (err)
-                    return cb(err);
-                log.trace(`Save file: ${filePath}`);
-                return cb(null, {
-                    path: filePath,
-                    type: TYPE_ID
-                })
-            });
+            if (option.stream) {
+                let filePath = `${pathFolder}/${fileConf.uuid}_${fileConf.name}.${fileConf.applicationName}`;
+                const wStream = fs.createWriteStream(filePath);
+                option.stream.on("end", function(ex) {
+                    log.trace(`Save stream file: ${filePath}`);
+                    return cb(null, {
+                        path: filePath,
+                        type: TYPE_ID
+                    })
+                });
 
+                option.stream.pipe(wStream)
+            } else {
+                let filePath = pathFolder + '/' + fileConf.name;
+                copyFile(fileConf.path, filePath, () => {
+                    if (err)
+                        return cb(err);
+                    log.trace(`Save file: ${filePath}`);
+                    return cb(null, {
+                        path: filePath,
+                        type: TYPE_ID
+                    })
+                });
+            }
         })
     }
 

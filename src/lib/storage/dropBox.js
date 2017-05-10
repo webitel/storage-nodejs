@@ -52,6 +52,15 @@ module.exports = class DropBoxStorage {
 
     }
 
+    copyTo (fileDb, to, cb) {
+        this.get(fileDb, {}, (err, stream) => {
+            if (err)
+                return cb(err);
+
+            to.save(fileDb, {stream}, cb);
+        });
+    }
+
     /**
      *
      * @param domain
@@ -67,7 +76,7 @@ module.exports = class DropBoxStorage {
      * @param option
      * @param cb
      */
-    save (fileConf, option, cb) {
+    save (fileConf, option = {}, cb) {
         let mime = fileConf.contentType,
             fileName = null
             ;
@@ -122,7 +131,8 @@ module.exports = class DropBoxStorage {
 
         request.on('error', (e) => log.error(e));
 
-        let rd = fs.createReadStream(fileConf.path);
+        let rd = option.stream || fs.createReadStream(fileConf.path);
+
         rd.on("error", function(e) {
             log.error(e);
             return cb(e);

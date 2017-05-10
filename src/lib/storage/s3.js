@@ -22,6 +22,7 @@ module.exports = class S3Storage {
             secretAccessKey: conf.secretAccessKey,
             region: conf.region
         });
+
     }
 
     checkConfig (conf = {}, mask) {
@@ -38,20 +39,42 @@ module.exports = class S3Storage {
         if (options.dispositionName) {
             params.ResponseContentDisposition = 'attachment;  filename=' + options.dispositionName;
         }
-        // TODO add response stream;
-        this._client.getSignedUrl('getObject', params, function (err, url) {
-            log.debug(`try redirect to ${url}`);
-            return cb(null, {
-                location: url,
-                statusCode: 302
-            })
-        });
+
+        if (options.stream) {
+            this._client.getObject(params)
+                .on('httpHeaders', function (statusCode) {
+                    if (statusCode !== 200) {
+                        return cb(new Error(`AWS response ${statusCode}`));
+                    }
+
+                    return cb(null, this.response.httpResponse.createUnbufferedStream());
+                })
+                .send();
+        } else {
+            this._client.getSignedUrl('getObject', params, function (err, url) {
+                log.debug(`try redirect to ${url}`);
+                return cb(null, {
+                    location: url,
+                    statusCode: 302
+                })
+            });
+        }
 
     }
 
-    save (fileConf, option, cb) {
+    copyTo (fileDb, to, cb) {
+        this.get(fileDb, {stream: true}, (err, stream) => {
+            if (err)
+                return cb(err);
+
+            to.save(fileDb, {stream}, cb);
+        });
+    }
+
+
+    save (fileConf, option = {}, cb) {
         let s3Path = helper.getPath(this.mask, fileConf.domain, fileConf.name);
-        let re = fs.createReadStream(fileConf.path);
+        let re = option.stream || fs.createReadStream(fileConf.path);
         re.once('error', (err) => {
             log.error(err);
             return cb(err);

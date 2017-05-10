@@ -134,7 +134,7 @@ const B2 = module.exports = {
         getJson(requestParams, cb);
     },
 
-    saveFile: (credential, fileConf, fileName, cb) => {
+    saveFile: (credential, fileConf, options = {}, fileName, cb) => {
         let mime = fileConf.contentType
             ;
 
@@ -182,7 +182,7 @@ const B2 = module.exports = {
             log.error(e);
         });
 
-        let rd = fs.createReadStream(fileConf.path);
+        let rd = options.stream || fs.createReadStream(fileConf.path);
         rd.on("error", function(e) {
             log.error(e);
             return cb(e);

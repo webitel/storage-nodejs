@@ -21,12 +21,14 @@ module.exports = class B2Storage {
         this.mask = mask || "$Y/$M/$D/$H";
         this._expireToken = 0;
         this.name = "b2";
-        this._uploadQueue = async.queue( (fileConf, cb) => {
-            B2.saveFile(this._authParams, fileConf, helper.getPath(this.mask, fileConf.domain, fileConf.name), cb);
+        this._uploadQueue = async.queue( (data, cb) => {
+            const {fileConf, options} = data;
+            B2.saveFile(this._authParams, fileConf, options, helper.getPath(this.mask, fileConf.domain, fileConf.name), cb);
         });
         this._uploadQueue.drain = () => {
             log.debug('All upload files done');
         };
+        this._auth();
     }
 
     _isAuth (cb) {
@@ -70,12 +72,21 @@ module.exports = class B2Storage {
         })
     }
 
-    save (fileConf, option, cb) {
+    copyTo (fileDb, to, cb) {
+        this.get(fileDb, {}, (err, stream) => {
+            if (err)
+                return cb(err);
+
+            to.save(fileDb, {stream}, cb);
+        });
+    }
+
+    save (fileConf, options, cb) {
         this._isAuth((err) => {
             if (err)
                 return cb(err);
 
-            return this._uploadQueue.push(fileConf, cb)
+            return this._uploadQueue.push({fileConf, options}, cb)
         });
     }
 

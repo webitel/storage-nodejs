@@ -20,6 +20,16 @@ module.exports = class ExampleStorage {
     }
 
     /**
+     * 
+     * @param fileDb
+     * @param to
+     * @param cb
+     */
+    copyTo (fileDb, to, cb) {
+
+    }
+
+    /**
      *
      * @param domain
      * @param fileName
