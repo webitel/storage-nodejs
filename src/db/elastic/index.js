@@ -47,7 +47,7 @@ class ElasticClient extends EventEmitter2 {
             this.connected = true;
             this.initTemplate();
             // this.initMaxResultWindow();
-            this.emit('elastic:connect', this);
+
         })
     }
 
@@ -98,6 +98,7 @@ class ElasticClient extends EventEmitter2 {
 
             if (tasks.length > 0) {
                 async.waterfall([].concat(delTemplate, tasks) , (err) => {
+                    this.emit('elastic:connect', this);
                     if (err)
                         return log.error(err);
                     return log.info(`Replace elastic template - OK`);
@@ -337,7 +338,7 @@ class ElasticClient extends EventEmitter2 {
 
     insertUserStatus (data = {}, cb) {
         this.client.create({
-            index: `accounts-${data.domain}`,
+            index: `accounts-${new Date().getFullYear()}-${data.domain}`,
             type: 'accounts',
             id: data._id,
             body: {

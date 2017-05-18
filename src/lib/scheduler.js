@@ -23,7 +23,7 @@ class Scheduler {
             do {
                 n = interval.next().getTime() - Date.now()
             } while (n < 0);
-
+            // TODO fix n > 0x7FFFFFFF
             log.trace(`Next exec schedule: ${fn.name || ''} ${n}`);
             _timer = setTimeout( function tick() {
                 log.trace(`Exec schedule: ${fn.name || ''} ${_c}`);
