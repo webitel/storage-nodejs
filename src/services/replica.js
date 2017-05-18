@@ -323,7 +323,7 @@ function _sendCdr (doc, parentId, cb) {
 function _sendFile (doc, parentId, cb) {
     recordingsService._getFile(doc, {}, (err, res) => {
         if (err) {
-            Service._onError(err, cdrCollectionName, parentId);
+            Service._onError(err, fileCollectionName, parentId);
             return cb && cb(err);
         }
 
