@@ -8,7 +8,7 @@ ENV WEBITEL_REPO_BASE https://github.com/webitel
 COPY src /cdr
 
 WORKDIR /cdr
-RUN npm install && npm cache clear
+RUN npm install
 
 EXPOSE 10021 10023
 ENTRYPOINT ["node", "server.js"]
