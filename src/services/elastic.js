@@ -56,7 +56,8 @@ const Service = module.exports = {
             scroll = option.scroll,
             limit = parseInt(option.limit, 10) || 40,
             pageNumber = option.pageNumber,
-            sort = (option.sort && Object.keys(option.sort).length > 0) ? option.sort : {"Call start time":{"order":"desc","unmapped_type":"boolean"}}
+            sort = (option.sort && Object.keys(option.sort).length > 0) ? option.sort : {"Call start time":{"order":"desc","unmapped_type":"boolean"}},
+            _source = (option.includes instanceof Array) ? {includes: option.includes} : undefined
             ;
 
         const domain = caller.domain || option.domain;
@@ -71,6 +72,7 @@ const Service = module.exports = {
                 scroll,
                 from: pageNumber > 0 ? ((pageNumber - 1) * limit) : 0, //Number — Starting offset (default: 0)
                 body: {
+                    _source,
                     "sort": [sort],
                     "docvalue_fields": columnsDate,
                     "query": filter
