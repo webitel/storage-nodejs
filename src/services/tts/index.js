@@ -164,6 +164,7 @@ const PROVIDERS = {
                       </speak>`
 
             };
+            requestParams.headers["Content-Length"] = requestParams.body.length;
 
             return _sendRequest(requestParams, res);
 
