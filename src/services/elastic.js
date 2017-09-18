@@ -54,11 +54,15 @@ const Service = module.exports = {
         let columns = option.columns,
             columnsDate = option.columnsDate || [],
             scroll = option.scroll,
-            limit = parseInt(option.limit, 10) || 40,
+            limit = parseInt(option.limit, 10),
             pageNumber = option.pageNumber,
             sort = (option.sort && Object.keys(option.sort).length > 0) ? option.sort : {"Call start time":{"order":"desc","unmapped_type":"boolean"}},
             _source = (option.includes instanceof Array) ? {includes: option.includes} : undefined
             ;
+
+        if (isNaN(limit)) {
+            limit = 40
+        }
 
         const domain = caller.domain || option.domain;
         
@@ -73,6 +77,7 @@ const Service = module.exports = {
                 from: pageNumber > 0 ? ((pageNumber - 1) * limit) : 0, //Number — Starting offset (default: 0)
                 body: {
                     _source,
+                    "aggs": option.aggs,
                     "sort": [sort],
                     "docvalue_fields": columnsDate,
                     "query": filter
