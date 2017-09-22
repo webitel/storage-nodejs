@@ -106,7 +106,7 @@ const PROVIDERS = {
 
         let voiceSettings = {
             Text: req.query.text,
-            TextType: "text",
+            TextType: req.query.textType || "text",
             OutputFormat: req.query.format === '.wav' ? 'ogg_vorbis' : 'mp3', // wav
             SampleRate: req.query.rate || "8000", // 8KHz
             VoiceId: voice
