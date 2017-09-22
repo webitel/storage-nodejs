@@ -107,8 +107,8 @@ const PROVIDERS = {
         let voiceSettings = {
             Text: req.query.text,
             TextType: "text",
-            OutputFormat: req.query.format === '.wav' ? 'ogg_vorbis' : 'mp3',
-            SampleRate: req.query.rate || 8000,
+            OutputFormat: req.query.format === '.wav' ? 'ogg_vorbis' : 'mp3', // wav
+            SampleRate: req.query.rate || "8000", // 8KHz
             VoiceId: voice
         };
 
@@ -133,7 +133,7 @@ const PROVIDERS = {
 
         if (!keyId || !keySecret) {
             log.error(`Microsoft bad request accessKey or accessToken is required`);
-            return res.status(400).send(`Polly bad request accessKey or accessToken is required`);
+            return res.status(400).send(`Microsoft bad request accessKey or accessToken is required`);
         }
 
         microsoftAccessToken(keyId, keySecret, 'https://speech.platform.bing.com', (err, token) => {

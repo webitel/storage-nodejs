@@ -6,18 +6,29 @@
 
 const mediaService = require(__appRoot + '/services/media'),
     streaming = require(__appRoot + '/utils/http').streaming,
+    checkPermission = require(__appRoot + '/utils/acl'),
+    TTSMiddleware = require(__appRoot + '/services/tts'),
     log = require(__appRoot + '/lib/log')(module)
     ;
+
 
 module.exports = {
     addRoutes: addRoutes
 };
 
 function addRoutes(api) {
-    api.post('/api/v2/media/:type?', saveFile);
+    api.get('/api/v2/media/tts/:provider', generateFileFromTTS);
+    api.post('/api/v2/media/:type', saveFile);
     api.get('/api/v2/media', listMedia);
     api.get('/api/v2/media/:type/:name', getFile);
     api.delete('/api/v2/media/:type/:name', deleteFile);
+}
+
+function generateFileFromTTS(req, res, next) {
+    if (!checkPermission(req.webitelUser.acl, 'cdr/media', 'c'))
+        return next(new CodeError(403, 'Forbidden!'));
+
+    return TTSMiddleware(req, res)
 }
 
 function saveFile(req, res, next) {
