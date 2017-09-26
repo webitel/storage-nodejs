@@ -19,11 +19,41 @@ module.exports = {
 function addRoutes(api) {
     api.post('/api/v2/cdr/text', getElasticData);
     api.post('/api/v2/cdr/text/scroll', scrollElasticData);
+    api.put('/api/v2/cdr/:uuid/pinned', addPin);
+    api.delete('/api/v2/cdr/:uuid/pinned', removePin);
 
     api.post('/api/v2/cdr/searches', searches);
     api.post('/api/v2/cdr/counts', count);
 
     api.delete('/api/v2/cdr/:uuid', remove)
+}
+
+function addPin(req, res, next) {
+    const option = {
+        id: req.params.uuid,
+        index: req.query.index
+    };
+
+    cdrService.addPin(req.webitelUser, option, (err, data) => {
+        if (err)
+            return next(err);
+
+        res.json(data);
+    })
+}
+
+function removePin(req, res, next) {
+    const option = {
+        id: req.params.uuid,
+        index: req.query.index
+    };
+
+    cdrService.delPin(req.webitelUser, option, (err, data) => {
+        if (err)
+            return next(err);
+
+        res.json(data);
+    })
 }
 
 function getElasticData(req, res, next) {

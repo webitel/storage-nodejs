@@ -16,6 +16,24 @@ const CDR_NAME = conf.get('elastic:cdrIndexName'),
     MAX_RESULT_WINDOW = 2147483647,
     CDR_TYPE_NAME = 'collection';
 
+
+
+const scriptAddPin = `if (ctx._source["pinnedItems"] == null) {
+    ctx._source.pinnedItems = [params.rec]
+} else {
+    if (!ctx._source.pinnedItems.contains(params.rec)) {
+        ctx._source.pinnedItems.add(params.rec)
+    }
+}`;
+
+const scriptDelPin = `if (ctx._source["pinnedItems"] != null) {
+    for (int i = 0; i < ctx._source.pinnedItems.size(); i++){
+        if (ctx._source.pinnedItems[i] == params.rec) {
+            ctx._source.pinnedItems.remove(i)
+        }    
+    }
+}`;
+
 class ElasticClient extends EventEmitter2 {
     constructor (config) {
         super();
@@ -210,6 +228,42 @@ class ElasticClient extends EventEmitter2 {
             body
         }, cb)
     }
+
+    addPinCdr (id, index, userId, cb) {
+        this.client.update({
+            index: index,
+            type: CDR_TYPE_NAME,
+            id: id,
+            body: {
+                "script" : {
+                    "inline": scriptAddPin,
+                    "lang": "painless",
+                    "params" : {
+                        "rec" : userId
+                    }
+                }
+            }
+        }, cb);
+    }
+
+    delPinCdr (id, index, userId, cb) {
+        this.client.update({
+            index: index,
+            type: CDR_TYPE_NAME,
+            id: id,
+            body: {
+                "script" : {
+                    "inline": scriptDelPin,
+                    "lang": "painless",
+                    "params" : {
+                        "rec" : userId
+                    }
+                }
+            }
+        }, cb);
+    }
+
+
 
     insertFile (doc, cb) {
         let currentDate = new Date(),

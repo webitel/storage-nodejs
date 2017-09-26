@@ -120,6 +120,44 @@ const Service = module.exports = {
         application.elastic.insertCdrBulk(docs, cb);
     },
 
+    addPin: (caller, option = {}, cb) => {
+        if (!application.elastic) {
+            return cb(new CodeError(500, "No live connect to elastic!"))
+        }
+        if (!checkPermission(caller.acl, 'cdr', 'u')) {
+            return cb(new CodeError(403, "Permission denied!"))
+        }
+
+        if (!option.index) {
+            return cb(new CodeError(400, "Index is required!"))
+        }
+
+        if (caller.domain && !~option.index.indexOf(caller.domain)) {
+            return cb(new CodeError(403, "Permission denied!"))
+        }
+
+        application.elastic.addPinCdr(option.id, option.index, caller.id, cb)
+    },
+
+    delPin: (caller, option = {}, cb) => {
+        if (!application.elastic) {
+            return cb(new CodeError(500, "No live connect to elastic!"))
+        }
+        if (!checkPermission(caller.acl, 'cdr', 'u')) {
+            return cb(new CodeError(403, "Permission denied!"))
+        }
+
+        if (!option.index) {
+            return cb(new CodeError(400, "Index is required!"))
+        }
+
+        if (caller.domain && !~option.index.indexOf(caller.domain)) {
+            return cb(new CodeError(403, "Permission denied!"))
+        }
+
+        application.elastic.delPinCdr(option.id, option.index, caller.id, cb)
+    },
+
     processSaveToElastic: processSaveToElastic,
 
     search: (caller, option, cb) => {
