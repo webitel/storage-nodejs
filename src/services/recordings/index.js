@@ -16,7 +16,7 @@ const Storage = require(__appRoot + '/lib/storage'),
     crypto = require('crypto'),
     Scheduler = require(`${__appRoot}/lib/scheduler`),
 
-    FILE_TYPES = ['local', 's3', 'b2', 'gDrive', 'dropBox'],
+    FILE_TYPES = ['local', 's3', 'b2', 'gDrive', 'dropBox', 'doSpaces'],
     DEF_ID = '_default_'
     ;
 
@@ -26,7 +26,8 @@ const STORAGES = {
     'b2': Storage.B2Storage,
     's3': Storage.S3Storage,
     'gDrive': Storage.GDriveStorage,
-    'dropBox': Storage.DropBoxStorage
+    'dropBox': Storage.DropBoxStorage,
+    'doSpaces': Storage.DOStorage
 };
 
 if (!STORAGES.hasOwnProperty(helper.DEFAULT_PROVIDER_NAME))

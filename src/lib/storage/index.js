@@ -10,5 +10,6 @@ module.exports = {
     S3Storage: require('./s3'),
     GDriveStorage: require('./gdrive'),
     DropBoxStorage: require('./dropBox'),
+    DOStorage: require('./digitalocean'),
     helper: require('./helper')
 };
