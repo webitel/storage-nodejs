@@ -16,4 +16,5 @@ function addRoutes(api) {
     require('./tts').addRoutes(api);
     require('./stt').addRoutes(api);
     require('./media').addRoutes(api);
+    require('./tcpDump').addRoutes(api);
 }

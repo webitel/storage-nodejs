@@ -18,6 +18,7 @@ class Application extends EventEmitter2 {
         this.DB = null;
         this.elastic = null;
         this.replica = null;
+        this.PG = require('./db')._pg;
 
         require(__appRoot + '/lib/broker');
 
@@ -45,7 +46,7 @@ class Application extends EventEmitter2 {
             process.nextTick(this.configureServer.bind(this));
         }
 
-        if (typeof gc == 'function') {
+        if (typeof gc === 'function') {
             setInterval(function () {
                 gc();
                 console.log('----------------- GC -----------------');

@@ -46,7 +46,15 @@
     },
     "headers": {}
   },
-
+  "pg": {
+    "user": "webitel",
+    "database": "webitel",
+    "password": "webitel",
+    "host": "postgres",
+    "port": 5432,
+    "max": 100,
+    "idleTimeoutMillis": 30000
+  },
   "mongodb": {
     "uri": "mongodb://pre.webitel.com:27017/webitel",
     "collectionCDR": "cdr",

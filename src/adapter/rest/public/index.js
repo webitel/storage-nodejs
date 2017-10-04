@@ -14,4 +14,5 @@ function addRoutes(api) {
     require('./recordFile').addRoutes(api);
     require('./cdr').addRoutes(api);
     require('./media').addRoutes(api);
+    require('./tcpDump').addRoutes(api);
 }
