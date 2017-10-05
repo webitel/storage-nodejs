@@ -14,6 +14,21 @@ module.exports = {
 
 function addRoutes(api) {
     api.put('/sys/tcp_dump', saveDump);
+    api.put('/sys/tcp_dump/:id/error', setError);
+}
+
+function setError(req, res, next) {
+    let error = '';
+
+    req.on('data', c => error += c);
+    req.on('end', () => {
+        application.PG.getQuery('tcpDump').setFile(req.params.id, {error: error || 'unknown'}, (err) => {
+            if (err)
+                return next(err);
+        });
+
+        res.end();
+    });
 }
 
 function saveDump(req, res, next) {
@@ -39,11 +54,11 @@ function saveDump(req, res, next) {
 
             const doc = recordingsService.getSchema(file, response);
 
-            application.PG.getQuery('tcpDump').setFile(req.query.id, doc, (err, data) => {
+            application.PG.getQuery('tcpDump').setFile(req.query.id, doc, (err) => {
                 if (err)
                     return next(err);
 
-                res.json({"ok": data})
+                res.end();
             });
         })
     })
