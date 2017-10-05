@@ -5,9 +5,11 @@
 "use strict";
     
 const status = require('./status'),
-    userStatus = require('./userStatus');
+    userStatus = require('./userStatus'),
+    tcpDump = require('./tcpDump');
 
 module.exports = {
     status,
-    userStatus
+    userStatus,
+    tcpDump
 };
