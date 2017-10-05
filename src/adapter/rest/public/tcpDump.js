@@ -19,7 +19,7 @@ function getFile(req, res, next) {
     const options = {
         id: req.params.id
     };
-
+    const name = req.query.name || req.params.id + '.pcap';
     tcpService.getFile(req.webitelUser, options, (err, response) => {
         if (err)
             return next(err);
@@ -28,7 +28,7 @@ function getFile(req, res, next) {
             return next(`No source stream.`);
 
         return streaming(response.source, res, {
-            dispositionName: req.params.id,
+            dispositionName: name,
             totalLength: response.totalLength,
             contentType: response.contentType || "application/octet-stream"
         });
