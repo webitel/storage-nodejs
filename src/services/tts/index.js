@@ -249,6 +249,9 @@ function microsoftLocalesNameMaping(locale, gender) {
         case 'ar-EG':
             return "ar-EG, Hoda";
 
+        case 'id-ID':
+            return 'id-ID, Andika';
+
         case 'de-DE':
             if (isFemale(gender))
                 return "de-DE, Hedda";
