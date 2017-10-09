@@ -172,7 +172,7 @@ const Service = module.exports = {
                 });
             });
         };
-        const maxCountCdr = 10000;
+        const maxCountCdr = 1000;
         const exportCdr = (cb) => {
             console.time(`Replica cdr`);
             application.DB._query.replica.sync(
