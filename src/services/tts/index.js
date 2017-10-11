@@ -137,7 +137,7 @@ const PROVIDERS = {
         }
 
         microsoftAccessToken(keyId, keySecret, 'https://speech.platform.bing.com', (err, token) => {
-            if (err || (!token || !token.access_token))
+            if (err || !token )
                 return res.status(500).send('Bad response');
 
             let voice = {
@@ -153,7 +153,7 @@ const PROVIDERS = {
                 host: 'speech.platform.bing.com',
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${token.access_token}`,
+                    'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/ssml+xml',
                     'X-Microsoft-OutputFormat': req.query.format === '.wav' ? 'riff-8khz-8bit-mono-mulaw' : 'audio-16khz-32kbitrate-mono-mp3',
 
@@ -208,18 +208,18 @@ function _handleResponseTTS(responseTTS, res) {
 
 function microsoftAccessToken(clientId, clientSecret, service, cb) {
     let requestParams = {
-        path: `/token/issueToken`,
-        host: 'oxford-speech.cloudapp.net',
+        path: `/sts/v1.0/issueToken`,
+        host: 'api.cognitive.microsoft.com',
         method: 'POST',
         headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body: `grant_type=client_credentials&client_id=${clientId}&client_secret=${clientSecret}&scope=${service}`
+            'Content-Type': 'text/plain',
+            'Ocp-Apim-Subscription-Key': clientId,
+        }
     };
     let data = '';
 
     let request = https.request(requestParams, (res) => {
-        log.trace(`response microsoft auth status code: ${res.statusCode}`);
+        log.trace(`response microsoft auth status code: ${res.statusCode} ${res.statusMessage}`);
 
         res.on('data', function(chunk) {
             data += chunk;
@@ -227,7 +227,7 @@ function microsoftAccessToken(clientId, clientSecret, service, cb) {
 
         res.on('end', function() {
             try {
-                cb(null, JSON.parse(data));
+                cb(null, data);
             } catch (e) {
                 log.error(e);
                 cb(e);
