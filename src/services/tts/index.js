@@ -144,7 +144,10 @@ const PROVIDERS = {
                 gender: req.query.gender || 'Female',
                 lang: req.query.language || 'en-US'
             };
-
+            const body =  new Buffer(`<speak version='1.0' xml:lang='${voice.lang}'>
+                        <voice xml:lang='${voice.lang}' xml:gender='${voice.gender}' name='Microsoft Server Speech Text to Speech Voice (${microsoftLocalesNameMaping(voice.lang, voice.gender)})'>${req.query.text}
+                        </voice>
+                      </speak>`);
             let requestParams = {
                 path: `/synthesize`,
                 host: 'speech.platform.bing.com',
@@ -158,13 +161,10 @@ const PROVIDERS = {
                     // 'X-Search-ClientID': keyId,
                     'User-Agent': 'WebitelACR'
                 },
-                body: `<speak version='1.0' xml:lang='${voice.lang}'>
-                        <voice xml:lang='${voice.lang}' xml:gender='${voice.gender}' name='Microsoft Server Speech Text to Speech Voice (${microsoftLocalesNameMaping(voice.lang, voice.gender)})'>${req.query.text}
-                        </voice>
-                      </speak>`
+                body
 
             };
-            requestParams.headers["Content-Length"] = requestParams.body.length;
+            requestParams.headers["Content-Length"] = body.length;
 
             return _sendRequest(requestParams, res);
 
