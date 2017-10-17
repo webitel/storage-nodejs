@@ -28,10 +28,11 @@ module.exports = class DropBoxStorage {
     get (fileDb, options, cb) {
         let requestParams = {
             method: 'GET',
-            path: '/1/files/auto/' + fileDb.path,
+            path: '/2/files/download',
             host: 'content.dropboxapi.com',
             headers: {
-                'Authorization': 'Bearer ' + this._token
+                'Authorization': 'Bearer ' + this._token,
+                'Dropbox-API-Arg': getJson({path: fileDb.path})
             }
         };
         let range = options && options.range;
@@ -77,29 +78,26 @@ module.exports = class DropBoxStorage {
      * @param cb
      */
     save (fileConf, option = {}, cb) {
-        let mime = fileConf.contentType,
-            fileName = null
-            ;
+        const fileName =  '/' + helper.getPath(this.mask, fileConf.domain, fileConf.name);
 
-        try {
-            fileName = encodeURIComponent(helper.getPath(this.mask, fileConf.domain, fileConf.name));
-        } catch (e) {
-            log.error(e);
-            return cb(e);
-        }
-
-        var requestParams = {
+        const requestParams = {
             method: 'POST',
-            path: '/1/files_put/dropbox/' + fileName,
+            path: '/2/files/upload',
             host: 'content.dropboxapi.com',
             headers: {
                 'Authorization': 'Bearer ' + this._token,
-                'Content-Type': mime,
+                'Content-Type': "application/octet-stream",
+                'Dropbox-API-Arg': getJson({
+                    path: fileName,
+                    mode: "add",
+                    autorename: true,
+                    mute: false
+                }),
                 'Content-Length': fileConf.contentLength
             }
         };
 
-        let request = https.request(requestParams, (res) => {
+        const request = https.request(requestParams, (res) => {
             log.trace(`DropBox upload status code `, res.statusCode);
 
             let data = '';
@@ -110,16 +108,15 @@ module.exports = class DropBoxStorage {
             });
             res.on('end', function() {
                 try {
-                    if (res.statusCode != 200) {
+                    if (res.statusCode !== 200) {
                         return cb(new CodeError(res.statusCode, data || "Internal error."));
                     }
 
                     log.trace(`Save storage file path: ${fileName}`);
                     let json = JSON.parse(data);
                     return cb(null, {
-                        path: json.path,
-                        type: TYPE_ID,
-                        bucketName: json.root
+                        path: json.path_lower,
+                        type: TYPE_ID
                     });
                 } catch (e) {
                     return cb (e)
@@ -157,9 +154,6 @@ module.exports = class DropBoxStorage {
             }
         };
 
-        let data = JSON.stringify({
-            "path": fileDb.path
-        });
 
         log.debug(`try delete file: ${fileDb.uuid}`);
 
@@ -172,7 +166,9 @@ module.exports = class DropBoxStorage {
             cb(null, res);
         });
         request.on('error', (e) => log.error(e));
-        request.write(data);
+        request.write(getJson({
+            "path": fileDb.path
+        }));
         request.end();
     }
 
@@ -182,12 +178,14 @@ module.exports = class DropBoxStorage {
      * @param cb
      */
     existsFile (fileDb, cb) {
+
         let requestParams = {
-            method: 'GET',
-            path: '/1/metadata/auto/' + fileDb.path,
+            method: 'POST',
+            path: '/2/files/get_metadata',
             host: 'api.dropboxapi.com',
             headers: {
-                'Authorization': 'Bearer ' + this._token
+                'Authorization': 'Bearer ' + this._token,
+                'Content-Type': 'application/json'
             }
         };
 
@@ -203,6 +201,9 @@ module.exports = class DropBoxStorage {
             }
         });
         request.on('error', (e) => log.error(e));
+        request.write(getJson({
+            "path": fileDb.path
+        }));
         request.end();
     }
 
@@ -212,6 +213,15 @@ module.exports = class DropBoxStorage {
      * @param mask
      */
     checkConfig (conf = {}, mask) {
-        return this.mask == mask && this._token == conf.accessToken;
+        return this.mask === mask && this._token === conf.accessToken;
     }
 };
+
+function getJson(data = {}) {
+    try {
+        return JSON.stringify(data)
+    } catch (e) {
+        log.error(e);
+        return ""
+    }
+}
