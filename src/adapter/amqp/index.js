@@ -4,12 +4,12 @@
 
 "use strict";
     
-const status = require('./status'),
-    userStatus = require('./userStatus'),
-    tcpDump = require('./tcpDump');
+const userStatus = require('./userStatus'),
+    tcpDump = require('./tcpDump'),
+    elastic = require('./elastic');
 
 module.exports = {
-    status,
     userStatus,
-    tcpDump
+    tcpDump,
+    elastic
 };

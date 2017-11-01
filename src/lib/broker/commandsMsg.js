@@ -15,8 +15,8 @@ class CommandsMessage {
         this.api = null;
         this.args = null;
 
-        this.exchange = this.properties.headers['x-api-resp-exchange'] || msg.fields.exchange;
-        this.routingKey = this.properties.headers['x-api-resp-key'];
+        this.exchange = (this.properties.headers && this.properties.headers['x-api-resp-exchange']) || msg.fields.exchange;
+        this.routingKey = this.properties.headers && this.properties.headers['x-api-resp-key'];
 
         const data = getJson(msg.content.toString(this.encodings));
         if (data) {
@@ -35,7 +35,7 @@ class CommandsMessage {
         });
 
         if (typeof fn === 'function') {
-            return cb(fn(this.args));
+            return fn(this.args, this, cb);
         } else {
             return cb(new Error(`No found api`));
         }

@@ -165,8 +165,12 @@ class RPC extends EventEmitter2 {
 
         const apiMsg = new ApiMsg(msg);
         log.debug(`exec: ${apiMsg.api}`);
-        apiMsg.execute( (res) => {
-            return this.sendCommandsResponse(apiMsg, JSON.stringify(res));
+        apiMsg.execute( (err, res) => {
+            try {
+                return this.sendCommandsResponse(apiMsg, JSON.stringify(res));
+            } catch (e) {
+                log.error(e);
+            }
         });
 
     }

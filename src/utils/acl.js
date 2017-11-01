@@ -13,3 +13,12 @@ module.exports = function checkPermission (acl, resource, action, ignoreAllPerm)
 
     return !!~acl[resource].indexOf(action) || !!~acl[resource].indexOf('*');
 };
+
+module.exports.GOD = {
+    role: "GOD",
+    acl: {
+        'cdr/files': ['*'],
+        'cdr/media': ['*'],
+        'cdr': ['*']
+    }
+};
