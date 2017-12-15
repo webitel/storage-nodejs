@@ -29,7 +29,9 @@ function saveFile(req, res, next) {
         type = req.query.type,
         domainName = req.query.domain,
         email = req.query.email,
-        sendMail = email && email != 'none'
+        sendMail = email && email !== 'none',
+        subject = req.query.email_sbj,
+        text = req.query.email_msg
         ;
 
     fileService.requestStreamToCache( `${uuid}_${name}.${type || 'mp3'}`, req, (err, file) => {
@@ -44,20 +46,26 @@ function saveFile(req, res, next) {
             [
                 (cb) => {
                     if (sendMail) {
-                        let subject,
-                            text,
-                            attachments = [{
+                        let attachments = [{
                                 path: file.path,
                                 filename: file.name
                             }]
                             ;
 
-                        if (type === 'pdf') {
-                            subject = '[webitel] You have received a new fax';
-                            text = 'You have received a new fax from Webitel Fax Server\n\n--\nWebitel Cloud Platform';
-                        } else {
-                            subject = '[webitel] You have received a new call record file';
-                            text = 'You have received a new call record file from Webitel\n\n--\nWebitel Cloud Platform';
+                        if (!subject || subject === "none") {
+                            if (type === 'pdf') {
+                                subject = '[webitel] You have received a new fax';
+                            } else {
+                                subject = '[webitel] You have received a new call record file';
+                            }
+                        }
+
+                        if (!text || text === "none") {
+                            if (type === 'pdf') {
+                                text = 'You have received a new fax from Webitel Fax Server\n\n--\nWebitel Cloud Platform';
+                            } else {
+                                text = 'You have received a new call record file from Webitel\n\n--\nWebitel Cloud Platform';
+                            }
                         }
 
                         return emailService.send(
