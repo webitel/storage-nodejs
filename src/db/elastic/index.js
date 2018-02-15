@@ -63,7 +63,7 @@ class ElasticClient extends EventEmitter2 {
 
             log.info(`Connect to elastic - OK`);
             this.connected = true;
-            this.initTemplate();
+            //this.initTemplate();
             // this.initMaxResultWindow();
 
         })
@@ -191,10 +191,10 @@ class ElasticClient extends EventEmitter2 {
         };
     }
 
-    getCdrInsertParam (doc) {
+    getCdrInsertParam (doc, skipAttribute) {
         let currentDate = new Date(),
             indexName = `${CDR_NAME}-${currentDate.getFullYear()}`,
-            _record = setCustomAttribute(doc),
+            _record = skipAttribute ? doc : setCustomAttribute(doc),
             _id = (_record.variables && _record.variables.uuid) || _record._id.toString();
         delete _record._id;
         return {
@@ -203,7 +203,7 @@ class ElasticClient extends EventEmitter2 {
             id: _id,
             body: {
                 doc: _record,
-                parent: _id,
+              //  parent: _id,
                 doc_as_upsert: true
             }
         };
@@ -211,6 +211,11 @@ class ElasticClient extends EventEmitter2 {
 
     insertCdr (doc, cb) {
         this.client.update(this.getCdrInsertParam(doc), cb);
+    }
+
+    insertPostProcess (doc, cb) {
+        const r = this.getCdrInsertParam(doc, true);
+        this.client.update(r, cb);
     }
 
     insertCdrBulk (data = [], cb) {
