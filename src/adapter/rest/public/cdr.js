@@ -25,7 +25,28 @@ function addRoutes(api) {
     api.post('/api/v2/cdr/searches', searches);
     api.post('/api/v2/cdr/counts', count);
 
-    api.delete('/api/v2/cdr/:uuid', remove)
+    api.delete('/api/v2/cdr/:uuid', remove);
+
+    api.post('/api/v2/cdr/:uuid/post', savePostProcess);
+}
+
+function savePostProcess(req, res, next) {
+    const uuid = req.params.uuid;
+    const data = {
+        _id: uuid,
+        variables: {uuid, domain_name: req.webitelUser.domain},
+        post_data: req.body
+    };
+
+    application.elastic.insertPostProcess(data, (err) => {
+        if (err) {
+            log.error(err);
+            return next(err);
+        }
+
+        log.debug(`Ok save: ${uuid}`);
+        res.status(200).end();
+    });
 }
 
 function addPin(req, res, next) {

@@ -76,6 +76,7 @@ const Service = module.exports = {
                         application.elastic.insertCdr(result, (err) => {
                             elasticRequestCount--;
 
+                            //TODO !!!!!!!!!!
                             if (err && !~err.message.indexOf('document_already_exists_exception')) {
                                 if (skipMongo)
                                     callback(err);

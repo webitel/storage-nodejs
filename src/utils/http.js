@@ -33,7 +33,7 @@ const helper = module.exports = {
     streaming: (source, response, params) => {
         let responseHeaders = {};
 
-        if (source && source.location && source.statusCode == 302) {
+        if (source && source.location && source.statusCode === 302) {
             responseHeaders['Location'] = source.location;
             responseHeaders['Content-Type'] = params.contentType;
             return helper.sendResponse(response, 302, responseHeaders);
@@ -60,7 +60,7 @@ const helper = module.exports = {
         }
 
         responseHeaders['Content-Range'] = 'bytes ' + start + '-' + end + '/' + params.totalLength;
-        responseHeaders['Content-Length'] = start == end ? 0 : (end - start + 1);
+        responseHeaders['Content-Length'] = start === end ? 0 : (end - start + 1);
         responseHeaders['Content-Type'] = params.contentType;
         responseHeaders['Accept-Ranges'] = 'bytes';
         responseHeaders['Cache-Control'] = 'no-cache';
