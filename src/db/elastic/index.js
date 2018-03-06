@@ -8,28 +8,25 @@ const elasticsearch = require('elasticsearch'),
     EventEmitter2 = require('eventemitter2').EventEmitter2,
     log = require(__appRoot + '/lib/log')(module),
     setCustomAttribute = require(__appRoot + '/utils/cdr').setCustomAttribute,
-    conf = require(`${__appRoot}/conf`),
-    async = require('async')
+    conf = require(`${__appRoot}/conf`)
 ;
 
 const CDR_NAME = conf.get('elastic:cdrIndexName'),
-    MAX_RESULT_WINDOW = 2147483647,
-    CDR_TYPE_NAME = 'collection';
+    CDR_TYPE_NAME = 'cdr';
 
 
-
-const scriptAddPin = `if (ctx._source["pinnedItems"] == null) {
-    ctx._source.pinnedItems = [params.rec]
+const scriptAddPin = `if (ctx._source["pinned_items"] == null) {
+    ctx._source.pinned_items = [params.rec]
 } else {
-    if (!ctx._source.pinnedItems.contains(params.rec)) {
-        ctx._source.pinnedItems.add(params.rec)
+    if (!ctx._source.pinned_items.contains(params.rec)) {
+        ctx._source.pinned_items.add(params.rec)
     }
 }`;
 
-const scriptDelPin = `if (ctx._source["pinnedItems"] != null) {
-    for (int i = 0; i < ctx._source.pinnedItems.size(); i++){
-        if (ctx._source.pinnedItems[i] == params.rec) {
-            ctx._source.pinnedItems.remove(i)
+const scriptDelPin = `if (ctx._source["pinned_items"] != null) {
+    for (int i = 0; i < ctx._source.pinned_items.size(); i++){
+        if (ctx._source.pinned_items[i] == params.rec) {
+            ctx._source.pinned_items.remove(i)
         }    
     }
 }`;
@@ -69,101 +66,6 @@ class ElasticClient extends EventEmitter2 {
         })
     }
 
-    initTemplate () {
-        const client = this.client;
-
-        client.indices.getTemplate((err, res) => {
-            if (err) {
-                return log.error(err);
-            }
-
-            let elasticTemplatesNames = Object.keys(res),
-                templates = this.config.templates || [],
-                tasks = [],
-                delTemplate = [];
-
-            templates.forEach(function (template) {
-                if (elasticTemplatesNames.indexOf(template.name) > -1) {
-                    delTemplate.push(function (done) {
-                        client.indices.deleteTemplate(
-                            template,
-                            function (err) {
-                                if (err) {
-                                    log.error(err);
-                                } else {
-                                    log.debug('Template %s deleted.', template.name)
-                                }
-                                done();
-                            }
-                        );
-                    });
-                }
-
-                tasks.push(function (done) {
-                    client.indices.putTemplate(
-                        template,
-                        function (err) {
-                            if (err) {
-                                log.error(err);
-                            } else {
-                                log.debug('Template %s - created.', template.name);
-                            }
-                            done();
-                        }
-                    );
-                });
-            });
-
-            if (tasks.length > 0) {
-                async.waterfall([].concat(delTemplate, tasks) , (err) => {
-                    this.emit('elastic:connect', this);
-                    if (err)
-                        return log.error(err);
-                    return log.info(`Replace elastic template - OK`);
-                });
-            }
-        });
-    }
-
-    initMaxResultWindow () {
-        this.client.indices.getSettings({
-            index: CDR_NAME + '*',
-            name: "index.max_result_window"
-        }, (err, res) => {
-            if (err) {
-                return log.error(err);
-            }
-
-            let indexName = Object.keys(res);
-            if (indexName.length > 0) {
-                let indexSettings = res[indexName[0]] && res[indexName[0]].settings;
-                let max_result_window = +(indexSettings && indexSettings.index && indexSettings.index.max_result_window);
-
-                if (!max_result_window || max_result_window < 1000000) {
-                    this.setIndexSettings()
-                } else {
-                    log.trace('Skip set max_result_window')
-                }
-            } else {
-                this.setIndexSettings();
-            }
-        });
-    }
-
-    setIndexSettings () {
-        this.client.indices.putSettings({
-            index: CDR_NAME + '*',
-            body: {
-                max_result_window: MAX_RESULT_WINDOW
-            }
-        }, (err, res) => {
-            if (err)
-                return log.error(err);
-
-            log.info(`Set default max_result_window - success`);
-        });
-    }
-
     search (data, cb) {
         return this.client.search(data, cb);
     }
@@ -172,28 +74,10 @@ class ElasticClient extends EventEmitter2 {
         return this.client.scroll(params, cb);
     }
 
-    _getCdrInsertParamBulk (doc) {
-        let currentDate = new Date(),
-            indexName = `${CDR_NAME}-${currentDate.getFullYear()}`,
-            _record = setCustomAttribute(doc),
-            _id = (_record.variables && _record.variables.uuid) || _record._id.toString();
-        delete _record._id;
-        return {
-            update: {
-                _index: (indexName + (doc.variables.domain_name ? '-' + doc.variables.domain_name : '')).toLowerCase(),
-                _type: CDR_TYPE_NAME,
-                _id: _id
-            },
-            body: {
-                doc: _record,
-                doc_as_upsert: true
-            }
-        };
-    }
 
     getCdrInsertParam (doc, skipAttribute) {
         let currentDate = new Date(),
-            indexName = `${CDR_NAME}-${currentDate.getFullYear()}`,
+            indexName = `${CDR_NAME}-a-${currentDate.getFullYear()}`,
             _record = skipAttribute ? doc : setCustomAttribute(doc),
             _id = (_record.variables && _record.variables.uuid) || _record._id.toString();
         delete _record._id;
@@ -209,30 +93,11 @@ class ElasticClient extends EventEmitter2 {
         };
     }
 
-    insertCdr (doc, cb) {
-        this.client.update(this.getCdrInsertParam(doc), cb);
-    }
-
     insertPostProcess (doc, cb) {
         const r = this.getCdrInsertParam(doc, true);
         this.client.update(r, cb);
     }
 
-    insertCdrBulk (data = [], cb) {
-        const req = [];
-        for (let doc of data) {
-            const {update, body} = this._getCdrInsertParamBulk(doc);
-            req.push({update}, body);
-        }
-
-        this.bulk(req, cb);
-    }
-
-    bulk (body, cb) {
-        this.client.bulk({
-            body
-        }, cb)
-    }
 
     addPinCdr (id, index, userId, cb) {
         this.client.update({
@@ -269,15 +134,14 @@ class ElasticClient extends EventEmitter2 {
     }
 
 
-
     insertFile (doc, cb) {
         let currentDate = new Date(),
-            indexName = `${CDR_NAME}-${currentDate.getFullYear()}`,
+            indexName = `${CDR_NAME}-a-${currentDate.getFullYear()}`,
             _record = doc,
-            _id = _record.variables && _record.variables.uuid;
+            _id = _record && _record.uuid;
 
         this.client.update({
-            index: (indexName + (doc.variables.domain_name ? '-' + doc.variables.domain_name : '')).toLowerCase(),
+            index: (indexName + (doc.domain_name ? '-' + doc.domain_name : '')).toLowerCase(),
             type: CDR_TYPE_NAME,
             id: _id,
             body: {
@@ -286,7 +150,7 @@ class ElasticClient extends EventEmitter2 {
                     "inline": "if (ctx._source[\"recordings\"] == null) { ctx._source.recordings = params.rec } else {  ctx._source.recordings.add(params.rec[0])}",
                     "lang": "painless",
                     "params" : {
-                        "rec" : doc.recordings
+                        "rec" : doc.recordings instanceof Array ? doc.recordings : [doc.recordings]
                     }
                 },
                 upsert: _record
@@ -294,6 +158,7 @@ class ElasticClient extends EventEmitter2 {
         }, cb);
     }
 
+    //todo
     removeFile (uuid = "", _id = "", domain = "", cb) {
         const indexName = `${CDR_NAME}*`;
 
@@ -311,7 +176,7 @@ class ElasticClient extends EventEmitter2 {
                             },
                             {
                                 "term": {
-                                    "variables.uuid": uuid
+                                    "uuid": uuid
                                 }
                             }
                         ],
@@ -329,16 +194,17 @@ class ElasticClient extends EventEmitter2 {
         }, cb);
     }
 
+    //todo
     findByUuid (uuid, domain, cb) {
         this.client.search(
             {
-                index: `${CDR_NAME}-*${domain ? '-' + domain : '' }`,
+                index: `${CDR_NAME}-a-*${domain ? '-' + domain : '' }`,
                 size: 1,
                 _source: false,
                 body: {
                     "query": {
                         "term": {
-                            "variables.uuid": uuid
+                            "uuid": uuid
                         }
                     }
                 }
@@ -352,7 +218,7 @@ class ElasticClient extends EventEmitter2 {
     findRecFromHash (hash, domain, cb) {
         this.client.search(
             {
-                index: `${CDR_NAME}-*${domain ? '-' + domain : '' }`,
+                index: `${CDR_NAME}-a-*${domain ? '-' + domain : '' }`,
                 size: 1,
                 _source: ["recordings.*"],
                 body: {
@@ -387,31 +253,27 @@ class ElasticClient extends EventEmitter2 {
         )
     }
 
+    //todo
     removeCdr (id, indexName = "", cb) {
-        this.client.delete({
-            index: indexName,
-            type: CDR_TYPE_NAME,
-            id: id
-        }, cb)
-    }
-
-    insertUserStatus (data = {}, cb) {
-        this.client.create({
-            index: `accounts-${new Date().getFullYear()}-${data.domain}`,
-            type: 'accounts',
-            id: data._id,
+        this.client.deleteByQuery({
+            index: 'cdr*',
             body: {
-                "domain" : data.domain,
-                "account" : data.account,
-                "status" : data.status,
-                "state" : data.state,
-                "description" : data.description,
-                "online" : data.online,
-                "date" : data.date,
-                "endDate" : data.endDate,
-                "timeSec" : data.timeSec
+                query: {
+                    bool: {
+                        should: [
+                            {
+                                term: {uuid: id}
+                            },
+                            {
+                                term: {parent_uuid: id}
+                            }
+                        ]
+                    }
+                }
             }
-        }, cb);
+        }, function (err, res) {
+            return cb(err, res)
+        });
     }
 }
     

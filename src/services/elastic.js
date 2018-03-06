@@ -48,7 +48,7 @@ const Service = module.exports = {
 
         if (_ro)
             filter.bool.must.push({
-                "term": {"variables.presence_id": caller.id}
+                "term": {"presence_id": caller.id}
             });
 
         let columns = option.columns,
@@ -56,7 +56,7 @@ const Service = module.exports = {
             scroll = option.scroll,
             limit = parseInt(option.limit, 10),
             pageNumber = option.pageNumber,
-            sort = (option.sort && Object.keys(option.sort).length > 0) ? option.sort : {"Call start time":{"order":"desc","unmapped_type":"boolean"}},
+            sort = (option.sort && Object.keys(option.sort).length > 0) ? option.sort : {"created_time":{"order":"desc","unmapped_type":"boolean"}},
             _source = (option.includes instanceof Array) ? {includes: option.includes} : undefined
             ;
 
@@ -65,10 +65,16 @@ const Service = module.exports = {
         }
 
         const domain = caller.domain || option.domain;
-        
+
+        let index = option.index + "-*";
+
+        if (domain) {
+            index += `-${domain}`;
+        }
+
         application.elastic.search(
             {
-                index: `cdr-*${domain ? '-' + domain : '' }`,
+                index,
                 size: limit,
                 storedFields: columns,
                 docvalueFields: columns,

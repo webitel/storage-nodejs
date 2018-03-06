@@ -70,7 +70,7 @@ const Service = module.exports = {
             if (!fileDb || !fileDb.path)
                 return cb(new CodeError(404, `File ${uuid} not found!`));
 
-            if (caller.domain && caller.domain != fileDb.domain)
+            if (caller.domain && caller.domain !== fileDb.domain)
                 return cb(new CodeError(403, "Permission denied!"));
             
             Service._getFile(fileDb, option, cb);
@@ -185,7 +185,8 @@ const Service = module.exports = {
 
     saveInfoToElastic: (doc, cb) => {
         application.elastic.insertFile({
-            variables: {uuid: doc.uuid, domain_name: doc.domain},
+            uuid: doc.uuid,
+            domain_name: doc.domain,
             recordings: [doc]
         }, cb);
     },
@@ -255,7 +256,8 @@ const Service = module.exports = {
                 
                 if (application.elastic) {
                     application.elastic.insertFile({
-                        variables: {uuid: doc.uuid, domain_name: doc.domain},
+                        uuid: doc.uuid,
+                        domain_name: doc.domain,
                         recordings: [doc]
                     }, (err) => {
                         if (err)
@@ -501,7 +503,7 @@ const Service = module.exports = {
             if (!fileDb || !fileDb.path)
                 return cb(new CodeError(404, `File ${uuid} not found!`));
 
-            if (caller.domain && caller.domain != fileDb.domain)
+            if (caller.domain && caller.domain !== fileDb.domain)
                 return cb(new CodeError(403, "Permission denied!"));
 
             let providerName = FILE_TYPES[fileDb.type];

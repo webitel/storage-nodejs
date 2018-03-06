@@ -6,7 +6,8 @@
 
 const elasticService = require(__appRoot + '/services/elastic'),
     cdrService = require(__appRoot + '/services/cdr'),
-    log = require(__appRoot + '/lib/log')(module)
+    log = require(__appRoot + '/lib/log')(module),
+    CodeError = require(__appRoot + '/lib/error')
     ;
 
 module.exports = {
@@ -17,15 +18,36 @@ module.exports = {
  * Adds routes to the api.
  */
 function addRoutes(api) {
-    api.post('/api/v2/cdr/text', getElasticData);
-    api.post('/api/v2/cdr/text/scroll', scrollElasticData);
-    api.put('/api/v2/cdr/:uuid/pinned', addPin);
+    api.post('/api/v2/:index/text', getElasticData); //?leg=ba//
+    api.post('/api/v2/:index/text/scroll', scrollElasticData);
+
+    api.put(   '/api/v2/cdr/:uuid/pinned', addPin);
     api.delete('/api/v2/cdr/:uuid/pinned', removePin);
 
-    api.post('/api/v2/cdr/searches', searches);
-    api.post('/api/v2/cdr/counts', count);
+    api.get('/api/v2/cdr/:uuid', getByUuid); // ?leg=ba //
+    // api.get('/api/v2/cdr/:uuid/b', getByUuid); // ?leg=ba //
 
-    api.delete('/api/v2/cdr/:uuid', remove)
+    api.delete('/api/v2/cdr/:uuid', remove);
+    api.post('/api/v2/cdr/:uuid/post', savePostProcess);
+}
+
+function savePostProcess(req, res, next) {
+    const uuid = req.params.uuid;
+    const data = {
+        _id: uuid,
+        variables: {uuid, domain_name: req.webitelUser.domain},
+        post_data: req.body
+    };
+
+    application.elastic.insertPostProcess(data, (err) => {
+        if (err) {
+            log.error(err);
+            return next(err);
+        }
+
+        log.debug(`Ok save: ${uuid}`);
+        res.status(200).end();
+    });
 }
 
 function addPin(req, res, next) {
@@ -57,7 +79,29 @@ function removePin(req, res, next) {
 }
 
 function getElasticData(req, res, next) {
-    return elasticService.search(req.webitelUser, req.body, (err, result) => {
+    const options = req.body;
+    options.index = req.params.index;
+
+    if (!options.index.startsWith('cdr') && !options.index.startsWith('accounts')) {
+        return next(new CodeError(404, "Not Found"))
+    }
+
+    //TODO
+    if (options.index === 'cdr') {
+        switch (req.query.leg) {
+            case "b":
+                options.index += "-b";
+                break;
+            case "ab":
+                break;
+            default:
+                options.index += "-a";
+                break;
+        }
+    }
+
+
+    return elasticService.search(req.webitelUser, options, (err, result) => {
         if (err)
             return next(err);
 
@@ -74,44 +118,27 @@ function scrollElasticData(req, res, next) {
     });
 }
 
-function searches(req, res, next) {
-
-    let option = {
-        columns: req.body.columns,
-        filter: req.body.filter,
-        limit: req.body.limit,
-        pageNumber: req.body.pageNumber,
-        sort: req.body.sort
-    };
-
-    cdrService.search(req.webitelUser, option, (err, data) => {
-        if (err)
-            return next(err);
-
-        res.json(data);
-    })
-}
-
-function count(req, res, next) {
-
-    let option = {
-        filter: req.body.filter
-    };
-
-    cdrService.count(req.webitelUser, option, (err, data) => {
-        if (err)
-            return next(err);
-
-        res.json(data);
-    })
-}
-
 function remove(req, res, next) {
     let option = {
         uuid: req.params.uuid
     };
 
     cdrService.remove(req.webitelUser, option, (err, data) => {
+        if (err)
+            return next(err);
+
+        res.json(data);
+    })
+}
+
+function getByUuid(req, res, next) {
+    const options = {
+        uuid: req.params.uuid,
+        leg: req.query.leg,
+        domain: req.query.domain
+    };
+
+    cdrService.getItem(req.webitelUser, options, (err, data) => {
         if (err)
             return next(err);
 

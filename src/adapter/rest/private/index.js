@@ -12,7 +12,7 @@ module.exports = addRoutes;
 function addRoutes(api) {
     require('./acl').addRoutes(api);
     require('./recordFile').addRoutes(api);
-    require('./cdr').addRoutes(api);
+    //require('./cdr').addRoutes(api);
     require('./tts').addRoutes(api);
     require('./stt').addRoutes(api);
     require('./media').addRoutes(api);

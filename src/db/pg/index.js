@@ -23,6 +23,7 @@ const pool = new pg.Pool(config);
 
 const query = new Map();
 query.set('tcpDump', require('./query/tcpDump')(pool));
+query.set('cdr', require('./query/cdr')(pool));
 
 function initData(err) {
     if (err) {
