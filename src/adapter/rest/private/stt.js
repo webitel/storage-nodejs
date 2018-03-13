@@ -4,11 +4,12 @@
 
 "use strict";
 
-const http = require('http'),
+const http = require('https'),
     rpc = require(__appRoot + '/lib/broker')(),
     conf = require(__appRoot + '/conf'),
     log = require(__appRoot + '/lib/log')(module),
-    DEF_KEY = conf.get('stt:defaultKey')
+    DEF_KEY = conf.get('stt:defaultKey'),
+    {Encode} = require('base64-stream')
     ;
 
 module.exports = {
@@ -30,14 +31,13 @@ function sendResponse(res, args, queueName) {
     return res.send('OK');
 }
 
-function sttStream(req, res, next) {
+function sttStream(req, res) {
     const {
         callId,
         reply,
         lang = 'en-US',
         setVar,
         key = DEF_KEY,
-        codec = 'audio/l16',
         rate
     } = req.query;
 
@@ -46,12 +46,24 @@ function sttStream(req, res, next) {
         return sendResponse(res)
     }
 
+    const body = JSON.stringify({
+        "config": {
+            "encoding": "LINEAR16", //TODO
+            "sampleRateHertz": +rate,
+            "languageCode": lang,
+        },
+        "audio": {
+            "content": "@DATA@"
+        },
+    });
+
     let requestParams = {
-        path: `/speech-api/v2/recognize?client=chromium&output=json&lang=${lang}&key=${key || DEF_KEY}`,
-        host: 'www.google.com',
+        path: `/v1/speech:recognize?key=${key || DEF_KEY}`,
+        host: 'speech.googleapis.com',
         method: 'POST',
         headers: {
-            'Content-Type': `${codec}; rate=${rate}`
+            'Transfer-Encoding': 'chunked',
+            'Content-Type': 'application/json'
         }
     };
 
@@ -62,12 +74,7 @@ function sttStream(req, res, next) {
         resGoog.on('data', c => resData += c);
 
         resGoog.on('end', () => {
-            const text = /.*\n(.*)/.exec(resData);
-            let stt = null;
-            if (text && text[1]) {
-                stt = parseJson(text[1]);
-
-            }
+            const stt = parseJson(resData);
             log.trace(`Call ${callId} stt: ${resData}`);
             return sendResponse(res, {stt, callId, setVar}, reply);
         });
@@ -82,8 +89,21 @@ function sttStream(req, res, next) {
     r.on('error', e => {
         log.error(e);
     });
+    r.write(body.substring(0, body.indexOf('@DATA@')));
 
-    req.pipe(r)
+    const encoder = new Encode();
+    encoder.on('data', c => {
+        r.write(c.toString())
+    });
+
+    req.on('data', c => {
+        encoder.write(c);
+    });
+
+    req.on('end', ()=> {
+        r.write(body.substring(body.indexOf('@DATA@') + 6));
+        r.end();
+    });
 }
 
 function parseJson(str) {
