@@ -22,11 +22,11 @@ function add(pool) {
                     if (res && res.rowCount) {
                         let data = {};
                         try {
-                            data = res.rows[0].event.toString('utf8')
+                            data = res.rows[0].event
                         } catch (e) {
                             log.error(e)
                         }
-                        return cb(null, JSON.parse(data))
+                        return cb(null, data)
                     } else {
                         return cb(new CodeError(404, `Not found ${uuid}`));
                     }
