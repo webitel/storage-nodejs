@@ -130,5 +130,13 @@ const Service = module.exports = {
         }
 
         application.PG.getQuery('cdr').getLegByUuid(options.uuid, null, options.leg, cb);
+    },
+
+    getLegsByAUuid: (caller, options = {}, cb) => {
+        if (!checkPermission(caller.acl, 'cdr', 'r')) {
+            return cb(new CodeError(403, "Permission denied!"))
+        }
+
+        application.PG.getQuery('cdr').getLegsByAUuid(options.uuid, cb);
     }
 };

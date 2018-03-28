@@ -34,6 +34,32 @@ function add(pool) {
             )
         },
 
+        getLegsByAUuid: (uuid, cb) => {
+            pool.query(`
+                    select event as leg_a,
+                    (
+                      select array_agg(cdr_b.event)
+                      FROM cdr_b WHERE cdr_b.parent_uuid = cdr_a.uuid
+                    ) as legs_b
+                    from cdr_a
+                    where cdr_a.uuid = $1
+                    limit 1
+                `,
+                [uuid],
+                (err, res) => {
+
+                    if (err)
+                        return cb(err);
+
+                    if (res && res.rowCount) {
+                        return cb(null, res.rows[0])
+                    } else {
+                        return cb(new CodeError(404, `Not found ${uuid}`));
+                    }
+                }
+            )
+        },
+
         removeLegA: (uuid, cb) => {
             pool.query(
                 `

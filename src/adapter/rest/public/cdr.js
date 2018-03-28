@@ -25,7 +25,7 @@ function addRoutes(api) {
     api.delete('/api/v2/cdr/:uuid/pinned', removePin);
 
     api.get('/api/v2/cdr/:uuid', getByUuid); // ?leg=ba //
-    // api.get('/api/v2/cdr/:uuid/b', getByUuid); // ?leg=ba //
+    api.get('/api/v2/cdr/:uuid/b', getLegsByAUuid); // all call
 
     api.delete('/api/v2/cdr/:uuid', remove);
     api.post('/api/v2/cdr/:uuid/post', savePostProcess);
@@ -88,18 +88,8 @@ function getElasticData(req, res, next) {
 
     //TODO
     if (options.index === 'cdr') {
-        switch (req.query.leg) {
-            case "b":
-                options.index += "-b";
-                break;
-            case "ab":
-                break;
-            default:
-                options.index += "-a";
-                break;
-        }
+        options.index = "cdr-a";
     }
-
 
     return elasticService.search(req.webitelUser, options, (err, result) => {
         if (err)
@@ -139,6 +129,20 @@ function getByUuid(req, res, next) {
     };
 
     cdrService.getItem(req.webitelUser, options, (err, data) => {
+        if (err)
+            return next(err);
+
+        res.json(data);
+    })
+}
+
+function getLegsByAUuid(req, res, next) {
+    const options = {
+        uuid: req.params.uuid,
+        domain: req.query.domain
+    };
+
+    cdrService.getLegsByAUuid(req.webitelUser, options, (err, data) => {
         if (err)
             return next(err);
 
