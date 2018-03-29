@@ -7,7 +7,7 @@
 const elasticService = require(__appRoot + '/services/elastic'),
     cdrService = require(__appRoot + '/services/cdr'),
     log = require(__appRoot + '/lib/log')(module),
-    CodeError = require(__appRoot + '/lib/error')
+    getElasticData = require('./helper').getElasticData
     ;
 
 module.exports = {
@@ -94,16 +94,6 @@ function getElasticCDRData(req, res, next) {
     }
 
     return getElasticData(req.webitelUser, options, res, next);
-}
-
-function getElasticData(webitelUser, options, res, next) {
-
-    return elasticService.search(webitelUser, options, (err, result) => {
-        if (err)
-            return next(err);
-
-        res.json(result);
-    });
 }
 
 function scrollElasticData(req, res, next) {

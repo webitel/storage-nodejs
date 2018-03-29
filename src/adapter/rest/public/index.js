@@ -15,4 +15,5 @@ function addRoutes(api) {
     require('./cdr').addRoutes(api);
     require('./media').addRoutes(api);
     require('./tcpDump').addRoutes(api);
+    require('./statistic').addRoutes(api);
 }
