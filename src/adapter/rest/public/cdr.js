@@ -18,8 +18,9 @@ module.exports = {
  * Adds routes to the api.
  */
 function addRoutes(api) {
-    api.post('/api/v2/:index/text', getElasticData); //?leg=ba//
-    api.post('/api/v2/:index/text/scroll', scrollElasticData);
+
+    api.post('/api/v2/cdr/text', getElasticCDRData);
+    api.post('/api/v2/cdr/text/scroll', scrollElasticData);
 
     api.put(   '/api/v2/cdr/:uuid/pinned', addPin);
     api.delete('/api/v2/cdr/:uuid/pinned', removePin);
@@ -78,20 +79,26 @@ function removePin(req, res, next) {
     })
 }
 
-function getElasticData(req, res, next) {
+function getElasticCDRData(req, res, next) {
     const options = req.body;
-    options.index = req.params.index;
 
-    if (!options.index.startsWith('cdr') && !options.index.startsWith('accounts')) {
-        return next(new CodeError(404, "Not Found"))
+    switch (req.query.leg) {
+        case "b":
+            options.index = 'cdr-b';
+            break;
+        case "*":
+            options.index = 'cdr-*';
+            break;
+        default:
+            options.index = 'cdr-a'
     }
 
-    //TODO
-    if (options.index === 'cdr') {
-        options.index = "cdr-a";
-    }
+    return getElasticData(req.webitelUser, options, res, next);
+}
 
-    return elasticService.search(req.webitelUser, options, (err, result) => {
+function getElasticData(webitelUser, options, res, next) {
+
+    return elasticService.search(webitelUser, options, (err, result) => {
         if (err)
             return next(err);
 
