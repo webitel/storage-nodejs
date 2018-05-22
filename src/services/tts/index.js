@@ -400,6 +400,9 @@ function microsoftLocalesNameMaping(locale, gender) {
                 return "zh-TW, Yating, Apollo";
             else return "zh-TW, Zhiwei, Apollo";
 
+        case 'vi-VN':
+            return "vi-VN, An";
+
         default:
             log.error(`unknown local: ${locale}`);
             return "";
