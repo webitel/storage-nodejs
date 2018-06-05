@@ -97,7 +97,8 @@ const Service = module.exports = {
                                 "size": file.contentLength,
                                 "format": file.contentType,
                                 "providerId": fileResponse.type,
-                                "path": fileResponse.path
+                                "path": fileResponse.path,
+                                "createdAt": Date.now()
                             };
 
                             if (fileResponse.hasOwnProperty('bucketName'))
