@@ -38,6 +38,7 @@ const Service = module.exports = {
     },
 
     deleteFile: (filePath, cb) => {
-        fs.unlink(filePath, cb)
+        //TODO
+        fs.unlink(filePath, (typeof cb === "function" ? cb : () => {}))
     }
 };
