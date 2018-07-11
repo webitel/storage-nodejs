@@ -1,5 +1,2 @@
 .idea/
-src/node_modules/
-!src/cert/Readme.md
-src/cert/
-storage.iml
+src/
