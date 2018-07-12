@@ -51,4 +51,9 @@ type UploadJobStore interface {
 }
 
 type FileBackendProfileStore interface {
+	Save(profile *model.FileBackendProfile) StoreChannel
+	Get(id int, domain string) StoreChannel
+	GetList(domain string, limit, offset int) StoreChannel
+	Delete(id int, domain string) StoreChannel
+	Update(profile *model.FileBackendProfile) StoreChannel
 }

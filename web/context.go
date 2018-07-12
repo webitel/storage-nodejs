@@ -15,6 +15,7 @@ type Context struct {
 	Session       model.Session
 	Err           *model.AppError
 	T             goi18n.TranslateFunc
+	Params        *Params
 	RequestId     string
 	IpAddress     string
 	Path          string
@@ -63,4 +64,45 @@ func (c *Context) SessionRequired() {
 		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "UserRequired", http.StatusUnauthorized)
 		return
 	}
+}
+
+
+func (c *Context) SetInvalidParam(parameter string) {
+	c.Err = NewInvalidParamError(parameter)
+}
+
+func (c *Context) SetInvalidUrlParam(parameter string) {
+	c.Err = NewInvalidUrlParamError(parameter)
+}
+
+
+func NewInvalidParamError(parameter string) *model.AppError {
+	err := model.NewAppError("Context", "api.context.invalid_body_param.app_error", map[string]interface{}{"Name": parameter}, "", http.StatusBadRequest)
+	return err
+}
+
+func NewInvalidUrlParamError(parameter string) *model.AppError {
+	err := model.NewAppError("Context", "api.context.invalid_url_param.app_error", map[string]interface{}{"Name": parameter}, "", http.StatusBadRequest)
+	return err
+}
+
+func (c *Context) RequireId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if len(c.Params.Id) == 0 {
+		c.SetInvalidUrlParam("id")
+	}
+	return c
+}
+func (c *Context) RequireDomain() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if len(c.Params.Domain) == 0 {
+		c.SetInvalidUrlParam("domain")
+	}
+	return c
 }

@@ -51,7 +51,7 @@ func New(options ...string) (outApp *App, outErr error) {
 
 	if utils.T == nil {
 		if err := utils.TranslationsPreInit(); err != nil {
-			return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
+			return nil, errors.Wrapf(err, "unable to load translation files")
 		}
 	}
 
@@ -69,7 +69,7 @@ func New(options ...string) (outApp *App, outErr error) {
 	mlog.InitGlobalLogger(app.Log)
 
 	if err := utils.InitTranslations(app.Config().LocalizationSettings); err != nil {
-		return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
+		return nil, errors.Wrapf(err, "unable to load translation files")
 	}
 
 	var appErr *model.AppError

@@ -13,4 +13,7 @@ const (
 	HEADER_REAL_IP            = "X-Real-IP"
 	HEADER_REQUESTED_WITH     = "X-Requested-With"
 	HEADER_REQUESTED_WITH_XML = "XMLHttpRequest"
+
+	STATUS                    = "status"
+	STATUS_OK                 = "OK"
 )

@@ -10,7 +10,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/mlog"
+	"github.com/webitel/storage/mlog"
 )
 
 func TestLoggingBeforeInitialized(t *testing.T) {

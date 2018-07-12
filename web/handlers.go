@@ -24,6 +24,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c := &Context{}
 	c.App = h.App
 	c.T, _ = utils.GetTranslationsAndLocale(w, r)
+	c.Params = ParamsFromRequest(r)
 	c.RequestId = model.NewId()
 	c.IpAddress = utils.GetIpAddress(r)
 	c.Path = r.URL.Path

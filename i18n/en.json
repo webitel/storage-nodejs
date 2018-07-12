@@ -46,5 +46,45 @@
   {
     "id": "store.sql.convert_string_interface",
     "translation": "FromDb: Unable to convert StringInterface to *string"
+  },
+  {
+    "id": "store.sql_file_backend_profile.save.saving.app_error",
+    "translation": "We encountered an error saving the file_backend_profile"
+  },
+  {
+    "id": "api.context.invalid_url_param.app_error",
+    "translation": "Invalid or missing {{.Name}} parameter in request URL"
+  },
+  {
+    "id": "store.sql_file_backend_profile.get.finding.app_error",
+    "translation": "We encountered an error finding the backend_profile"
+  },
+  {
+    "id": "store.sql_file_backend_profile.get_all.finding.app_error",
+    "translation": "We couldn't get the backend_profile"
+  },
+  {
+    "id": "store.sql_file_backend_profile.delete.not_found.app_error",
+    "translation": "Failed to delete the backend_profile, not found id {{.Id}}"
+  },
+  {
+    "id": "store.sql_file_backend_profile.delete.app_error",
+    "translation": "Failed to delete the backend_profile"
+  },
+  {
+    "id": "store.sql_file_backend_profile.update.app_error",
+    "translation": "Failed to update the backend_profile"
+  },
+  {
+    "id": "model.file_backend_profile.name.app_error",
+    "translation": "Name must be 1 or fewer characters"
+  },
+  {
+    "id": "model.file_backend_profile.domain.app_error",
+    "translation": "Domain must be 1 or fewer characters"
+  },
+  {
+    "id": "api.context.invalid_body_param.app_error",
+    "translation": "Invalid or missing {{.Name}} in request body"
   }
 ]

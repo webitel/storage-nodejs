@@ -8,6 +8,7 @@ import (
 
 func (api *API) InitFile() {
 	api.Routes.Files.Handle("", api.ApiHandler(putFile)).Methods("PUT")
+	api.Routes.Files.Handle("", api.ApiHandler(testFile)).Methods("GET")
 }
 
 //  /sys/records?
@@ -39,6 +40,11 @@ func putFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("{\"status\": \"+OK\"}"))
+}
+
+func testFile(c *Context, w http.ResponseWriter, r *http.Request)  {
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("{\"status\": \"+OK\"}"))
 }

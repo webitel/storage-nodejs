@@ -198,6 +198,8 @@ func (me typeConverter) ToDb(val interface{}) (interface{}, error) {
 		return model.ArrayToJson(t), nil
 	case model.StringInterface:
 		return model.StringInterfaceToJson(t), nil
+	case *model.StringInterface:
+		return model.StringInterfaceToJson(*t), nil
 	case map[string]interface{}:
 		return model.StringInterfaceToJson(model.StringInterface(t)), nil
 	}
@@ -237,16 +239,6 @@ func (me typeConverter) FromDb(target interface{}) (gorp.CustomScanner, bool) {
 			return json.Unmarshal(b, target)
 		}
 		return gorp.CustomScanner{Holder: new(string), Target: target, Binder: binder}, true
-	case *model.StringInterface:
-		binder := func(holder, target interface{}) error {
-			s, ok := holder.(*string)
-			if !ok {
-				return errors.New(utils.T("store.sql.convert_string_interface"))
-			}
-			b := []byte(*s)
-			return json.Unmarshal(b, target)
-		}
-		return gorp.CustomScanner{Holder: model.StringInterface{}, Target: target, Binder: binder}, true
 	case *map[string]interface{}:
 		binder := func(holder, target interface{}) error {
 			s, ok := holder.(*string)
