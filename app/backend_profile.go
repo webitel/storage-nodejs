@@ -95,6 +95,6 @@ func (app *App) GetFileBackendStore(id int, syncTime int64) (store utils.FileBac
 	}
 
 	app.fileBackendCache.Add(id, store)
-	mlog.Debug("Added to cache", mlog.String("name", store.Name()))
+	mlog.Info("Added to cache", mlog.String("name", store.Name()))
 	return store, nil
 }

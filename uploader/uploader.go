@@ -13,24 +13,28 @@ import (
 )
 
 type UploaderInterfaceImpl struct {
-	App             *app.App
-	schedule        chan struct{}
-	pollingInterval time.Duration
-	stopSignal      chan struct{}
-	pool            einterfaces.PoolInterface
-	mx              sync.RWMutex
-	stopped         bool
+	App               *app.App
+	betweenAttemptSec int64
+	limit             int
+	schedule          chan struct{}
+	pollingInterval   time.Duration
+	stopSignal        chan struct{}
+	pool              einterfaces.PoolInterface
+	mx                sync.RWMutex
+	stopped           bool
 }
 
 func init() {
 	app.RegisterUploader(func(a *app.App) einterfaces.UploadRecordingsFilesInterface {
 		mlog.Debug("Initialize uploader")
 		return &UploaderInterfaceImpl{
-			App:             a,
-			schedule:        make(chan struct{}, 1),
-			stopSignal:      make(chan struct{}),
-			pollingInterval: time.Second * 2,
-			pool:            pool.NewPool(10, 1),
+			App:               a,
+			limit:             10,
+			betweenAttemptSec: 60,
+			schedule:          make(chan struct{}, 1),
+			stopSignal:        make(chan struct{}),
+			pollingInterval:   time.Second * 2,
+			pool:              pool.NewPool(10, 1),
 		}
 	})
 }
@@ -45,13 +49,12 @@ func (u *UploaderInterfaceImpl) run() {
 	var jobs = []*model.JobUploadFileWithProfile{}
 	var count int
 	var i int
-	var limit = 10
 	for {
 		select {
 		case <-u.schedule:
 		case <-time.After(u.pollingInterval):
 		start:
-			if result = <-u.App.Store.UploadJob().UpdateWithProfile(limit, u.App.GetInstanceId()); result.Err != nil {
+			if result = <-u.App.Store.UploadJob().UpdateWithProfile(u.limit, u.App.GetInstanceId(), u.betweenAttemptSec); result.Err != nil {
 				mlog.Critical(fmt.Sprint(result.Err))
 				continue
 			}
@@ -67,7 +70,7 @@ func (u *UploaderInterfaceImpl) run() {
 					})
 				}
 
-				if count == limit && !u.isStopped() {
+				if count == u.limit && !u.isStopped() {
 					goto start
 				}
 			}

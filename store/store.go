@@ -50,7 +50,7 @@ type SessionStore interface {
 type UploadJobStore interface {
 	Save(job *model.JobUploadFile) StoreChannel
 	List(limit int, instance string) StoreChannel
-	UpdateWithProfile(limit int, instance string) StoreChannel
+	UpdateWithProfile(limit int, instance string, betweenAttemptSec int64) StoreChannel
 	SetStateError(id int, errMsg string) StoreChannel
 }
 

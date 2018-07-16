@@ -41,11 +41,10 @@ func (u *UploadTask) Execute() {
 	if _, err = store.WriteFile(r, directory, storeName); err != nil {
 		mlog.Critical(err.Error())
 		u.app.Store.UploadJob().SetStateError(int(u.job.Id), err.Error())
+		return
 	}
 
 	mlog.Debug(fmt.Sprintf("Store to %s/%s", directory, storeName))
-
-	mlog.Debug(fmt.Sprintf("End execute upload task %s", u.Name()))
 
 	result := <-u.app.Store.Recording().MoveFromJob(int(u.job.Id), u.job.ProfileId, model.StringInterface{"directory": directory})
 	if result.Err != nil {
@@ -57,4 +56,6 @@ func (u *UploadTask) Execute() {
 	if err != nil {
 		mlog.Critical(err.Error())
 	}
+
+	mlog.Debug(fmt.Sprintf("End execute upload task %s", u.Name()))
 }

@@ -73,7 +73,7 @@ const sqlUpdateWithProfile = `WITH lck AS (
       id,
       domain
     FROM upload_file_jobs
-    WHERE state = 0 AND instance = $2
+    WHERE state = 0 AND instance = $2 AND (updated_at  <  $4 OR attempts = 0)
     ORDER BY created_at ASC
     LIMIT $1
     FOR UPDATE
@@ -113,11 +113,11 @@ returning t.id, t.name, t.uuid, t.domain, t.mime_type, t.size, t.email_msg, t.em
 
 //endregion
 
-func (self *SqlUploadJobStore) UpdateWithProfile(limit int, instance string) store.StoreChannel {
+func (self *SqlUploadJobStore) UpdateWithProfile(limit int, instance string, betweenAttemptSec int64) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var jobs = make([]*model.JobUploadFileWithProfile, 0, limit)
 
-		rows, err := self.GetReplica().Query(sqlUpdateWithProfile, limit, instance, model.ROOT_FILE_BACKEND_DOMAIN)
+		rows, err := self.GetReplica().Query(sqlUpdateWithProfile, limit, instance, model.ROOT_FILE_BACKEND_DOMAIN, model.GetMillis()-betweenAttemptSec)
 		if err != nil {
 			result.Err = model.NewAppError("SqlUploadJobStore.UpdateWithProfile", "store.sql_upload_job.update_with_profile.app_error", nil, err.Error(), http.StatusInternalServerError)
 			return
@@ -142,8 +142,8 @@ func (self *SqlUploadJobStore) SetStateError(id int, errMsg string) store.StoreC
 	return store.Do(func(result *store.StoreResult) {
 		self.GetReplica().Exec(`update upload_file_jobs
 set state = 0,
-  attempts = attempts + 1
-where id = $1`, id)
+  updated_at = $2
+where id = $1`, id, model.GetMillis())
 	})
 }
 
