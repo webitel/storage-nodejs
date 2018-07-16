@@ -17,7 +17,7 @@ func (u *UploadTask) Name() string {
 }
 
 func (u *UploadTask) Execute() {
-	store, err := u.app.GetFileBackendStore(u.job.ProfileId)
+	store, err := u.app.GetFileBackendStore(u.job.ProfileId, u.job.ProfileUpdatedAt)
 
 	if err != nil {
 		mlog.Critical(err.Error())

@@ -68,13 +68,17 @@ func (app *App) PathFileBackendProfile(profile *model.FileBackendProfile, path *
 	return profile, nil
 }
 
-func (app *App) GetFileBackendStore(id int) (store utils.FileBackend, appError *model.AppError) {
+func (app *App) GetFileBackendStore(id int, syncTime int64) (store utils.FileBackend, appError *model.AppError) {
 	var ok bool
 	var cache interface{}
 	cache, ok = app.fileBackendCache.Get(id)
 	if ok {
 		store = cache.(utils.FileBackend)
-		return
+		if store.GetSyncTime() != syncTime {
+			store = nil
+		} else {
+			return
+		}
 	}
 
 	if store == nil {
