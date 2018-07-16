@@ -1,11 +1,17 @@
 package jobs
 
 import (
+	"fmt"
 	"math/rand"
 	"time"
 
 	"github.com/webitel/storage/mlog"
+	"github.com/webitel/storage/model"
 )
+
+// Default polling interval for jobs termination.
+// (Defining as `var` rather than `const` allows tests to lower the interval.)
+var DEFAULT_WATCHER_POLLING_INTERVAL = 15000
 
 type Watcher struct {
 	srv     *JobServer
@@ -57,5 +63,20 @@ func (watcher *Watcher) Stop() {
 }
 
 func (watcher *Watcher) PollAndNotify() {
-	mlog.Debug("PollAndNotify")
+	if result := <-watcher.srv.Store.Job().GetAllByStatus(model.JOB_STATUS_PENDING); result.Err != nil {
+		mlog.Error(fmt.Sprintf("Error occurred getting all pending statuses: %v", result.Err.Error()))
+	} else {
+		jobs := result.Data.([]*model.Job)
+
+		for _, job := range jobs {
+			if job.Type == model.JOB_TYPE_DATA_RETENTION {
+				if watcher.workers.DataRetention != nil {
+					select {
+					case watcher.workers.DataRetention.JobChannel() <- *job:
+					default:
+					}
+				}
+			}
+		}
+	}
 }

@@ -40,6 +40,7 @@ type Store interface {
 	UploadJob() UploadJobStore
 	FileBackendProfile() FileBackendProfileStore
 	Recording() RecordingStore
+	Job() JobStore
 }
 
 type SessionStore interface {
@@ -64,4 +65,19 @@ type FileBackendProfileStore interface {
 
 type RecordingStore interface {
 	MoveFromJob(jobId, profileId int, properties model.StringInterface) StoreChannel
+}
+
+type JobStore interface {
+	Save(job *model.Job) StoreChannel
+	UpdateOptimistically(job *model.Job, currentStatus string) StoreChannel
+	UpdateStatus(id string, status string) StoreChannel
+	UpdateStatusOptimistically(id string, currentStatus string, newStatus string) StoreChannel
+	Get(id string) StoreChannel
+	GetAllPage(offset int, limit int) StoreChannel
+	GetAllByType(jobType string) StoreChannel
+	GetAllByTypePage(jobType string, offset int, limit int) StoreChannel
+	GetAllByStatus(status string) StoreChannel
+	GetNewestJobByStatusAndType(status string, jobType string) StoreChannel
+	GetCountByStatusAndType(status string, jobType string) StoreChannel
+	Delete(id string) StoreChannel
 }

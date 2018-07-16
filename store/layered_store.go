@@ -52,3 +52,7 @@ func (s *LayeredStore) FileBackendProfile() FileBackendProfileStore {
 func (s *LayeredStore) Recording() RecordingStore {
 	return s.DatabaseLayer.Recording()
 }
+
+func (s *LayeredStore) Job() JobStore {
+	return s.DatabaseLayer.Job()
+}

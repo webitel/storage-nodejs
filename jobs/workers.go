@@ -8,21 +8,20 @@ import (
 )
 
 type Workers struct {
-	startOnce sync.Once
-	Watcher   *Watcher
+	startOnce     sync.Once
+	ConfigService ConfigService
+	Watcher       *Watcher
 
-	listenerId string
+	DataRetention model.Worker
 }
 
-func (srv *JobServer) NewWorker(interval int) *Workers {
-	worker := &Workers{}
-	worker.Watcher = srv.MakeWatcher(worker, interval)
+func (srv *JobServer) InitWorkers() *Workers {
+	workers := &Workers{
+		ConfigService: srv.ConfigService,
+	}
+	workers.Watcher = srv.MakeWatcher(workers, DEFAULT_WATCHER_POLLING_INTERVAL)
 
-	go func() {
-		worker.Start()
-	}()
-
-	return worker
+	return workers
 }
 
 func (workers *Workers) Start() *Workers {
@@ -40,9 +39,10 @@ func (workers *Workers) handleConfigChange(oldConfig *model.Config, newConfig *m
 }
 
 func (workers *Workers) Stop() *Workers {
-	mlog.Info("Stopped workers")
 
 	workers.Watcher.Stop()
+
+	mlog.Info("Stopped workers")
 
 	return workers
 }

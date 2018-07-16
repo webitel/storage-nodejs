@@ -1,7 +1,6 @@
 package jobs
 
 import (
-	tjobs "github.com/webitel/storage/jobs/interfaces"
 	"github.com/webitel/storage/model"
 	"github.com/webitel/storage/store"
 )
@@ -19,17 +18,14 @@ func (s StaticConfigService) Config() *model.Config { return s.Cfg }
 type JobServer struct {
 	ConfigService ConfigService
 	Store         store.Store
-	Workers       []*Workers
+	Workers       *Workers
 	Schedulers    *Schedulers
-
-	UploadRecordingsJob tjobs.UploadRecordingsFilesJobInterface
 }
 
 func NewJobServer(configService ConfigService, store store.Store) *JobServer {
 	return &JobServer{
 		ConfigService: configService,
 		Store:         store,
-		Workers:       make([]*Workers, 5, 5),
 	}
 }
 
@@ -37,16 +33,18 @@ func (srv *JobServer) Config() *model.Config {
 	return srv.ConfigService.Config()
 }
 
-func (srv *JobServer) StopWorkers() {
-	if srv.Workers != nil {
-		for _, worker := range srv.Workers {
-			worker.Stop()
-		}
-	}
+func (srv *JobServer) StartWorkers() {
+	srv.Workers = srv.InitWorkers().Start()
 }
 
 func (srv *JobServer) StartSchedulers() {
 	srv.Schedulers = srv.InitSchedulers().Start()
+}
+
+func (srv *JobServer) StopWorkers() {
+	if srv.Workers != nil {
+		srv.Workers.Stop()
+	}
 }
 
 func (srv *JobServer) StopSchedulers() {

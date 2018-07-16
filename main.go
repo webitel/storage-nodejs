@@ -39,6 +39,8 @@ func main() {
 	private.Init(a, a.InternalSrv.Router)
 
 	a.Jobs.StartSchedulers()
+	a.Jobs.StartWorkers()
+
 	a.Uploader.Start()
 
 	setDebug()
@@ -51,6 +53,8 @@ func main() {
 	mlog.Info("Stopping job server")
 
 	a.Jobs.StopSchedulers()
+	a.Jobs.StopWorkers()
+
 	mlog.Info("Stopping uploader server")
 	a.Uploader.Stop()
 

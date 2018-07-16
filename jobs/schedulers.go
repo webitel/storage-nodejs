@@ -10,11 +10,12 @@ import (
 )
 
 type Schedulers struct {
-	stop       chan bool
-	stopped    chan bool
-	listenerId string
-	startOnce  sync.Once
-	jobs       *JobServer
+	stop          chan bool
+	stopped       chan bool
+	configChanged chan *model.Config
+	listenerId    string
+	startOnce     sync.Once
+	jobs          *JobServer
 
 	schedulers   []model.Scheduler
 	nextRunTimes []*time.Time
@@ -24,13 +25,10 @@ func (srv *JobServer) InitSchedulers() *Schedulers {
 	mlog.Debug("Initialising schedulers.")
 
 	schedulers := &Schedulers{
-		stop:    make(chan bool),
-		stopped: make(chan bool),
-		jobs:    srv,
-	}
-
-	if srv.UploadRecordingsJob != nil {
-		schedulers.schedulers = append(schedulers.schedulers, srv.UploadRecordingsJob.MakeScheduler())
+		stop:          make(chan bool),
+		stopped:       make(chan bool),
+		configChanged: make(chan *model.Config),
+		jobs:          srv,
 	}
 
 	schedulers.nextRunTimes = make([]*time.Time, len(schedulers.schedulers))
@@ -38,6 +36,7 @@ func (srv *JobServer) InitSchedulers() *Schedulers {
 }
 
 func (schedulers *Schedulers) Start() *Schedulers {
+
 	go func() {
 		schedulers.startOnce.Do(func() {
 			mlog.Info("Starting schedulers.")
@@ -83,6 +82,14 @@ func (schedulers *Schedulers) Start() *Schedulers {
 							}
 						}
 					}
+				case newCfg := <-schedulers.configChanged:
+					for idx, scheduler := range schedulers.schedulers {
+						if !scheduler.Enabled(newCfg) {
+							schedulers.nextRunTimes[idx] = nil
+						} else {
+							schedulers.setNextRunTime(newCfg, idx, now, false)
+						}
+					}
 				}
 			}
 		})
@@ -100,10 +107,43 @@ func (schedulers *Schedulers) Stop() *Schedulers {
 
 func (schedulers *Schedulers) setNextRunTime(cfg *model.Config, idx int, now time.Time, pendingJobs bool) {
 	scheduler := schedulers.schedulers[idx]
-	schedulers.nextRunTimes[idx] = scheduler.NextScheduleTime(cfg, now, pendingJobs, nil)
+
+	if !pendingJobs {
+		if pj, err := schedulers.jobs.CheckForPendingJobsByType(scheduler.JobType()); err != nil {
+			mlog.Error("Failed to set next job run time: " + err.Error())
+			schedulers.nextRunTimes[idx] = nil
+			return
+		} else {
+			pendingJobs = pj
+		}
+	}
+
+	lastSuccessfulJob, err := schedulers.jobs.GetLastSuccessfulJobByType(scheduler.JobType())
+	if err != nil {
+		mlog.Error("Failed to set next job run time: " + err.Error())
+		schedulers.nextRunTimes[idx] = nil
+		return
+	}
+
+	schedulers.nextRunTimes[idx] = scheduler.NextScheduleTime(cfg, now, pendingJobs, lastSuccessfulJob)
 	mlog.Debug(fmt.Sprintf("Next run time for scheduler %v: %v", scheduler.Name(), schedulers.nextRunTimes[idx]))
 }
 
-func (schedulers *Schedulers) scheduleJob(cfg *model.Config, scheduler model.Scheduler) (model.Job, *model.AppError) {
-	return scheduler.ScheduleJob(cfg, false, nil)
+func (schedulers *Schedulers) scheduleJob(cfg *model.Config, scheduler model.Scheduler) (*model.Job, *model.AppError) {
+	pendingJobs, err := schedulers.jobs.CheckForPendingJobsByType(scheduler.JobType())
+	if err != nil {
+		return nil, err
+	}
+
+	lastSuccessfulJob, err2 := schedulers.jobs.GetLastSuccessfulJobByType(scheduler.JobType())
+	if err2 != nil {
+		return nil, err
+	}
+
+	return scheduler.ScheduleJob(cfg, pendingJobs, lastSuccessfulJob)
+}
+
+func (schedulers *Schedulers) handleConfigChange(oldConfig *model.Config, newConfig *model.Config) {
+	mlog.Debug("Schedulers received config change.")
+	schedulers.configChanged <- newConfig
 }

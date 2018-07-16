@@ -94,5 +94,49 @@
   {
     "id": "api.context.invalid_body_param.app_error",
     "translation": "Invalid or missing {{.Name}} in request body"
+  },
+  {
+    "id": "model.job.is_valid.create_at.app_error",
+    "translation": "Create at must be a valid time"
+  },
+  {
+    "id": "model.job.is_valid.id.app_error",
+    "translation": "Invalid job Id"
+  },
+  {
+    "id": "model.job.is_valid.status.app_error",
+    "translation": "Invalid job status"
+  },
+  {
+    "id": "model.job.is_valid.type.app_error",
+    "translation": "Invalid job type"
+  },
+  {
+    "id": "store.sql_job.delete.app_error",
+    "translation": "We couldn't delete the job"
+  },
+  {
+    "id": "store.sql_job.get.app_error",
+    "translation": "We couldn't get the job"
+  },
+  {
+    "id": "store.sql_job.get_all.app_error",
+    "translation": "We couldn't get the jobs"
+  },
+  {
+    "id": "store.sql_job.get_count_by_status_and_type.app_error",
+    "translation": "We couldn't get the job count by status and type"
+  },
+  {
+    "id": "store.sql_job.get_newest_job_by_status_and_type.app_error",
+    "translation": "We couldn't get the newest job by status and type"
+  },
+  {
+    "id": "store.sql_job.save.app_error",
+    "translation": "We couldn't save the job"
+  },
+  {
+    "id": "store.sql_job.update.app_error",
+    "translation": "We couldn't update the job"
   }
 ]

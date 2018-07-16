@@ -35,6 +35,7 @@ type SqlSupplierOldStores struct {
 	uploadJob          store.UploadJobStore
 	fileBackendProfile store.FileBackendProfileStore
 	recording          store.RecordingStore
+	job                store.JobStore
 }
 
 type SqlSupplier struct {
@@ -62,6 +63,7 @@ func NewSqlSupplier(settings model.SqlSettings) *SqlSupplier {
 	supplier.oldStores.uploadJob = NewSqlUploadJobStore(supplier)
 	supplier.oldStores.fileBackendProfile = NewSqlFileBackendProfileStore(supplier)
 	supplier.oldStores.recording = NewSqlRecordingStore(supplier)
+	supplier.oldStores.job = NewSqlJobStore(supplier)
 
 	err := supplier.GetMaster().CreateTablesIfNotExists()
 	if err != nil {
@@ -259,4 +261,8 @@ func (ss *SqlSupplier) FileBackendProfile() store.FileBackendProfileStore {
 
 func (ss *SqlSupplier) Recording() store.RecordingStore {
 	return ss.oldStores.recording
+}
+
+func (ss *SqlSupplier) Job() store.JobStore {
+	return ss.oldStores.job
 }
