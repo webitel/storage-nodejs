@@ -1,9 +1,9 @@
 package apis
 
 import (
+	"github.com/webitel/storage/model"
 	"net/http"
 	"strconv"
-	"github.com/webitel/storage/model"
 )
 
 func (api *API) InitBackendProfile() {
@@ -14,12 +14,18 @@ func (api *API) InitBackendProfile() {
 	api.PublicRoutes.BackendProfile.Handle("/{id:[0-9]+}", api.ApiSessionRequired(updateProfile)).Methods("PUT")
 }
 
-func createProfile(c *Context, w http.ResponseWriter, r *http.Request)  {
+func createProfile(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireDomain()
+	if c.Err != nil {
+		return
+	}
+
 	profile := model.FileBackendProfileFromJson(r.Body)
 	if profile == nil {
 		c.SetInvalidParam("profile")
 		return
 	}
+	profile.Domain = c.Params.Domain
 
 	if profile, err := c.App.CreateFileBackendProfile(profile); err != nil {
 		c.Err = err
@@ -30,7 +36,7 @@ func createProfile(c *Context, w http.ResponseWriter, r *http.Request)  {
 	}
 }
 
-func getProfile(c *Context, w http.ResponseWriter, r *http.Request)  {
+func getProfile(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireDomain()
 	c.RequireId()
 
@@ -67,7 +73,7 @@ func listProfiles(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func deleteProfile(c *Context, w http.ResponseWriter, r *http.Request)  {
+func deleteProfile(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireDomain()
 	c.RequireId()
 
@@ -85,7 +91,7 @@ func deleteProfile(c *Context, w http.ResponseWriter, r *http.Request)  {
 	ReturnStatusOK(w)
 }
 
-func updateProfile(c *Context, w http.ResponseWriter, r *http.Request)  {
+func updateProfile(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireDomain()
 	c.RequireId()
 	if c.Err != nil {

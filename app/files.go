@@ -8,8 +8,9 @@ import (
 )
 
 func (app *App) AddUploadJobFile(src io.ReadCloser, file *model.JobUploadFile) *model.AppError {
-	path := file.GetPath("./cache")
-	size, err := app.FileCacheBackend.WriteFile(src, path)
+
+	directory := app.FileBackendLocal.GetStoreDirectory(file.Domain)
+	size, err := app.FileBackendLocal.WriteFile(src, directory, file.GetStoreName())
 	if err != nil {
 		return err
 	}
@@ -19,10 +20,14 @@ func (app *App) AddUploadJobFile(src io.ReadCloser, file *model.JobUploadFile) *
 
 	res := <-app.Store.UploadJob().Save(file)
 	if res.Err != nil {
-		if err = app.FileCacheBackend.RemoveFile(path); err != nil {
+		if err = app.FileBackendLocal.RemoveFile(directory, file.GetStoreName()); err != nil {
 			mlog.Error(fmt.Sprintf("Failed to remove cache file %v", err))
 		}
 	}
 
 	return res.Err
+}
+
+func (app *App) RemoveUploadJob(id int) *model.AppError {
+	return nil
 }

@@ -41,7 +41,7 @@ func LoadConfig(fileName string) (*model.Config, string, map[string]interface{},
 			MaxIdleConns:                &maxIdleConns,
 			MaxOpenConns:                &maxOpenConns,
 			ConnMaxLifetimeMilliseconds: &connMaxLifetimeMilliseconds,
-			Trace: true,
+			Trace: false,
 		},
 	}, "", envConfig, nil
 }

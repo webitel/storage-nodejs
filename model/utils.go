@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/base32"
 	"encoding/json"
+	"fmt"
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
 	"github.com/pborman/uuid"
 	"io"
@@ -13,13 +14,24 @@ type StringInterface map[string]interface{}
 type StringMap map[string]string
 type StringArray []string
 
-func (s *StringInterface) Scan(src interface{}) error  {
+func (s *StringInterface) Scan(src interface{}) error {
 	if b, ok := src.([]byte); ok {
 		return json.Unmarshal(b, &s)
 	}
 	return nil
 }
 
+func (s *StringInterface) ToJson() string {
+	b, _ := json.Marshal(s)
+	return string(b)
+}
+
+func (s StringInterface) GetString(name string) string {
+	if v, ok := s[name]; ok {
+		return fmt.Sprintf("%s", v)
+	}
+	return ""
+}
 
 type AppError struct {
 	Id            string `json:"id"`

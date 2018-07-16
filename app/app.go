@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
+	"github.com/webitel/storage/einterfaces"
+	"github.com/webitel/storage/jobs"
 	"github.com/webitel/storage/mlog"
 	"github.com/webitel/storage/model"
 	"github.com/webitel/storage/store"
@@ -17,13 +19,18 @@ type App struct {
 	id               *string
 	Srv              *Server
 	InternalSrv      *Server
-	FileCacheBackend utils.FileBackend
-	Store            store.Store
-	Log              *mlog.Logger
-	configFile       string
-	config           atomic.Value
-	sessionCache     *utils.Cache
-	newStore         func() store.Store
+	FileBackendLocal utils.FileBackend
+	fileBackendCache *utils.Cache
+
+	Store        store.Store
+	Log          *mlog.Logger
+	configFile   string
+	config       atomic.Value
+	sessionCache *utils.Cache
+	newStore     func() store.Store
+	Jobs         *jobs.JobServer
+
+	Uploader einterfaces.UploadRecordingsFilesInterface
 }
 
 func New(options ...string) (outApp *App, outErr error) {
@@ -38,7 +45,8 @@ func New(options ...string) (outApp *App, outErr error) {
 		InternalSrv: &Server{
 			RootRouter: internalRootRouter,
 		},
-		sessionCache: utils.NewLru(model.SESSION_CACHE_SIZE),
+		sessionCache:     utils.NewLru(model.SESSION_CACHE_SIZE),
+		fileBackendCache: utils.NewLru(model.ACTIVE_BACKEND_CACHE_SIZE),
 	}
 	app.Srv.Router = app.Srv.RootRouter.PathPrefix("/").Subrouter()
 	app.InternalSrv.Router = app.InternalSrv.RootRouter.PathPrefix("/").Subrouter()
@@ -73,7 +81,11 @@ func New(options ...string) (outApp *App, outErr error) {
 	}
 
 	var appErr *model.AppError
-	if app.FileCacheBackend, appErr = utils.NewFileBackend("local"); appErr != nil {
+	if app.FileBackendLocal, appErr = utils.NewBackendStore(&model.FileBackendProfile{
+		Name:       "Internal",
+		TypeId:     model.LOCAL_BACKEND,
+		Properties: model.StringInterface{"directory": model.CACHE_DIR, "path_pattern": ""},
+	}); appErr != nil {
 		return nil, appErr
 	}
 
@@ -91,6 +103,9 @@ func New(options ...string) (outApp *App, outErr error) {
 	app.Srv.Router.NotFoundHandler = http.HandlerFunc(app.Handle404)
 	app.InternalSrv.Router.NotFoundHandler = http.HandlerFunc(app.Handle404)
 
+	app.initJobs()
+
+	app.initUploader()
 	return app, outErr
 }
 
@@ -106,4 +121,20 @@ func (a *App) Handle404(w http.ResponseWriter, r *http.Request) {
 
 func (a *App) GetInstanceId() string {
 	return *a.id
+}
+
+func (a *App) initJobs() {
+	a.Jobs = jobs.NewJobServer(a, a.Store)
+}
+
+func (a *App) initUploader() {
+	if uploadRecordingsFilesInterface != nil {
+		a.Uploader = uploadRecordingsFilesInterface(a)
+	}
+}
+
+var uploadRecordingsFilesInterface func(*App) einterfaces.UploadRecordingsFilesInterface
+
+func RegisterUploader(f func(*App) einterfaces.UploadRecordingsFilesInterface) {
+	uploadRecordingsFilesInterface = f
 }

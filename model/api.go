@@ -14,6 +14,6 @@ const (
 	HEADER_REQUESTED_WITH     = "X-Requested-With"
 	HEADER_REQUESTED_WITH_XML = "XMLHttpRequest"
 
-	STATUS                    = "status"
-	STATUS_OK                 = "OK"
+	STATUS    = "status"
+	STATUS_OK = "OK"
 )

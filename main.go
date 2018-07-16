@@ -6,6 +6,8 @@ import (
 	"github.com/webitel/storage/app"
 	"github.com/webitel/storage/mlog"
 
+	_ "github.com/webitel/storage/uploader"
+
 	"github.com/webitel/storage/apis/private"
 	"net/http"
 	_ "net/http/pprof"
@@ -36,11 +38,22 @@ func main() {
 	}
 	private.Init(a, a.InternalSrv.Router)
 
+	a.Jobs.StartSchedulers()
+	a.Uploader.Start()
+
 	setDebug()
 	// wait for kill signal before attempting to gracefully shutdown
 	// the running service
 	signal.Notify(interruptChan, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 	<-interruptChan
+
+	// Cleanup anything that isn't handled by a defer statement
+	mlog.Info("Stopping job server")
+
+	a.Jobs.StopSchedulers()
+	mlog.Info("Stopping uploader server")
+	a.Uploader.Stop()
+
 }
 
 func setDebug() {

@@ -20,6 +20,10 @@
     "translation": "Encountered an error creating the directory for the new file"
   },
   {
+    "id": "api.file.reader.reading_local.app_error",
+    "translation": "Encountered an error opening a reader from local server file storage"
+  },
+  {
     "id": "utils.file.locally.writing.app_error",
     "translation": "Encountered an error writing to local server storage"
   },
@@ -78,6 +82,10 @@
   {
     "id": "model.file_backend_profile.name.app_error",
     "translation": "Name must be 1 or fewer characters"
+  },
+  {
+    "id": "model.file_backend_profile.type_id.app_error",
+    "translation": "Type must be 1 or 2 or 3"
   },
   {
     "id": "model.file_backend_profile.domain.app_error",

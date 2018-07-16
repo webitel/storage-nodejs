@@ -34,6 +34,7 @@ type SqlSupplierOldStores struct {
 	session            store.SessionStore
 	uploadJob          store.UploadJobStore
 	fileBackendProfile store.FileBackendProfileStore
+	recording          store.RecordingStore
 }
 
 type SqlSupplier struct {
@@ -60,6 +61,7 @@ func NewSqlSupplier(settings model.SqlSettings) *SqlSupplier {
 	supplier.oldStores.session = NewSqlSessionStore(supplier)
 	supplier.oldStores.uploadJob = NewSqlUploadJobStore(supplier)
 	supplier.oldStores.fileBackendProfile = NewSqlFileBackendProfileStore(supplier)
+	supplier.oldStores.recording = NewSqlRecordingStore(supplier)
 
 	err := supplier.GetMaster().CreateTablesIfNotExists()
 	if err != nil {
@@ -71,6 +73,7 @@ func NewSqlSupplier(settings model.SqlSettings) *SqlSupplier {
 	supplier.oldStores.session.(*SqlSessionStore).CreateIndexesIfNotExists()
 	supplier.oldStores.uploadJob.(*SqlUploadJobStore).CreateIndexesIfNotExists()
 	supplier.oldStores.fileBackendProfile.(*SqlFileBackendProfileStore).CreateIndexesIfNotExists()
+	supplier.oldStores.recording.(*SqlRecordingStore).CreateIndexesIfNotExists()
 
 	return supplier
 }
@@ -156,35 +159,6 @@ func (s *SqlSupplier) initConnection() {
 	}
 }
 
-func (ss *SqlSupplier) GetMaster() *gorp.DbMap {
-	return ss.master
-}
-
-func (ss *SqlSupplier) GetReplica() *gorp.DbMap {
-	if len(ss.settings.DataSourceReplicas) == 0 || ss.lockedToMaster {
-		return ss.GetMaster()
-	}
-
-	rrNum := atomic.AddInt64(&ss.rrCounter, 1) % int64(len(ss.replicas))
-	return ss.replicas[rrNum]
-}
-
-func (ss *SqlSupplier) DriverName() string {
-	return *ss.settings.DriverName
-}
-
-func (ss *SqlSupplier) Session() store.SessionStore {
-	return ss.oldStores.session
-}
-
-func (ss *SqlSupplier) UploadJob() store.UploadJobStore {
-	return ss.oldStores.uploadJob
-}
-
-func (ss *SqlSupplier) FileBackendProfile() store.FileBackendProfileStore {
-	return ss.oldStores.fileBackendProfile
-}
-
 type typeConverter struct{}
 
 func (me typeConverter) ToDb(val interface{}) (interface{}, error) {
@@ -252,4 +226,37 @@ func (me typeConverter) FromDb(target interface{}) (gorp.CustomScanner, bool) {
 	}
 
 	return gorp.CustomScanner{}, false
+}
+
+func (ss *SqlSupplier) GetMaster() *gorp.DbMap {
+	return ss.master
+}
+
+func (ss *SqlSupplier) GetReplica() *gorp.DbMap {
+	if len(ss.settings.DataSourceReplicas) == 0 || ss.lockedToMaster {
+		return ss.GetMaster()
+	}
+
+	rrNum := atomic.AddInt64(&ss.rrCounter, 1) % int64(len(ss.replicas))
+	return ss.replicas[rrNum]
+}
+
+func (ss *SqlSupplier) DriverName() string {
+	return *ss.settings.DriverName
+}
+
+func (ss *SqlSupplier) Session() store.SessionStore {
+	return ss.oldStores.session
+}
+
+func (ss *SqlSupplier) UploadJob() store.UploadJobStore {
+	return ss.oldStores.uploadJob
+}
+
+func (ss *SqlSupplier) FileBackendProfile() store.FileBackendProfileStore {
+	return ss.oldStores.fileBackendProfile
+}
+
+func (ss *SqlSupplier) Recording() store.RecordingStore {
+	return ss.oldStores.recording
 }
