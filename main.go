@@ -55,6 +55,8 @@ func main() {
 	a.Jobs.StopSchedulers()
 	a.Jobs.StopWorkers()
 
+	a.Broker.Close()
+
 	mlog.Info("Stopping uploader server")
 	a.Uploader.Stop()
 

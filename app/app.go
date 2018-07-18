@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
+	"github.com/webitel/storage/broker"
+	"github.com/webitel/storage/broker/amqp"
 	"github.com/webitel/storage/einterfaces"
 	"github.com/webitel/storage/jobs"
 	"github.com/webitel/storage/mlog"
@@ -22,7 +24,9 @@ type App struct {
 	FileBackendLocal utils.FileBackend
 	fileBackendCache *utils.Cache
 
-	Store        store.Store
+	Store  store.Store
+	Broker broker.Broker
+
 	Log          *mlog.Logger
 	configFile   string
 	config       atomic.Value
@@ -90,6 +94,8 @@ func New(options ...string) (outApp *App, outErr error) {
 	}
 
 	mlog.Info("Server is initializing...")
+
+	app.Broker = broker.NewLayeredBroker(amqp.NewBrokerSupplier(app.Config().BrokerSettings))
 
 	if app.newStore == nil {
 		app.newStore = func() store.Store {

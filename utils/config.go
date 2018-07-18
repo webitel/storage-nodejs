@@ -43,6 +43,9 @@ func LoadConfig(fileName string) (*model.Config, string, map[string]interface{},
 			ConnMaxLifetimeMilliseconds: &connMaxLifetimeMilliseconds,
 			Trace: false,
 		},
+		BrokerSettings: model.BrokerSettings{
+			ConnectionString: model.NewString("amqp://webitel:secret@10.10.10.200:5672?heartbeat=0"),
+		},
 	}, "", envConfig, nil
 }
 

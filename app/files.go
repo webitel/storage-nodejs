@@ -1,33 +1,21 @@
 package app
 
 import (
-	"fmt"
-	"github.com/webitel/storage/mlog"
 	"github.com/webitel/storage/model"
-	"io"
 )
 
-func (app *App) AddUploadJobFile(src io.ReadCloser, file *model.JobUploadFile) *model.AppError {
-
-	directory := app.FileBackendLocal.GetStoreDirectory(file.Domain)
-	size, err := app.FileBackendLocal.WriteFile(src, directory, file.GetStoreName())
-	if err != nil {
-		return err
+func (app *App) ListFiles(domain string, page, perPage int) ([]*model.File, *model.AppError) {
+	if result := <-app.Store.File().List(domain, page*perPage, perPage); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.([]*model.File), nil
 	}
-
-	file.Size = int(size)
-	file.Instance = app.GetInstanceId()
-
-	res := <-app.Store.UploadJob().Save(file)
-	if res.Err != nil {
-		if err = app.FileBackendLocal.RemoveFile(directory, file.GetStoreName()); err != nil {
-			mlog.Error(fmt.Sprintf("Failed to remove cache file %v", err))
-		}
-	}
-
-	return res.Err
 }
 
-func (app *App) RemoveUploadJob(id int) *model.AppError {
-	return nil
+func (app *App) GetFile(domain, uuid string) (*model.FileWithProfile, *model.AppError) {
+	if result := <-app.Store.File().Get(domain, uuid); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.(*model.FileWithProfile), nil
+	}
 }

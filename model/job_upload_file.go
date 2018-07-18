@@ -36,3 +36,7 @@ func (self *JobUploadFile) PreSave() {
 func (self *JobUploadFile) GetStoreName() string {
 	return fmt.Sprintf("%s_%s", self.Uuid, self.Name)
 }
+
+func (self *JobUploadFile) GetPropertyString(name string) string {
+	return ""
+}

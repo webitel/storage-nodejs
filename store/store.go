@@ -39,7 +39,7 @@ type Store interface {
 	Session() SessionStore
 	UploadJob() UploadJobStore
 	FileBackendProfile() FileBackendProfileStore
-	Recording() RecordingStore
+	File() FileStore
 	Job() JobStore
 }
 
@@ -58,12 +58,14 @@ type FileBackendProfileStore interface {
 	Save(profile *model.FileBackendProfile) StoreChannel
 	Get(id int, domain string) StoreChannel
 	GetById(id int) StoreChannel
-	GetList(domain string, limit, offset int) StoreChannel
+	List(domain string, limit, offset int) StoreChannel
 	Delete(id int, domain string) StoreChannel
 	Update(profile *model.FileBackendProfile) StoreChannel
 }
 
-type RecordingStore interface {
+type FileStore interface {
+	List(domain string, offset, limit int) StoreChannel
+	Get(domain, uuid string) StoreChannel
 	MoveFromJob(jobId, profileId int, properties model.StringInterface) StoreChannel
 }
 

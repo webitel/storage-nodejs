@@ -92,7 +92,7 @@ func (s SqlFileBackendProfileStore) GetById(id int) store.StoreChannel {
 	})
 }
 
-func (s SqlFileBackendProfileStore) GetList(domain string, offset, limit int) store.StoreChannel {
+func (s SqlFileBackendProfileStore) List(domain string, offset, limit int) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var profiles []*model.FileBackendProfile
 
@@ -101,7 +101,7 @@ func (s SqlFileBackendProfileStore) GetList(domain string, offset, limit int) st
 			LIMIT :Limit OFFSET :Offset`
 
 		if _, err := s.GetReplica().Select(&profiles, query, map[string]interface{}{"Domain": domain, "Offset": offset, "Limit": limit}); err != nil {
-			result.Err = model.NewAppError("SqlBackendProfileStore.GetList", "store.sql_file_backend_profile.get_all.finding.app_error", nil, err.Error(), http.StatusInternalServerError)
+			result.Err = model.NewAppError("SqlBackendProfileStore.List", "store.sql_file_backend_profile.get_all.finding.app_error", nil, err.Error(), http.StatusInternalServerError)
 		} else {
 			result.Data = profiles
 		}

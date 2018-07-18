@@ -35,7 +35,7 @@ func (app *App) GetFileBackendProfileById(id int) (*model.FileBackendProfile, *m
 }
 
 func (app *App) ListFileBackendProfiles(domain string, page, perPage int) ([]*model.FileBackendProfile, *model.AppError) {
-	if result := <-app.Store.FileBackendProfile().GetList(domain, page*perPage, perPage); result.Err != nil {
+	if result := <-app.Store.FileBackendProfile().List(domain, page*perPage, perPage); result.Err != nil {
 		return nil, result.Err
 	} else {
 		return result.Data.([]*model.FileBackendProfile), nil

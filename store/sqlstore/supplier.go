@@ -34,7 +34,7 @@ type SqlSupplierOldStores struct {
 	session            store.SessionStore
 	uploadJob          store.UploadJobStore
 	fileBackendProfile store.FileBackendProfileStore
-	recording          store.RecordingStore
+	file               store.FileStore
 	job                store.JobStore
 }
 
@@ -62,7 +62,7 @@ func NewSqlSupplier(settings model.SqlSettings) *SqlSupplier {
 	supplier.oldStores.session = NewSqlSessionStore(supplier)
 	supplier.oldStores.uploadJob = NewSqlUploadJobStore(supplier)
 	supplier.oldStores.fileBackendProfile = NewSqlFileBackendProfileStore(supplier)
-	supplier.oldStores.recording = NewSqlRecordingStore(supplier)
+	supplier.oldStores.file = NewSqlFileStore(supplier)
 	supplier.oldStores.job = NewSqlJobStore(supplier)
 
 	err := supplier.GetMaster().CreateTablesIfNotExists()
@@ -75,7 +75,7 @@ func NewSqlSupplier(settings model.SqlSettings) *SqlSupplier {
 	supplier.oldStores.session.(*SqlSessionStore).CreateIndexesIfNotExists()
 	supplier.oldStores.uploadJob.(*SqlUploadJobStore).CreateIndexesIfNotExists()
 	supplier.oldStores.fileBackendProfile.(*SqlFileBackendProfileStore).CreateIndexesIfNotExists()
-	supplier.oldStores.recording.(*SqlRecordingStore).CreateIndexesIfNotExists()
+	supplier.oldStores.file.(*SqlFileStore).CreateIndexesIfNotExists()
 
 	return supplier
 }
@@ -259,8 +259,8 @@ func (ss *SqlSupplier) FileBackendProfile() store.FileBackendProfileStore {
 	return ss.oldStores.fileBackendProfile
 }
 
-func (ss *SqlSupplier) Recording() store.RecordingStore {
-	return ss.oldStores.recording
+func (ss *SqlSupplier) File() store.FileStore {
+	return ss.oldStores.file
 }
 
 func (ss *SqlSupplier) Job() store.JobStore {

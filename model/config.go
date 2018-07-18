@@ -48,8 +48,13 @@ type SqlSettings struct {
 	QueryTimeout                *int
 }
 
+type BrokerSettings struct {
+	ConnectionString *string
+}
+
 type Config struct {
 	LocalizationSettings LocalizationSettings
 	ServiceSettings      ServiceSettings
 	SqlSettings          SqlSettings
+	BrokerSettings       BrokerSettings
 }

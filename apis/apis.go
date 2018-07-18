@@ -13,6 +13,7 @@ type RoutesPublic struct {
 	ApiRoot *mux.Router // 'api/v2'
 
 	BackendProfile *mux.Router // '/backend_profiles'
+	Files          *mux.Router // '/files'
 }
 
 type API struct {
@@ -28,8 +29,10 @@ func Init(a *app.App, root *mux.Router) *API {
 	api.PublicRoutes.Root = root
 	api.PublicRoutes.ApiRoot = root.PathPrefix(model.API_URL_SUFFIX).Subrouter()
 	api.PublicRoutes.BackendProfile = api.PublicRoutes.ApiRoot.PathPrefix("/backend_profiles").Subrouter()
+	api.PublicRoutes.Files = api.PublicRoutes.ApiRoot.PathPrefix("/files").Subrouter()
 
 	api.InitBackendProfile()
+	api.InitFiles()
 	return api
 }
 

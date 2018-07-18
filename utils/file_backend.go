@@ -19,9 +19,14 @@ func (b *BaseFileBackend) GetSyncTime() int64 {
 	return b.syncTime
 }
 
+type File interface {
+	GetStoreName() string
+	GetPropertyString(name string) string
+}
+
 type FileBackend interface {
 	TestConnection() *model.AppError
-	Reader(path string) (io.ReadCloser, *model.AppError)
+	Reader(file File, offset int64) (io.ReadCloser, *model.AppError)
 	WriteFile(fr io.Reader, directory, name string) (int64, *model.AppError)
 	RemoveFile(directory, name string) *model.AppError
 	GetStoreDirectory(domain string) string

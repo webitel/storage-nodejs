@@ -8,7 +8,8 @@ import (
 )
 
 const (
-	JOB_TYPE_DATA_RETENTION = "data_retention"
+	JOB_TYPE_DATA_RETENTION    = "data_retention"
+	JOB_TYPE_DELETE_RECORDINGS = "delete_recordings"
 
 	JOB_STATUS_PENDING          = "pending"
 	JOB_STATUS_IN_PROGRESS      = "in_progress"
@@ -41,6 +42,7 @@ func (j *Job) IsValid() *AppError {
 
 	switch j.Type {
 	case JOB_TYPE_DATA_RETENTION:
+	case JOB_TYPE_DELETE_RECORDINGS:
 	default:
 		return NewAppError("Job.IsValid", "model.job.is_valid.type.app_error", nil, "id="+j.Id, http.StatusBadRequest)
 	}
