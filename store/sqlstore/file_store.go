@@ -23,6 +23,10 @@ func NewSqlFileStore(sqlStore SqlStore) store.FileStore {
 		table.ColMap("Domain").SetNotNull(true).SetMaxSize(100)
 		table.ColMap("MimeType").SetNotNull(false).SetMaxSize(20)
 		table.ColMap("Properties").SetNotNull(true)
+
+		table = db.AddTableWithName(model.RemoveFile{}, "remove_file_jobs").SetKeys(true, "id")
+		table.ColMap("FileId").SetNotNull(true)
+		table.ColMap("CreatedBy").SetMaxSize(50)
 	}
 
 	return us
@@ -50,7 +54,7 @@ from del`, jobId, profileId, properties.ToJson())
 	})
 }
 
-func (self *SqlFileStore) List(domain string, offset, limit int) store.StoreChannel {
+func (self *SqlFileStore) GetAllPageByDomain(domain string, offset, limit int) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var recordings []*model.File
 
@@ -68,16 +72,17 @@ func (self *SqlFileStore) List(domain string, offset, limit int) store.StoreChan
 
 func (self *SqlFileStore) Get(domain, uuid string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		var file model.FileWithProfile
-		err := self.GetReplica().SelectOne(&file, `SELECT files.*, p.updated_at as profile_updated_at FROM files JOIN file_backend_profiles p on p.id = files.profile_id WHERE uuid = :Uuid AND files.domain = :Domain`,
+		var files []*model.FileWithProfile
+		_, err := self.GetReplica().Select(&files, `SELECT files.*, p.updated_at as profile_updated_at FROM files JOIN file_backend_profiles p on p.id = files.profile_id WHERE uuid = :Uuid AND files.domain = :Domain`,
 			map[string]interface{}{"Domain": domain, "Uuid": uuid})
+
 		if err != nil {
 			result.Err = model.NewAppError("SqlFileStore.Get", "store.sql_file.get.app_error", nil, "uuid="+uuid+" "+err.Error(), http.StatusInternalServerError)
 			if err == sql.ErrNoRows {
 				result.Err.StatusCode = http.StatusNotFound
 			}
 		} else {
-			result.Data = &file
+			result.Data = files
 		}
 	})
 }

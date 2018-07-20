@@ -11,7 +11,7 @@ type PostgresJSONDialect struct {
 }
 
 func (d PostgresJSONDialect) ToSqlType(val reflect.Type, maxsize int, isAutoIncr bool) string {
-	if val == reflect.TypeOf(model.StringInterface{}) {
+	if val == reflect.TypeOf((*model.JSON)(nil)) {
 		return "JSONB"
 	}
 	return d.PostgresDialect.ToSqlType(val, maxsize, isAutoIncr)

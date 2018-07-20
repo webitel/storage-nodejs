@@ -92,7 +92,7 @@ func (s SqlFileBackendProfileStore) GetById(id int) store.StoreChannel {
 	})
 }
 
-func (s SqlFileBackendProfileStore) List(domain string, offset, limit int) store.StoreChannel {
+func (s SqlFileBackendProfileStore) GetAllPageByDomain(domain string, offset, limit int) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var profiles []*model.FileBackendProfile
 

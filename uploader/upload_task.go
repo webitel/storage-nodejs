@@ -16,6 +16,8 @@ func (u *UploadTask) Name() string {
 	return u.job.Uuid
 }
 
+//TODO added max count attempts ?
+
 func (u *UploadTask) Execute() {
 	store, err := u.app.GetFileBackendStore(u.job.ProfileId, u.job.ProfileUpdatedAt)
 
@@ -49,6 +51,7 @@ func (u *UploadTask) Execute() {
 	result := <-u.app.Store.File().MoveFromJob(int(u.job.Id), u.job.ProfileId, model.StringInterface{"directory": directory})
 	if result.Err != nil {
 		mlog.Critical(result.Err.Error())
+		u.app.Store.UploadJob().SetStateError(int(u.job.Id), result.Err.Error())
 		return
 	}
 

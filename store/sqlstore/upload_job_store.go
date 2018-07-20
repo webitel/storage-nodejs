@@ -4,6 +4,7 @@ import (
 	"github.com/webitel/storage/model"
 	"github.com/webitel/storage/store"
 	"net/http"
+	"strings"
 )
 
 type SqlUploadJobStore struct {
@@ -43,7 +44,7 @@ func (self *SqlUploadJobStore) Save(job *model.JobUploadFile) store.StoreChannel
 	})
 }
 
-func (self *SqlUploadJobStore) List(limit int, instance string) store.StoreChannel {
+func (self *SqlUploadJobStore) GetAllPageByInstance(limit int, instance string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var jobs []*model.JobUploadFile
 
@@ -111,13 +112,15 @@ WHERE
   t.id = lck.id
 returning t.id, t.name, t.uuid, t.domain, t.mime_type, t.size, t.email_msg, t.email_sub, profile.id, profile.updated_at`
 
+var sqlUpdateWithProfileFmt = strings.Replace(sqlUpdateWithProfile, "\n", " ", -1)
+
 //endregion
 
 func (self *SqlUploadJobStore) UpdateWithProfile(limit int, instance string, betweenAttemptSec int64) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var jobs = make([]*model.JobUploadFileWithProfile, 0, limit)
 
-		rows, err := self.GetReplica().Query(sqlUpdateWithProfile, limit, instance, model.ROOT_FILE_BACKEND_DOMAIN, model.GetMillis()-betweenAttemptSec)
+		rows, err := self.GetReplica().Query(sqlUpdateWithProfileFmt, limit, instance, model.ROOT_FILE_BACKEND_DOMAIN, model.GetMillis()-betweenAttemptSec)
 		if err != nil {
 			result.Err = model.NewAppError("SqlUploadJobStore.UpdateWithProfile", "store.sql_upload_job.update_with_profile.app_error", nil, err.Error(), http.StatusInternalServerError)
 			return

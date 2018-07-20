@@ -6,12 +6,15 @@ import (
 
 type LayeredStoreDatabaseLayer interface {
 	LayeredStoreSupplier
-	Store
+	StoreData
 }
 
 type LayeredStore struct {
-	TmpContext     context.Context
-	DatabaseLayer  LayeredStoreDatabaseLayer
+	TmpContext    context.Context
+	DatabaseLayer LayeredStoreDatabaseLayer
+	ElasticLayer  *ElasticSupplier
+
+	CdrSupplier    *CdrSupplier
 	LayerChainHead LayeredStoreSupplier
 }
 
@@ -19,6 +22,12 @@ func NewLayeredStore(db LayeredStoreDatabaseLayer) Store {
 	store := &LayeredStore{
 		TmpContext:    context.TODO(),
 		DatabaseLayer: db,
+		ElasticLayer:  NewElasticSupplier(),
+	}
+
+	store.CdrSupplier = &CdrSupplier{
+		DatabaseLayer: store.DatabaseLayer,
+		ElasticLayer:  store.ElasticLayer,
 	}
 
 	return store
@@ -55,4 +64,12 @@ func (s *LayeredStore) File() FileStore {
 
 func (s *LayeredStore) Job() JobStore {
 	return s.DatabaseLayer.Job()
+}
+
+func (s *LayeredStore) MediaFile() MediaFileStore {
+	return s.DatabaseLayer.MediaFile()
+}
+
+func (s *LayeredStore) Cdr() CdrStoreData {
+	return s.DatabaseLayer.Cdr()
 }

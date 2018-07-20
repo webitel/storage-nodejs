@@ -53,8 +53,15 @@ type BrokerSettings struct {
 }
 
 type Config struct {
-	LocalizationSettings LocalizationSettings
-	ServiceSettings      ServiceSettings
-	SqlSettings          SqlSettings
-	BrokerSettings       BrokerSettings
+	LocalizationSettings   LocalizationSettings
+	ServiceSettings        ServiceSettings
+	SqlSettings            SqlSettings
+	BrokerSettings         BrokerSettings
+	MediaFileStoreSettings MediaFileStoreSettings
+}
+
+type MediaFileStoreSettings struct {
+	MaxMb       *int
+	Directory   *string
+	PathPattern *string
 }

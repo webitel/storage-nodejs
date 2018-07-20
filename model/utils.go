@@ -13,13 +13,7 @@ import (
 type StringInterface map[string]interface{}
 type StringMap map[string]string
 type StringArray []string
-
-func (s *StringInterface) Scan(src interface{}) error {
-	if b, ok := src.([]byte); ok {
-		return json.Unmarshal(b, &s)
-	}
-	return nil
-}
+type JSON string
 
 func (s *StringInterface) ToJson() string {
 	b, _ := json.Marshal(s)

@@ -1,6 +1,7 @@
 package apis
 
 import (
+	"fmt"
 	"github.com/webitel/storage/model"
 	"io"
 	"net/http"
@@ -36,11 +37,17 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	file, err := c.App.GetFile(c.Params.Domain, c.Params.Id)
+	files, err := c.App.GetFile(c.Params.Domain, c.Params.Id)
 	if err != nil {
 		c.Err = err
 		return
 	}
+
+	if len(files) > 1 {
+		fmt.Println(files)
+	}
+
+	file := files[0]
 
 	store, err := c.App.GetFileBackendStore(file.ProfileId, file.ProfileUpdatedAt)
 	if err != nil {
@@ -53,6 +60,7 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+
 	var offset int64 = 0
 	sendSize := file.Size
 	code := http.StatusOK
@@ -63,9 +71,12 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		offset = ranges[0].Start
 		sendSize = ranges[0].Length
 		w.Header().Set("Content-Range", ranges[0].ContentRange(file.Size))
+	default:
+		//TODO
 	}
 
 	w.Header().Set("Accept-Ranges", "bytes")
+	w.Header().Set("Cache-Control", "no-cache, must-revalidate, max-age=0")
 	w.Header().Set("Content-Type", file.MimeType)
 
 	if w.Header().Get("Content-Encoding") == "" {

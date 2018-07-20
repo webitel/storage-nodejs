@@ -14,7 +14,30 @@ type File struct {
 	Domain     string          `db:"domain" json:"domain"`
 	MimeType   string          `db:"mime_type" json:"mime_type"`
 	Properties StringInterface `db:"properties" json:"properties"`
-	CreatedAt  int             `db:"created_at" json:"created_at"`
+	CreatedAt  int64           `db:"created_at" json:"created_at"`
+}
+
+type RemoveFile struct {
+	Id        int    `db:"id"`
+	FileId    int    `db:"file_id"`
+	CreatedAt int64  `db:"created_at"`
+	CreatedBy string `db:"created_by"`
+}
+
+func (self *RemoveFile) PreSave() {
+	self.CreatedAt = GetMillis()
+}
+
+type RemoveFileJob struct {
+	File
+	RemoveFile
+}
+
+type MediaFile struct {
+	File
+	CreatedBy string `db:"created_by"`
+	UpdatedBy string `db:"updated_by"`
+	UpdatedAt int64  `db:"updated_at"`
 }
 
 type FileWithProfile struct {

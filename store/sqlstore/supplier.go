@@ -35,7 +35,9 @@ type SqlSupplierOldStores struct {
 	uploadJob          store.UploadJobStore
 	fileBackendProfile store.FileBackendProfileStore
 	file               store.FileStore
+	mediaFile          store.MediaFileStore
 	job                store.JobStore
+	cdrData            store.CdrStoreData
 }
 
 type SqlSupplier struct {
@@ -63,7 +65,9 @@ func NewSqlSupplier(settings model.SqlSettings) *SqlSupplier {
 	supplier.oldStores.uploadJob = NewSqlUploadJobStore(supplier)
 	supplier.oldStores.fileBackendProfile = NewSqlFileBackendProfileStore(supplier)
 	supplier.oldStores.file = NewSqlFileStore(supplier)
+	supplier.oldStores.mediaFile = NewSqlMediaFileStore(supplier)
 	supplier.oldStores.job = NewSqlJobStore(supplier)
+	supplier.oldStores.cdrData = NewSqlCdrStore(supplier)
 
 	err := supplier.GetMaster().CreateTablesIfNotExists()
 	if err != nil {
@@ -185,6 +189,29 @@ func (me typeConverter) ToDb(val interface{}) (interface{}, error) {
 
 func (me typeConverter) FromDb(target interface{}) (gorp.CustomScanner, bool) {
 	switch target.(type) {
+
+	case *model.StringInterface:
+		binder := func(holder, target interface{}) error {
+			s, ok := holder.(*model.JSON)
+			if !ok {
+				return errors.New(utils.T("store.sql.convert_string_interface"))
+			}
+			b := []byte(*s)
+			return json.Unmarshal(b, target)
+		}
+		return gorp.CustomScanner{Holder: new(model.JSON), Target: target, Binder: binder}, true
+
+	case *[]model.StringInterface:
+		binder := func(holder, target interface{}) error {
+			s, ok := holder.(*model.JSON)
+			if !ok {
+				return errors.New(utils.T("store.sql.convert_string_interface_array"))
+			}
+			b := []byte(*s)
+			return json.Unmarshal(b, target)
+		}
+		return gorp.CustomScanner{Holder: new(model.JSON), Target: target, Binder: binder}, true
+
 	case *model.StringMap:
 		binder := func(holder, target interface{}) error {
 			s, ok := holder.(*string)
@@ -265,4 +292,12 @@ func (ss *SqlSupplier) File() store.FileStore {
 
 func (ss *SqlSupplier) Job() store.JobStore {
 	return ss.oldStores.job
+}
+
+func (ss *SqlSupplier) MediaFile() store.MediaFileStore {
+	return ss.oldStores.mediaFile
+}
+
+func (ss *SqlSupplier) Cdr() store.CdrStoreData {
+	return ss.oldStores.cdrData
 }

@@ -18,9 +18,11 @@ import (
 )
 
 type App struct {
-	id               *string
-	Srv              *Server
-	InternalSrv      *Server
+	id          *string
+	Srv         *Server
+	InternalSrv *Server
+
+	MediaFileStore   utils.FileBackend
 	FileBackendLocal utils.FileBackend
 	fileBackendCache *utils.Cache
 
@@ -87,6 +89,14 @@ func New(options ...string) (outApp *App, outErr error) {
 	var appErr *model.AppError
 	if app.FileBackendLocal, appErr = utils.NewBackendStore(&model.FileBackendProfile{
 		Name:       "Internal",
+		TypeId:     model.LOCAL_BACKEND,
+		Properties: model.StringInterface{"directory": model.CACHE_DIR, "path_pattern": ""},
+	}); appErr != nil {
+		return nil, appErr
+	}
+
+	if app.MediaFileStore, appErr = utils.NewBackendStore(&model.FileBackendProfile{
+		Name:       "Media store",
 		TypeId:     model.LOCAL_BACKEND,
 		Properties: model.StringInterface{"directory": model.CACHE_DIR, "path_pattern": ""},
 	}); appErr != nil {

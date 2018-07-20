@@ -142,5 +142,29 @@
   {
     "id": "store.sql_recordings.get_all.finding.app_error",
     "translation": "We couldn't get the recordings"
+  },
+  {
+    "id": "store.sql_file.move_from_job.app_error",
+    "translation": "We couldn't move job to file"
+  },
+  {
+    "id": "store.sql_file.get_all.finding.app_error",
+    "translation": "We couldn't get the files"
+  },
+  {
+    "id": "store.sql_file.get.app_error",
+    "translation": "We encountered an error finding the file"
+  },
+  {
+    "id": "store.sql_cdr.get_leg_a_data.finding.app_error",
+    "translation": "We couldn't get the CDR leg A"
+  },
+  {
+    "id": "store.sql_cdr.get_leg_b_data.finding.app_error",
+    "translation": "We couldn't get the CDR leg B"
+  },
+  {
+    "id": "store.sql_cdr.get_leg_call.finding.app_error",
+    "translation": "We couldn't get the CDR"
   }
 ]

@@ -36,11 +36,21 @@ func Must(sc StoreChannel) interface{} {
 }
 
 type Store interface {
+	StoreData
+	StoreSerchEngine
+}
+
+type StoreData interface {
 	Session() SessionStore
 	UploadJob() UploadJobStore
 	FileBackendProfile() FileBackendProfileStore
 	File() FileStore
 	Job() JobStore
+	MediaFile() MediaFileStore
+	Cdr() CdrStoreData
+}
+
+type StoreSerchEngine interface {
 }
 
 type SessionStore interface {
@@ -49,7 +59,7 @@ type SessionStore interface {
 
 type UploadJobStore interface {
 	Save(job *model.JobUploadFile) StoreChannel
-	List(limit int, instance string) StoreChannel
+	GetAllPageByInstance(limit int, instance string) StoreChannel
 	UpdateWithProfile(limit int, instance string, betweenAttemptSec int64) StoreChannel
 	SetStateError(id int, errMsg string) StoreChannel
 }
@@ -58,15 +68,18 @@ type FileBackendProfileStore interface {
 	Save(profile *model.FileBackendProfile) StoreChannel
 	Get(id int, domain string) StoreChannel
 	GetById(id int) StoreChannel
-	List(domain string, limit, offset int) StoreChannel
+	GetAllPageByDomain(domain string, limit, offset int) StoreChannel
 	Delete(id int, domain string) StoreChannel
 	Update(profile *model.FileBackendProfile) StoreChannel
 }
 
 type FileStore interface {
-	List(domain string, offset, limit int) StoreChannel
 	Get(domain, uuid string) StoreChannel
+	GetAllPageByDomain(domain string, offset, limit int) StoreChannel
 	MoveFromJob(jobId, profileId int, properties model.StringInterface) StoreChannel
+}
+
+type MediaFileStore interface {
 }
 
 type JobStore interface {
@@ -82,4 +95,19 @@ type JobStore interface {
 	GetNewestJobByStatusAndType(status string, jobType string) StoreChannel
 	GetCountByStatusAndType(status string, jobType string) StoreChannel
 	Delete(id string) StoreChannel
+}
+
+type CdrStoreData interface {
+	GetLegADataByUuid(uuid string) StoreChannel
+	GetLegBDataByUuid(uuid string) StoreChannel
+	GetByUuidCall(uuid string) StoreChannel
+}
+type CdrStoreSearchEngine interface {
+	Search() StoreChannel
+	Scroll() StoreChannel
+}
+
+type CdrStore interface {
+	CdrStoreData
+	CdrStoreSearchEngine
 }
