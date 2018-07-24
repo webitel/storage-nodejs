@@ -23,8 +23,8 @@ type FileBackendProfile struct {
 	Id         int64           `db:"id" json:"id"`
 	Name       string          `db:"name" json:"name"`
 	Domain     string          `db:"domain" json:"domain"`
-	Default    bool            `db:"default" json:"default"`
 	ExpireDay  int             `db:"expire_day" json:"expire_day"`
+	Priority   int             `db:"priority" json:"priority"`
 	Disabled   bool            `db:"disabled" json:"disabled"`
 	MaxSizeMb  int             `db:"max_size_mb" json:"max_size_mb"`
 	Properties StringInterface `db:"properties" json:"properties"`
@@ -35,8 +35,8 @@ type FileBackendProfile struct {
 
 type FileBackendProfilePath struct {
 	Name       *string          `json:"name"`
-	Default    *bool            `json:"default"`
 	ExpireDay  *int             `json:"expire_day"`
+	Priority   *int             `json:"priority"`
 	Disabled   *bool            `json:"disabled"`
 	MaxSizeMb  *int             `json:"max_size_mb"`
 	Properties *StringInterface `json:"properties"`
@@ -76,12 +76,12 @@ func (f *FileBackendProfile) Path(path *FileBackendProfilePath) {
 		f.ExpireDay = *path.ExpireDay
 	}
 
-	if path.Disabled != nil {
-		f.Disabled = *path.Disabled
+	if path.Priority != nil {
+		f.Priority = *path.Priority
 	}
 
-	if path.Default != nil {
-		f.Default = *path.Default
+	if path.Disabled != nil {
+		f.Disabled = *path.Disabled
 	}
 
 	if path.MaxSizeMb != nil {

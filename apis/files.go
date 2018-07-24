@@ -43,7 +43,7 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(files) > 1 {
+	if len(files) > 0 {
 		fmt.Println(files)
 	}
 

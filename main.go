@@ -6,6 +6,7 @@ import (
 	"github.com/webitel/storage/app"
 	"github.com/webitel/storage/mlog"
 
+	_ "github.com/webitel/storage/jobs/file_sync"
 	_ "github.com/webitel/storage/uploader"
 
 	"github.com/webitel/storage/apis/private"

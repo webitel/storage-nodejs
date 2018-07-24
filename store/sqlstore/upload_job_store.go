@@ -95,17 +95,20 @@ FROM lck
                     select
                       p1.domain,
                       p1.id,
-                      p1.updated_at
+                      p1.updated_at,
+					  p1.priority
                     from file_backend_profiles p1
-                    where p1.domain = lck.domain and p1.default is true and NOT p1.disabled is TRUE
+                    where p1.domain = lck.domain and NOT p1.disabled is TRUE
                     union all
                     select
                       lck.domain,
                       p2.id,
-                      p2.updated_at
+                      p2.updated_at,
+					  p2.priority
                     from file_backend_profiles p2
-                    where p2.domain = $3 and p2.default is true and NOT p2.disabled is TRUE
+                    where p2.domain = $3 and NOT p2.disabled is TRUE
                   ) as tmp
+			 order by tmp.priority asc
              FETCH FIRST 1 ROW ONLY
              ) profile ON profile.domain = lck.domain
 WHERE

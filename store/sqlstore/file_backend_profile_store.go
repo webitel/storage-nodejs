@@ -19,8 +19,8 @@ func NewSqlFileBackendProfileStore(sqlStore SqlStore) store.FileBackendProfileSt
 		table := db.AddTableWithName(model.FileBackendProfile{}, "file_backend_profiles").SetKeys(true, "id")
 		table.ColMap("Name").SetNotNull(true).SetMaxSize(100)
 		table.ColMap("Domain").SetNotNull(true).SetMaxSize(100)
-		table.ColMap("Default").SetNotNull(true)
 		table.ColMap("ExpireDay").SetNotNull(true)
+		table.ColMap("Priority")
 		table.ColMap("Disabled")
 		table.ColMap("MaxSizeMb").SetNotNull(true)
 		table.ColMap("Properties").SetNotNull(true)
@@ -80,7 +80,7 @@ func (s SqlFileBackendProfileStore) GetById(id int) store.StoreChannel {
 		profile := &model.FileBackendProfile{}
 
 		if err := s.GetReplica().SelectOne(profile, query, map[string]interface{}{"Id": id}); err != nil {
-			result.Err = model.NewAppError("SqlBackendProfileStore.Get", "store.sql_file_backend_profile.get.finding.app_error", nil,
+			result.Err = model.NewAppError("SqlBackendProfileStore.GetById", "store.sql_file_backend_profile.get.finding.app_error", nil,
 				fmt.Sprintf("id=%d, %s", id, err.Error()), http.StatusInternalServerError)
 
 			if err == sql.ErrNoRows {
@@ -131,7 +131,6 @@ func (s SqlFileBackendProfileStore) Update(profile *model.FileBackendProfile) st
 			file_backend_profiles
 		SET name = :Name
 			,type_id = :TypeId
-			,"default" = :Default
 			,expire_day = :ExpireDay
 			,disabled = :Disabled
 			,max_size_mb = :MaxSizeMb
@@ -143,7 +142,6 @@ func (s SqlFileBackendProfileStore) Update(profile *model.FileBackendProfile) st
 
 				"Name":       profile.Name,
 				"TypeId":     profile.TypeId,
-				"Default":    profile.Default,
 				"ExpireDay":  profile.ExpireDay,
 				"Disabled":   profile.Disabled,
 				"MaxSizeMb":  profile.MaxSizeMb,

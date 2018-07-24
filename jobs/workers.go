@@ -13,6 +13,7 @@ type Workers struct {
 	Watcher       *Watcher
 
 	DataRetention model.Worker
+	SyncFile      model.Worker
 }
 
 func (srv *JobServer) InitWorkers() *Workers {
@@ -21,6 +22,10 @@ func (srv *JobServer) InitWorkers() *Workers {
 	}
 	workers.Watcher = srv.MakeWatcher(workers, DEFAULT_WATCHER_POLLING_INTERVAL)
 
+	if syncFilesJobInterface := srv.SyncFilesJob; syncFilesJobInterface != nil {
+		workers.SyncFile = syncFilesJobInterface.MakeWorker()
+	}
+
 	return workers
 }
 
@@ -28,6 +33,11 @@ func (workers *Workers) Start() *Workers {
 	mlog.Info("Starting workers")
 
 	workers.startOnce.Do(func() {
+
+		if workers.SyncFile != nil {
+			go workers.SyncFile.Run()
+		}
+
 		go workers.Watcher.Start()
 	})
 
@@ -41,6 +51,10 @@ func (workers *Workers) handleConfigChange(oldConfig *model.Config, newConfig *m
 func (workers *Workers) Stop() *Workers {
 
 	workers.Watcher.Stop()
+
+	if workers.SyncFile != nil {
+		workers.SyncFile.Stop()
+	}
 
 	mlog.Info("Stopped workers")
 

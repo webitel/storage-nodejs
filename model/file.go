@@ -15,6 +15,7 @@ type File struct {
 	MimeType   string          `db:"mime_type" json:"mime_type"`
 	Properties StringInterface `db:"properties" json:"properties"`
 	CreatedAt  int64           `db:"created_at" json:"created_at"`
+	Removed    *bool           `db:"removed" json:"-"`
 }
 
 type RemoveFile struct {

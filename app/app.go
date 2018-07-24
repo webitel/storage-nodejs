@@ -6,7 +6,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/webitel/storage/broker"
 	"github.com/webitel/storage/broker/amqp"
-	"github.com/webitel/storage/einterfaces"
+	"github.com/webitel/storage/interfaces"
 	"github.com/webitel/storage/jobs"
 	"github.com/webitel/storage/mlog"
 	"github.com/webitel/storage/model"
@@ -36,7 +36,7 @@ type App struct {
 	newStore     func() store.Store
 	Jobs         *jobs.JobServer
 
-	Uploader einterfaces.UploadRecordingsFilesInterface
+	Uploader interfaces.UploadRecordingsFilesInterface
 }
 
 func New(options ...string) (outApp *App, outErr error) {
@@ -141,6 +141,10 @@ func (a *App) GetInstanceId() string {
 
 func (a *App) initJobs() {
 	a.Jobs = jobs.NewJobServer(a, a.Store)
+
+	if syncFilesJobInterface != nil {
+		a.Jobs.SyncFilesJob = syncFilesJobInterface(a)
+	}
 }
 
 func (a *App) initUploader() {
@@ -149,8 +153,14 @@ func (a *App) initUploader() {
 	}
 }
 
-var uploadRecordingsFilesInterface func(*App) einterfaces.UploadRecordingsFilesInterface
+var uploadRecordingsFilesInterface func(*App) interfaces.UploadRecordingsFilesInterface
 
-func RegisterUploader(f func(*App) einterfaces.UploadRecordingsFilesInterface) {
+func RegisterUploader(f func(*App) interfaces.UploadRecordingsFilesInterface) {
 	uploadRecordingsFilesInterface = f
+}
+
+var syncFilesJobInterface func(*App) interfaces.SyncFilesJobInterface
+
+func RegisterSyncFilesJobInterface(f func(*App) interfaces.SyncFilesJobInterface) {
+	syncFilesJobInterface = f
 }

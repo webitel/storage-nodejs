@@ -31,6 +31,10 @@ func (srv *JobServer) InitSchedulers() *Schedulers {
 		jobs:          srv,
 	}
 
+	if syncFilesJobInterface := srv.SyncFilesJob; syncFilesJobInterface != nil {
+		schedulers.schedulers = append(schedulers.schedulers, syncFilesJobInterface.MakeScheduler())
+	}
+
 	schedulers.nextRunTimes = make([]*time.Time, len(schedulers.schedulers))
 	return schedulers
 }

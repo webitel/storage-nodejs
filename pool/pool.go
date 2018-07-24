@@ -1,21 +1,21 @@
 package pool
 
 import (
-	"github.com/webitel/storage/einterfaces"
+	"github.com/webitel/storage/interfaces"
 	"sync"
 )
 
 type Pool struct {
 	mu    sync.Mutex
 	size  int
-	tasks chan einterfaces.TaskInterface
+	tasks chan interfaces.TaskInterface
 	kill  chan struct{}
 	wg    sync.WaitGroup
 }
 
-func NewPool(workers int, queueCount int) einterfaces.PoolInterface {
+func NewPool(workers int, queueCount int) interfaces.PoolInterface {
 	pool := &Pool{
-		tasks: make(chan einterfaces.TaskInterface, queueCount),
+		tasks: make(chan interfaces.TaskInterface, queueCount),
 		kill:  make(chan struct{}),
 	}
 	pool.Resize(workers)
@@ -59,6 +59,6 @@ func (p *Pool) Wait() {
 	p.wg.Wait()
 }
 
-func (p *Pool) Exec(task einterfaces.TaskInterface) {
+func (p *Pool) Exec(task interfaces.TaskInterface) {
 	p.tasks <- task
 }

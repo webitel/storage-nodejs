@@ -1,6 +1,7 @@
 package jobs
 
 import (
+	"github.com/webitel/storage/interfaces"
 	"github.com/webitel/storage/model"
 	"github.com/webitel/storage/store"
 )
@@ -20,6 +21,8 @@ type JobServer struct {
 	Store         store.Store
 	Workers       *Workers
 	Schedulers    *Schedulers
+
+	SyncFilesJob interfaces.SyncFilesJobInterface
 }
 
 func NewJobServer(configService ConfigService, store store.Store) *JobServer {

@@ -1,4 +1,4 @@
-package einterfaces
+package interfaces
 
 type TaskInterface interface {
 	Execute()

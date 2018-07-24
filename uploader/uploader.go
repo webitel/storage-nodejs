@@ -3,7 +3,7 @@ package uploader
 import (
 	"fmt"
 	"github.com/webitel/storage/app"
-	"github.com/webitel/storage/einterfaces"
+	"github.com/webitel/storage/interfaces"
 	"github.com/webitel/storage/mlog"
 	"github.com/webitel/storage/model"
 	"github.com/webitel/storage/pool"
@@ -19,13 +19,13 @@ type UploaderInterfaceImpl struct {
 	schedule          chan struct{}
 	pollingInterval   time.Duration
 	stopSignal        chan struct{}
-	pool              einterfaces.PoolInterface
+	pool              interfaces.PoolInterface
 	mx                sync.RWMutex
 	stopped           bool
 }
 
 func init() {
-	app.RegisterUploader(func(a *app.App) einterfaces.UploadRecordingsFilesInterface {
+	app.RegisterUploader(func(a *app.App) interfaces.UploadRecordingsFilesInterface {
 		mlog.Debug("Initialize uploader")
 		return &UploaderInterfaceImpl{
 			App:               a,

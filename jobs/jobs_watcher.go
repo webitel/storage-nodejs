@@ -69,10 +69,10 @@ func (watcher *Watcher) PollAndNotify() {
 		jobs := result.Data.([]*model.Job)
 
 		for _, job := range jobs {
-			if job.Type == model.JOB_TYPE_DATA_RETENTION {
-				if watcher.workers.DataRetention != nil {
+			if job.Type == model.JOB_TYPE_SYNC_FILES {
+				if watcher.workers.SyncFile != nil {
 					select {
-					case watcher.workers.DataRetention.JobChannel() <- *job:
+					case watcher.workers.SyncFile.JobChannel() <- *job:
 					default:
 					}
 				}

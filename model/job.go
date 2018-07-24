@@ -11,6 +11,8 @@ const (
 	JOB_TYPE_DATA_RETENTION    = "data_retention"
 	JOB_TYPE_DELETE_RECORDINGS = "delete_recordings"
 
+	JOB_TYPE_SYNC_FILES = "sync_files"
+
 	JOB_STATUS_PENDING          = "pending"
 	JOB_STATUS_IN_PROGRESS      = "in_progress"
 	JOB_STATUS_SUCCESS          = "success"
