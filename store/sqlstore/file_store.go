@@ -87,3 +87,25 @@ func (self *SqlFileStore) Get(domain, uuid string) store.StoreChannel {
 		}
 	})
 }
+
+func (self *SqlFileStore) Delete(domain string, id int) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+
+	})
+}
+
+func (self *SqlFileStore) FetchDeleted(limit int) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		var recordings []*model.File
+
+		query := `SELECT * FROM files 
+			LIMIT :Limit `
+
+		if _, err := self.GetReplica().Select(&recordings, query, map[string]interface{}{"Limit": limit}); err != nil {
+			result.Err = model.NewAppError("SqlFileStore.List", "store.sql_file.get_all.finding.app_error", nil, err.Error(), http.StatusInternalServerError)
+		} else {
+			result.Data = recordings
+		}
+
+	})
+}

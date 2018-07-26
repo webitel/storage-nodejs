@@ -1,6 +1,7 @@
 package file_sync
 
 import (
+	"fmt"
 	"github.com/webitel/storage/app"
 	"github.com/webitel/storage/mlog"
 	"github.com/webitel/storage/model"
@@ -35,6 +36,13 @@ func (scheduler *Scheduler) NextScheduleTime(cfg *model.Config, now time.Time, p
 
 func (scheduler *Scheduler) ScheduleJob(cfg *model.Config, pendingJobs bool, lastSuccessfulJob *model.Job) (*model.Job, *model.AppError) {
 	mlog.Debug("Scheduling Job", mlog.String("scheduler", scheduler.Name()))
+
+	res := <-scheduler.App.Store.File().FetchDeleted(1000)
+	if res.Err != nil {
+		panic(res.Err)
+	}
+
+	fmt.Println(res.Data.([]*model.File))
 
 	return &model.Job{}, nil
 }

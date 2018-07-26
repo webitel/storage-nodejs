@@ -78,7 +78,10 @@ func NewSqlSupplier(settings model.SqlSettings) *SqlSupplier {
 
 	supplier.oldStores.session.(*SqlSessionStore).CreateIndexesIfNotExists()
 	supplier.oldStores.uploadJob.(*SqlUploadJobStore).CreateIndexesIfNotExists()
+
 	supplier.oldStores.fileBackendProfile.(*SqlFileBackendProfileStore).CreateIndexesIfNotExists()
+	supplier.oldStores.fileBackendProfile.(*SqlFileBackendProfileStore).AfterPrepare()
+
 	supplier.oldStores.file.(*SqlFileStore).CreateIndexesIfNotExists()
 
 	return supplier

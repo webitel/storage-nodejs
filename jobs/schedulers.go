@@ -64,7 +64,7 @@ func (schedulers *Schedulers) Start() *Schedulers {
 				case <-schedulers.stop:
 					mlog.Debug("Schedulers received stop signal.")
 					return
-				case now = <-time.After(1 * time.Minute):
+				case now = <-time.After(10 * time.Second):
 					cfg := schedulers.jobs.Config()
 
 					for idx, nextTime := range schedulers.nextRunTimes {

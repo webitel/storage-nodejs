@@ -40,6 +40,24 @@ func (self SqlFileBackendProfileStore) CreateIndexesIfNotExists() {
 
 }
 
+func (self SqlFileBackendProfileStore) AfterPrepare() {
+	return
+	_, err := self.GetReplica().Exec(`
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'file_backend_profiles_file_backend_profile_type_id_fk') THEN
+        ALTER TABLE file_backend_profiles
+            ADD CONSTRAINT file_backend_profiles_file_backend_profile_type_id_fk
+            FOREIGN KEY (type_id) REFERENCES file_backend_profile_type (id);
+    END IF;
+END;
+$$;`)
+
+	if err != nil {
+		panic(err)
+	}
+}
+
 func (s SqlFileBackendProfileStore) Save(profile *model.FileBackendProfile) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		profile.PreSave()
