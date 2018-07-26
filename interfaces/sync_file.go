@@ -8,3 +8,6 @@ type SyncFilesJobInterface interface {
 	MakeWorker() model.Worker
 	MakeScheduler() model.Scheduler
 }
+
+type DownloadFilesJobInterface interface {
+}

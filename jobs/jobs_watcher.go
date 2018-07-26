@@ -2,7 +2,6 @@ package jobs
 
 import (
 	"fmt"
-	"math/rand"
 	"time"
 
 	"github.com/webitel/storage/mlog"
@@ -37,9 +36,9 @@ func (watcher *Watcher) Start() {
 
 	// Delay for some random number of milliseconds before starting to ensure that multiple
 	// instances of the jobserver  don't poll at a time too close to each other.
-	rand.Seed(time.Now().UTC().UnixNano())
-	<-time.After(time.Duration(rand.Intn(watcher.pollingInterval)) * time.Millisecond)
-
+	//rand.Seed(time.Now().UTC().UnixNano())
+	//<-time.After(time.Duration(rand.Intn(watcher.pollingInterval)) * time.Millisecond)
+	watcher.PollAndNotify()
 	defer func() {
 		mlog.Debug("Watcher Finished")
 		watcher.stopped <- true

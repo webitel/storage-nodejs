@@ -2,6 +2,7 @@ package sqlstore
 
 import (
 	"database/sql"
+	"fmt"
 	"github.com/webitel/storage/model"
 	"github.com/webitel/storage/store"
 	"net/http"
@@ -94,12 +95,26 @@ func (self *SqlFileStore) Delete(domain string, id int) store.StoreChannel {
 
 	})
 }
+func (self *SqlFileStore) DeleteById(id int) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		if _, err := self.GetMaster().Exec(
+			`DELETE FROM
+				files
+			WHERE
+				id = :Id`, map[string]interface{}{"Id": id}); err != nil {
+			result.Err = model.NewAppError("SqlFileStore.DeleteById", "store.sql_file.delete.app_error", nil,
+				fmt.Sprintf("id=%d, err: %s", err.Error()), http.StatusInternalServerError)
+		} else {
+			result.Data = id
+		}
+	})
+}
 
 func (self *SqlFileStore) FetchDeleted(limit int) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		var recordings []*model.File
+		var recordings []*model.FileWithProfile
 
-		query := `SELECT * FROM files 
+		query := `SELECT files.*,  p.updated_at as profile_updated_at FROM files JOIN file_backend_profiles p on p.id = files.profile_id 
 			WHERE removed is TRUE
 			LIMIT :Limit `
 

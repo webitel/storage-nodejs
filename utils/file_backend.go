@@ -27,6 +27,7 @@ type File interface {
 type FileBackend interface {
 	TestConnection() *model.AppError
 	Reader(file File, offset int64) (io.ReadCloser, *model.AppError)
+	Remove(file File) *model.AppError
 	WriteFile(fr io.Reader, directory, name string) (int64, *model.AppError)
 	RemoveFile(directory, name string) *model.AppError
 	GetStoreDirectory(domain string) string

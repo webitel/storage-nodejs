@@ -44,10 +44,6 @@ func (workers *Workers) Start() *Workers {
 	return workers
 }
 
-func (workers *Workers) handleConfigChange(oldConfig *model.Config, newConfig *model.Config) {
-	mlog.Debug("Workers received config change.")
-}
-
 func (workers *Workers) Stop() *Workers {
 
 	workers.Watcher.Stop()

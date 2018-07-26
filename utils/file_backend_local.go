@@ -45,6 +45,13 @@ func (self *LocalFileBackend) WriteFile(src io.Reader, directory, name string) (
 	return written, nil
 }
 
+func (self *LocalFileBackend) Remove(file File) *model.AppError {
+	if err := os.Remove(path.Join(self.directory, file.GetPropertyString("directory"), file.GetStoreName())); err != nil {
+		return model.NewAppError("RemoveFile", "utils.file.locally.removing.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return nil
+}
+
 func (self *LocalFileBackend) RemoveFile(directory, name string) *model.AppError {
 	if err := os.Remove(path.Join(self.directory, directory, name)); err != nil {
 		return model.NewAppError("RemoveFile", "utils.file.locally.removing.app_error", nil, err.Error(), http.StatusInternalServerError)

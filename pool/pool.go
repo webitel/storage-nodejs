@@ -62,3 +62,7 @@ func (p *Pool) Wait() {
 func (p *Pool) Exec(task interfaces.TaskInterface) {
 	p.tasks <- task
 }
+
+func (p *Pool) ChannelJobs() chan interfaces.TaskInterface {
+	return p.tasks
+}

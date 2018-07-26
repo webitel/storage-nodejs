@@ -43,8 +43,7 @@ func (j *Job) IsValid() *AppError {
 	}
 
 	switch j.Type {
-	case JOB_TYPE_DATA_RETENTION:
-	case JOB_TYPE_DELETE_RECORDINGS:
+	case JOB_TYPE_SYNC_FILES:
 	default:
 		return NewAppError("Job.IsValid", "model.job.is_valid.type.app_error", nil, "id="+j.Id, http.StatusBadRequest)
 	}

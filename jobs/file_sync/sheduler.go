@@ -1,7 +1,6 @@
 package file_sync
 
 import (
-	"fmt"
 	"github.com/webitel/storage/app"
 	"github.com/webitel/storage/mlog"
 	"github.com/webitel/storage/model"
@@ -21,7 +20,7 @@ func (scheduler *Scheduler) Name() string {
 }
 
 func (scheduler *Scheduler) JobType() string {
-	return model.JOB_STATUS_SUCCESS
+	return model.JOB_TYPE_SYNC_FILES
 }
 
 func (scheduler *Scheduler) Enabled(cfg *model.Config) bool {
@@ -29,20 +28,19 @@ func (scheduler *Scheduler) Enabled(cfg *model.Config) bool {
 }
 
 func (scheduler *Scheduler) NextScheduleTime(cfg *model.Config, now time.Time, pendingJobs bool, lastSuccessfulJob *model.Job) *time.Time {
-
-	nextTime := time.Now().Add(1 * time.Second)
-	return &nextTime
+	t, _ := time.Parse("2006-01-02", now.Format("2006-01-02"))
+	t = t.AddDate(0, 0, 1)
+	return &t
 }
 
 func (scheduler *Scheduler) ScheduleJob(cfg *model.Config, pendingJobs bool, lastSuccessfulJob *model.Job) (*model.Job, *model.AppError) {
 	mlog.Debug("Scheduling Job", mlog.String("scheduler", scheduler.Name()))
 
-	res := <-scheduler.App.Store.File().FetchDeleted(1000)
-	if res.Err != nil {
-		panic(res.Err)
+	data := map[string]string{}
+
+	if job, err := scheduler.App.Jobs.CreateJob(model.JOB_TYPE_SYNC_FILES, data); err != nil {
+		return nil, err
+	} else {
+		return job, nil
 	}
-
-	fmt.Println(res.Data.([]*model.File))
-
-	return &model.Job{}, nil
 }
