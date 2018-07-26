@@ -23,7 +23,6 @@ func main() {
 	if err != nil {
 		panic(err.Error())
 	}
-	defer a.Shutdown()
 
 	serverErr := a.StartServer()
 	if serverErr != nil {
@@ -49,6 +48,8 @@ func main() {
 	// the running service
 	signal.Notify(interruptChan, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 	<-interruptChan
+
+	a.Shutdown()
 
 	// Cleanup anything that isn't handled by a defer statement
 	mlog.Info("Stopping job server")

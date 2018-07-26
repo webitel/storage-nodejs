@@ -127,6 +127,8 @@ func New(options ...string) (outApp *App, outErr error) {
 
 func (app *App) Shutdown() {
 	mlog.Info("Stopping Server...")
+	app.Srv.Server.Close()
+	app.InternalSrv.Server.Close()
 }
 
 func (a *App) Handle404(w http.ResponseWriter, r *http.Request) {

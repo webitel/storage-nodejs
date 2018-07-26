@@ -6,7 +6,6 @@ import (
 	"github.com/webitel/storage/jobs"
 	"github.com/webitel/storage/mlog"
 	"github.com/webitel/storage/model"
-	"time"
 )
 
 type Worker struct {
@@ -82,36 +81,11 @@ func (worker *Worker) DoJob(job *model.Job) {
 		select {
 		case <-cancelWatcherChan:
 			mlog.Debug("Worker: Job has been canceled via CancellationWatcher", mlog.String("worker", worker.name), mlog.String("job_id", job.Id))
-			worker.setJobCanceled(job)
 			return
 
 		case <-worker.stop:
 			mlog.Debug("Worker: Job has been canceled via Worker Stop", mlog.String("worker", worker.name), mlog.String("job_id", job.Id))
-			worker.setJobCanceled(job)
 			return
-
-		case <-time.After(5 * time.Second):
-			mlog.Info("Worker: Job is complete", mlog.String("worker", worker.name), mlog.String("job_id", job.Id))
-			worker.setJobSuccess(job)
 		}
-	}
-}
-
-func (worker *Worker) setJobSuccess(job *model.Job) {
-	if err := worker.app.Jobs.SetJobSuccess(job); err != nil {
-		mlog.Error("Worker: Failed to set success for job", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
-		worker.setJobError(job, err)
-	}
-}
-
-func (worker *Worker) setJobError(job *model.Job, appError *model.AppError) {
-	if err := worker.app.Jobs.SetJobError(job, appError); err != nil {
-		mlog.Error("Worker: Failed to set job error", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
-	}
-}
-
-func (worker *Worker) setJobCanceled(job *model.Job) {
-	if err := worker.app.Jobs.SetJobCanceled(job); err != nil {
-		mlog.Error("Worker: Failed to mark job as canceled", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
 	}
 }

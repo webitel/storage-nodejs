@@ -22,6 +22,7 @@ func NewSqlFileStore(sqlStore SqlStore) store.FileStore {
 		table.ColMap("Size").SetNotNull(true)
 		table.ColMap("Domain").SetNotNull(true).SetMaxSize(100)
 		table.ColMap("MimeType").SetNotNull(false).SetMaxSize(20)
+		table.ColMap("Instance").SetNotNull(true).SetMaxSize(20)
 		table.ColMap("Properties").SetNotNull(true)
 		table.ColMap("Removed")
 
@@ -43,10 +44,10 @@ func (self *SqlFileStore) MoveFromJob(jobId, profileId int, properties model.Str
 		_, err := self.GetReplica().Exec(`with del as (
   delete from upload_file_jobs
   where id = $1
-  returning name, uuid, size, domain, mime_type, created_at
+  returning name, uuid, size, domain, mime_type, created_at, instance
 )
-insert into files(name, uuid, profile_id, size, domain, mime_type, properties, created_at)
-select del.name, del.uuid, $2, del.size, del.domain, del.mime_type, $3, del.created_at
+insert into files(name, uuid, profile_id, size, domain, mime_type, properties, created_at, instance)
+select del.name, del.uuid, $2, del.size, del.domain, del.mime_type, $3, del.created_at, del.instance
 from del`, jobId, profileId, properties.ToJson())
 
 		if err != nil {
@@ -99,13 +100,13 @@ func (self *SqlFileStore) FetchDeleted(limit int) store.StoreChannel {
 		var recordings []*model.File
 
 		query := `SELECT * FROM files 
+			WHERE removed is TRUE
 			LIMIT :Limit `
 
 		if _, err := self.GetReplica().Select(&recordings, query, map[string]interface{}{"Limit": limit}); err != nil {
-			result.Err = model.NewAppError("SqlFileStore.List", "store.sql_file.get_all.finding.app_error", nil, err.Error(), http.StatusInternalServerError)
+			result.Err = model.NewAppError("SqlFileStore.FetchDeleted", "store.sql_file.get_deleted.finding.app_error", nil, err.Error(), http.StatusInternalServerError)
 		} else {
 			result.Data = recordings
 		}
-
 	})
 }
