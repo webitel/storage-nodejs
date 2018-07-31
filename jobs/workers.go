@@ -12,18 +12,18 @@ type Workers struct {
 	ConfigService ConfigService
 	Watcher       *Watcher
 
-	DataRetention model.Worker
-	SyncFile      model.Worker
+	middleware map[string]model.Worker
 }
 
 func (srv *JobServer) InitWorkers() *Workers {
 	workers := &Workers{
 		ConfigService: srv.ConfigService,
+		middleware:    make(map[string]model.Worker),
 	}
 	workers.Watcher = srv.MakeWatcher(workers, DEFAULT_WATCHER_POLLING_INTERVAL)
 
-	if syncFilesJobInterface := srv.SyncFilesJob; syncFilesJobInterface != nil {
-		workers.SyncFile = syncFilesJobInterface.MakeWorker()
+	for key, j := range srv.middlewareJobs {
+		workers.middleware[key] = j.MakeWorker()
 	}
 
 	return workers
@@ -34,8 +34,8 @@ func (workers *Workers) Start() *Workers {
 
 	workers.startOnce.Do(func() {
 
-		if workers.SyncFile != nil {
-			go workers.SyncFile.Run()
+		for _, w := range workers.middleware {
+			go w.Run()
 		}
 
 		go workers.Watcher.Start()
@@ -48,8 +48,8 @@ func (workers *Workers) Stop() *Workers {
 
 	workers.Watcher.Stop()
 
-	if workers.SyncFile != nil {
-		workers.SyncFile.Stop()
+	for _, w := range workers.middleware {
+		w.Stop()
 	}
 
 	mlog.Info("Stopped workers")

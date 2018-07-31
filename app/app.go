@@ -145,7 +145,7 @@ func (a *App) initJobs() {
 	a.Jobs = jobs.NewJobServer(a, a.Store)
 
 	if syncFilesJobInterface != nil {
-		a.Jobs.SyncFilesJob = syncFilesJobInterface(a)
+		a.Jobs.AddMiddleware(model.JOB_TYPE_SYNC_FILES, syncFilesJobInterface(a))
 	}
 }
 

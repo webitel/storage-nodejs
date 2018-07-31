@@ -22,14 +22,19 @@ type JobServer struct {
 	Workers       *Workers
 	Schedulers    *Schedulers
 
-	SyncFilesJob interfaces.SyncFilesJobInterface
+	middlewareJobs map[string]interfaces.JobInterface
 }
 
 func NewJobServer(configService ConfigService, store store.Store) *JobServer {
 	return &JobServer{
-		ConfigService: configService,
-		Store:         store,
+		ConfigService:  configService,
+		Store:          store,
+		middlewareJobs: make(map[string]interfaces.JobInterface),
 	}
+}
+
+func (srv *JobServer) AddMiddleware(name string, w interfaces.JobInterface) {
+	srv.middlewareJobs[name] = w
 }
 
 func (srv *JobServer) Config() *model.Config {

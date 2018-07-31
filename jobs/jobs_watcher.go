@@ -68,13 +68,10 @@ func (watcher *Watcher) PollAndNotify() {
 		jobs := result.Data.([]*model.Job)
 
 		for _, job := range jobs {
-			if job.Type == model.JOB_TYPE_SYNC_FILES {
-				if watcher.workers.SyncFile != nil {
-					select {
-					case watcher.workers.SyncFile.JobChannel() <- *job:
-					default:
-					}
-				}
+			if w, ok := watcher.workers.middleware[job.Type]; ok {
+				w.JobChannel() <- *job
+			} else {
+				mlog.Warn(fmt.Sprintf("Not found middleware %s", job.Type))
 			}
 		}
 	}

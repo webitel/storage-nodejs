@@ -30,8 +30,8 @@ func (srv *JobServer) InitSchedulers() *Schedulers {
 		jobs:          srv,
 	}
 
-	if syncFilesJobInterface := srv.SyncFilesJob; syncFilesJobInterface != nil {
-		schedulers.schedulers = append(schedulers.schedulers, syncFilesJobInterface.MakeScheduler())
+	for _, w := range srv.middlewareJobs {
+		schedulers.schedulers = append(schedulers.schedulers, w.MakeScheduler())
 	}
 
 	return schedulers
