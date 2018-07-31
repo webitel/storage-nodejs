@@ -15,13 +15,15 @@ const (
 	CANCEL_WATCHER_POLLING_INTERVAL = 5000
 )
 
-func (srv *JobServer) CreateJob(jobType string, jobData map[string]string) (*model.Job, *model.AppError) {
+func (srv *JobServer) CreateJob(jobType string, scheduleId *int64, scheduleTime int64, jobData map[string]string) (*model.Job, *model.AppError) {
 	job := model.Job{
-		Id:       model.NewId(),
-		Type:     jobType,
-		CreateAt: model.GetMillis(),
-		Status:   model.JOB_STATUS_PENDING,
-		Data:     jobData,
+		Id:           model.NewId(),
+		Type:         jobType,
+		CreateAt:     model.GetMillis(),
+		ScheduleId:   scheduleId,
+		ScheduleTime: scheduleTime,
+		Status:       model.JOB_STATUS_PENDING,
+		Data:         jobData,
 	}
 
 	if err := job.IsValid(); err != nil {

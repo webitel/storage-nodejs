@@ -166,5 +166,9 @@
   {
     "id": "store.sql_cdr.get_leg_call.finding.app_error",
     "translation": "We couldn't get the CDR"
+  },
+  {
+    "id": "store.sql_schedule.get_all.finding.app_error",
+    "translation": "We couldn't get the schedule"
   }
 ]

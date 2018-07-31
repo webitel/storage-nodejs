@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/webitel/storage/apis"
 	"github.com/webitel/storage/app"
 	"github.com/webitel/storage/mlog"
@@ -68,8 +67,11 @@ func setDebug() {
 	//debug.SetGCPercent(-1)
 
 	go func() {
-		fmt.Println("Start debug server on :8090")
-		fmt.Println("Debug: ", http.ListenAndServe(":8090", nil))
+		mlog.Info("Start debug server on :8090")
+		err := http.ListenAndServe(":8090", nil)
+		if err != nil {
+			mlog.Critical(err.Error())
+		}
 	}()
 
 }

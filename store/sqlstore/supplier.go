@@ -38,6 +38,7 @@ type SqlSupplierOldStores struct {
 	mediaFile          store.MediaFileStore
 	job                store.JobStore
 	cdrData            store.CdrStoreData
+	scheduler          store.ScheduleStore
 }
 
 type SqlSupplier struct {
@@ -68,6 +69,7 @@ func NewSqlSupplier(settings model.SqlSettings) *SqlSupplier {
 	supplier.oldStores.mediaFile = NewSqlMediaFileStore(supplier)
 	supplier.oldStores.job = NewSqlJobStore(supplier)
 	supplier.oldStores.cdrData = NewSqlCdrStore(supplier)
+	supplier.oldStores.scheduler = NewSqlScheduleStore(supplier)
 
 	err := supplier.GetMaster().CreateTablesIfNotExists()
 	if err != nil {
@@ -83,6 +85,7 @@ func NewSqlSupplier(settings model.SqlSettings) *SqlSupplier {
 	supplier.oldStores.fileBackendProfile.(*SqlFileBackendProfileStore).AfterPrepare()
 
 	supplier.oldStores.file.(*SqlFileStore).CreateIndexesIfNotExists()
+	supplier.oldStores.scheduler.(*SqlScheduleStore).CreateIndexesIfNotExists()
 
 	return supplier
 }
@@ -303,4 +306,8 @@ func (ss *SqlSupplier) MediaFile() store.MediaFileStore {
 
 func (ss *SqlSupplier) Cdr() store.CdrStoreData {
 	return ss.oldStores.cdrData
+}
+
+func (ss SqlSupplier) Schedule() store.ScheduleStore {
+	return ss.oldStores.scheduler
 }

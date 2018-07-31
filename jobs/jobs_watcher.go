@@ -62,7 +62,7 @@ func (watcher *Watcher) Stop() {
 }
 
 func (watcher *Watcher) PollAndNotify() {
-	if result := <-watcher.srv.Store.Job().GetAllByStatus(model.JOB_STATUS_PENDING); result.Err != nil {
+	if result := <-watcher.srv.Store.Job().GetAllByStatusAndLessScheduleTime(model.JOB_STATUS_PENDING, model.GetMillis()); result.Err != nil {
 		mlog.Error(fmt.Sprintf("Error occurred getting all pending statuses: %v", result.Err.Error()))
 	} else {
 		jobs := result.Data.([]*model.Job)

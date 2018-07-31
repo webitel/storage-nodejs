@@ -80,7 +80,9 @@ func (worker *Worker) DoJob(job *model.Job) {
 		select {
 		case <-time.After(100 * time.Millisecond):
 		loop:
+			start := model.GetMillis()
 			err, done := worker.removeFiles(job)
+			job.Progress = model.GetMillis() - start
 			if err != nil {
 				mlog.Error("Worker: Failed to run remove files", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
 				worker.setJobError(job, err)
@@ -155,6 +157,7 @@ func (worker *Worker) removeFiles(job *model.Job) (*model.AppError, bool) {
 		if res.Err != nil {
 			panic(resultDel.Err)
 		}
+		mlog.Debug(fmt.Sprintf("File %s[%d] removed", f.GetStoreName(), f.Id))
 		removed++
 	}
 	return nil, len(data) == 0

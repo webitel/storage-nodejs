@@ -282,6 +282,26 @@ func (jss SqlJobStore) GetCountByStatusAndType(status string, jobType string) st
 	})
 }
 
+func (jss SqlJobStore) GetAllByStatusAndLessScheduleTime(status string, t int64) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		var statuses []*model.Job
+
+		if _, err := jss.GetReplica().Select(&statuses,
+			`SELECT
+				*
+			FROM
+				jobs
+			WHERE
+				status = :Status AND schedule_time <= :Time
+			ORDER BY
+				create_at ASC`, map[string]interface{}{"Status": status, "Time": t}); err != nil {
+			result.Err = model.NewAppError("SqlJobStore.GetAllByStatusAndLessScheduleTime", "store.sql_job.get_all.app_error", nil, "Status="+status+", "+err.Error(), http.StatusInternalServerError)
+		} else {
+			result.Data = statuses
+		}
+	})
+}
+
 func (jss SqlJobStore) Delete(id string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		if _, err := jss.GetMaster().Exec(

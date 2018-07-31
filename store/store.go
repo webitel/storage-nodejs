@@ -48,6 +48,7 @@ type StoreData interface {
 	Job() JobStore
 	MediaFile() MediaFileStore
 	Cdr() CdrStoreData
+	Schedule() ScheduleStore
 }
 
 type StoreSerchEngine interface {
@@ -78,10 +79,16 @@ type FileStore interface {
 	GetAllPageByDomain(domain string, offset, limit int) StoreChannel
 	MoveFromJob(jobId, profileId int, properties model.StringInterface) StoreChannel
 	FetchDeleted(limit int) StoreChannel
-	DeleteById(id int) StoreChannel
+	DeleteById(id int64) StoreChannel
 }
 
 type MediaFileStore interface {
+}
+
+type ScheduleStore interface {
+	GetAllEnablePage(limit, offset int) StoreChannel
+	GetAllWithNoJobs(limit, offset int) StoreChannel
+	GetAllPageByType(typeName string) StoreChannel
 }
 
 type JobStore interface {
@@ -94,6 +101,7 @@ type JobStore interface {
 	GetAllByType(jobType string) StoreChannel
 	GetAllByTypePage(jobType string, offset int, limit int) StoreChannel
 	GetAllByStatus(status string) StoreChannel
+	GetAllByStatusAndLessScheduleTime(status string, t int64) StoreChannel
 	GetNewestJobByStatusAndType(status string, jobType string) StoreChannel
 	GetCountByStatusAndType(status string, jobType string) StoreChannel
 	Delete(id string) StoreChannel

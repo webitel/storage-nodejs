@@ -17,8 +17,7 @@ type Schedulers struct {
 	startOnce     sync.Once
 	jobs          *JobServer
 
-	schedulers   []model.Scheduler
-	nextRunTimes []*time.Time
+	schedulers []model.Scheduler
 }
 
 func (srv *JobServer) InitSchedulers() *Schedulers {
@@ -35,7 +34,6 @@ func (srv *JobServer) InitSchedulers() *Schedulers {
 		schedulers.schedulers = append(schedulers.schedulers, syncFilesJobInterface.MakeScheduler())
 	}
 
-	schedulers.nextRunTimes = make([]*time.Time, len(schedulers.schedulers))
 	return schedulers
 }
 
@@ -51,49 +49,17 @@ func (schedulers *Schedulers) Start() *Schedulers {
 			}()
 
 			now := time.Now()
-			for idx, scheduler := range schedulers.schedulers {
-				if !scheduler.Enabled(schedulers.jobs.Config()) {
-					schedulers.nextRunTimes[idx] = nil
-				} else {
-					schedulers.setNextRunTime(schedulers.jobs.Config(), idx, now, false)
-				}
-			}
+
+			schedulers.scheduleJobs(&now)
 
 			for {
 				select {
 				case <-schedulers.stop:
 					mlog.Debug("Schedulers received stop signal.")
 					return
-				case now = <-time.After(10 * time.Second):
-					cfg := schedulers.jobs.Config()
 
-					for idx, nextTime := range schedulers.nextRunTimes {
-						if nextTime == nil {
-							continue
-						}
-
-						if time.Now().After(*nextTime) {
-							scheduler := schedulers.schedulers[idx]
-							if scheduler != nil {
-								if scheduler.Enabled(cfg) {
-									if _, err := schedulers.scheduleJob(cfg, scheduler); err != nil {
-										mlog.Warn(fmt.Sprintf("Failed to schedule job with scheduler: %v", scheduler.Name()))
-										mlog.Error(fmt.Sprint(err))
-									} else {
-										schedulers.setNextRunTime(cfg, idx, now, true)
-									}
-								}
-							}
-						}
-					}
-				case newCfg := <-schedulers.configChanged:
-					for idx, scheduler := range schedulers.schedulers {
-						if !scheduler.Enabled(newCfg) {
-							schedulers.nextRunTimes[idx] = nil
-						} else {
-							schedulers.setNextRunTime(newCfg, idx, now, false)
-						}
-					}
+				case now = <-time.After(time.Minute):
+					schedulers.scheduleJobs(&now)
 				}
 			}
 		})
@@ -102,47 +68,34 @@ func (schedulers *Schedulers) Start() *Schedulers {
 	return schedulers
 }
 
+func (schedulers *Schedulers) scheduleJobs(now *time.Time) {
+	var nextTime int64
+	var appErr *model.AppError
+
+	res := <-schedulers.jobs.Store.Schedule().GetAllWithNoJobs(1000, 0)
+
+	if res.Err != nil {
+		mlog.Critical(res.Err.Error())
+		return
+	}
+
+	for _, item := range res.Data.([]*model.Schedule) {
+		data := make(map[string]string)
+		nextTime = item.NextTime(*now)
+
+		_, appErr = schedulers.jobs.CreateJob(item.Type, &item.Id, nextTime, data)
+		if appErr != nil {
+			mlog.Warn(fmt.Sprintf("Failed to schedule job with scheduler: %s", item.Name))
+			mlog.Error(fmt.Sprint(appErr))
+		} else {
+			mlog.Debug(fmt.Sprintf("Next run time for scheduler %v: %v", item.Name, time.Unix(nextTime, 0).String()))
+		}
+	}
+}
+
 func (schedulers *Schedulers) Stop() *Schedulers {
 	mlog.Info("Stopping schedulers.")
 	close(schedulers.stop)
 	<-schedulers.stopped
 	return schedulers
-}
-
-func (schedulers *Schedulers) setNextRunTime(cfg *model.Config, idx int, now time.Time, pendingJobs bool) {
-	scheduler := schedulers.schedulers[idx]
-
-	if !pendingJobs {
-		if pj, err := schedulers.jobs.CheckForPendingJobsByType(scheduler.JobType()); err != nil {
-			mlog.Error("Failed to set next job run time: " + err.Error())
-			schedulers.nextRunTimes[idx] = nil
-			return
-		} else {
-			pendingJobs = pj
-		}
-	}
-
-	lastSuccessfulJob, err := schedulers.jobs.GetLastSuccessfulJobByType(scheduler.JobType())
-	if err != nil {
-		mlog.Error("Failed to set next job run time: " + err.Error())
-		schedulers.nextRunTimes[idx] = nil
-		return
-	}
-
-	schedulers.nextRunTimes[idx] = scheduler.NextScheduleTime(cfg, now, pendingJobs, lastSuccessfulJob)
-	mlog.Debug(fmt.Sprintf("Next run time for scheduler %v: %v", scheduler.Name(), schedulers.nextRunTimes[idx]))
-}
-
-func (schedulers *Schedulers) scheduleJob(cfg *model.Config, scheduler model.Scheduler) (*model.Job, *model.AppError) {
-	pendingJobs, err := schedulers.jobs.CheckForPendingJobsByType(scheduler.JobType())
-	if err != nil {
-		return nil, err
-	}
-
-	lastSuccessfulJob, err2 := schedulers.jobs.GetLastSuccessfulJobByType(scheduler.JobType())
-	if err2 != nil {
-		return nil, err
-	}
-
-	return scheduler.ScheduleJob(cfg, pendingJobs, lastSuccessfulJob)
 }

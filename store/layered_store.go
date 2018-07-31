@@ -73,3 +73,7 @@ func (s *LayeredStore) MediaFile() MediaFileStore {
 func (s *LayeredStore) Cdr() CdrStoreData {
 	return s.DatabaseLayer.Cdr()
 }
+
+func (s *LayeredStore) Schedule() ScheduleStore {
+	return s.DatabaseLayer.Schedule()
+}

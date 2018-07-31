@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
-	"time"
 )
 
 const (
@@ -25,6 +24,8 @@ type Job struct {
 	Id             string            `db:"id" json:"id"`
 	Type           string            `db:"type" json:"type"`
 	Priority       int64             `db:"priority" json:"priority"`
+	ScheduleId     *int64            `db:"schedule_id" json:"schedule_id"`
+	ScheduleTime   int64             `db:"schedule_time" json:"schedule_time"`
 	CreateAt       int64             `db:"create_at" json:"create_at"`
 	StartAt        int64             `db:"start_at" json:"start_at"`
 	LastActivityAt int64             `db:"last_activity_at" json:"last_activity_at"`
@@ -105,6 +106,5 @@ type Scheduler interface {
 	Name() string
 	JobType() string
 	Enabled(cfg *Config) bool
-	NextScheduleTime(cfg *Config, now time.Time, pendingJobs bool, lastSuccessfulJob *Job) *time.Time
 	ScheduleJob(cfg *Config, pendingJobs bool, lastSuccessfulJob *Job) (*Job, *AppError)
 }

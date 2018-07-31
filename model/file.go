@@ -6,7 +6,7 @@ import (
 )
 
 type File struct {
-	Id         int             `db:"id" json:"id"`
+	Id         int64           `db:"id" json:"id"`
 	Name       string          `db:"name" json:"name"`
 	Uuid       string          `db:"uuid" json:"uuid"`
 	ProfileId  int             `db:"profile_id" json:"profile_id"`
@@ -21,7 +21,7 @@ type File struct {
 
 type RemoveFile struct {
 	Id        int    `db:"id"`
-	FileId    int    `db:"file_id"`
+	FileId    int64  `db:"file_id"`
 	CreatedAt int64  `db:"created_at"`
 	CreatedBy string `db:"created_by"`
 }

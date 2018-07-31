@@ -90,12 +90,13 @@ func (self *SqlFileStore) Get(domain, uuid string) store.StoreChannel {
 	})
 }
 
-func (self *SqlFileStore) Delete(domain string, id int) store.StoreChannel {
+func (self *SqlFileStore) Delete(domain string, id int64) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 
 	})
 }
-func (self *SqlFileStore) DeleteById(id int) store.StoreChannel {
+
+func (self *SqlFileStore) DeleteById(id int64) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		if _, err := self.GetMaster().Exec(
 			`DELETE FROM
