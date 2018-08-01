@@ -5,7 +5,7 @@
     "host": "elasticsearch:9200",
     "keepAlive": false,
 
-    "sniffOnStart": true,
+    "sniffOnStart": false,
     "sniffInterval": 60000,
 
     "requestTimeout": 60000
