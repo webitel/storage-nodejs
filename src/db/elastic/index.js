@@ -11,7 +11,7 @@ const elasticsearch = require('elasticsearch'),
     conf = require(`${__appRoot}/conf`)
 ;
 
-const CDR_NAME = conf.get('elastic:cdrIndexName'),
+const CDR_NAME = 'cdr',
     CDR_TYPE_NAME = 'cdr';
 
 
@@ -37,11 +37,7 @@ class ElasticClient extends EventEmitter2 {
         this.connected = false;
         this.config = config;
 
-        this.client = new elasticsearch.Client({
-            host: config.host,
-            keepAlive: config.keepAlive || true,
-            requestTimeout: config.requestTimeout || 500000
-        });
+        this.client = new elasticsearch.Client(this.config);
 
         this.ping();
         this.pingId = null;
