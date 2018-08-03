@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"github.com/webitel/storage/model"
 )
 
 type LayeredStoreDatabaseLayer interface {
@@ -14,18 +15,18 @@ type LayeredStore struct {
 	DatabaseLayer LayeredStoreDatabaseLayer
 	ElasticLayer  *ElasticSupplier
 
-	CdrSupplier    *CdrSupplier
+	SearchEngine   *SearchEngine
 	LayerChainHead LayeredStoreSupplier
 }
 
-func NewLayeredStore(db LayeredStoreDatabaseLayer) Store {
+func NewLayeredStore(db LayeredStoreDatabaseLayer, noSql *ElasticSupplier) Store {
 	store := &LayeredStore{
 		TmpContext:    context.TODO(),
 		DatabaseLayer: db,
-		ElasticLayer:  NewElasticSupplier(),
+		ElasticLayer:  noSql,
 	}
 
-	store.CdrSupplier = &CdrSupplier{
+	store.SearchEngine = &SearchEngine{
 		DatabaseLayer: store.DatabaseLayer,
 		ElasticLayer:  store.ElasticLayer,
 	}
@@ -76,4 +77,12 @@ func (s *LayeredStore) Cdr() CdrStoreData {
 
 func (s *LayeredStore) Schedule() ScheduleStore {
 	return s.DatabaseLayer.Schedule()
+}
+
+func (s *LayeredStore) Scroll(scroll *model.SearchEngineScroll) StoreChannel {
+	return s.SearchEngine.Scroll(scroll)
+}
+
+func (s *LayeredStore) Search(request *model.SearchEngineRequest) StoreChannel {
+	return s.SearchEngine.Search(request)
 }

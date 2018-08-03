@@ -48,6 +48,10 @@ type SqlSettings struct {
 	QueryTimeout                *int
 }
 
+type NoSqlSettings struct {
+	Host *string
+}
+
 type BrokerSettings struct {
 	ConnectionString *string
 }
@@ -56,6 +60,7 @@ type Config struct {
 	LocalizationSettings   LocalizationSettings
 	ServiceSettings        ServiceSettings
 	SqlSettings            SqlSettings
+	NoSqlSettings          NoSqlSettings
 	BrokerSettings         BrokerSettings
 	MediaFileStoreSettings MediaFileStoreSettings
 }

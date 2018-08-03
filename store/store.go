@@ -37,7 +37,7 @@ func Must(sc StoreChannel) interface{} {
 
 type Store interface {
 	StoreData
-	StoreSerchEngine
+	StoreSearchEngine
 }
 
 type StoreData interface {
@@ -51,7 +51,9 @@ type StoreData interface {
 	Schedule() ScheduleStore
 }
 
-type StoreSerchEngine interface {
+type StoreSearchEngine interface {
+	Search(request *model.SearchEngineRequest) StoreChannel
+	Scroll(scroll *model.SearchEngineScroll) StoreChannel
 }
 
 type SessionStore interface {
@@ -111,13 +113,4 @@ type CdrStoreData interface {
 	GetLegADataByUuid(uuid string) StoreChannel
 	GetLegBDataByUuid(uuid string) StoreChannel
 	GetByUuidCall(uuid string) StoreChannel
-}
-type CdrStoreSearchEngine interface {
-	Search() StoreChannel
-	Scroll() StoreChannel
-}
-
-type CdrStore interface {
-	CdrStoreData
-	CdrStoreSearchEngine
 }

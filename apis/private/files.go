@@ -44,7 +44,7 @@ func putFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("{\"status\": \"+OK\"}"))
 }
 
-func testFile(c *Context, w http.ResponseWriter, r *http.Request)  {
+func testFile(c *Context, w http.ResponseWriter, r *http.Request) {
+
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("{\"status\": \"+OK\"}"))
 }

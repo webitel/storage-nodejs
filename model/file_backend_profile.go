@@ -108,6 +108,7 @@ func FileBackendProfileFromJson(data io.Reader) *FileBackendProfile {
 		return nil
 	}
 }
+
 func FileBackendProfilePathFromJson(data io.Reader) *FileBackendProfilePath {
 	var profile FileBackendProfilePath
 	if err := json.NewDecoder(data).Decode(&profile); err == nil {

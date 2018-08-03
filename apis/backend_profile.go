@@ -21,6 +21,8 @@ func createProfile(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	profile := model.FileBackendProfileFromJson(r.Body)
+	defer r.Body.Close()
+
 	if profile == nil {
 		c.SetInvalidParam("profile")
 		return

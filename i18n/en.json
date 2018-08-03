@@ -170,5 +170,9 @@
   {
     "id": "store.sql_schedule.get_all.finding.app_error",
     "translation": "We couldn't get the schedule"
+  },
+  {
+    "id": "store.no_sql.search.app_error",
+    "translation": "We couldn't get the data from {{.Type}}"
   }
 ]

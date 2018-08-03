@@ -6,6 +6,17 @@ type CdrData struct {
 	Event StringInterface
 }
 
+type NoSQLRequest struct {
+	Size      int         `json:"size"`
+	Aggregate interface{} `json:"aggs"`
+	Version   bool        `json:"version"`
+	Query     string      `json:"query"`
+	Filter    interface{} `json:"filter"`
+	Includes  []string    `json:"includes"`
+	Columns   []string    `json:"columns"`
+	Sort      interface{} `json:"sort"`
+}
+
 type CdrCall struct {
 	LegA  StringInterface   `json:"leg_a" db:"leg_a"`
 	LegsB []StringInterface `json:"legs_b" db:"legs_b"`
