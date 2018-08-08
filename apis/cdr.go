@@ -7,8 +7,8 @@ import (
 )
 
 func (api *API) initCdr() {
-	api.PublicRoutes.Cdr.Handle("/text", api.ApiHandler(searchCdr)).Methods("POST")
-	api.PublicRoutes.Cdr.Handle("/text/scroll", api.ApiHandler(scrollCdr)).Methods("POST")
+	api.PublicRoutes.Cdr.Handle("/text", api.ApiSessionRequired(searchCdr)).Methods("POST")
+	api.PublicRoutes.Cdr.Handle("/text/scroll", api.ApiSessionRequired(scrollCdr)).Methods("POST")
 
 	api.PublicRoutes.Cdr.Handle("/{id}", api.ApiSessionRequired(getLegCdr)).Methods("GET")
 	api.PublicRoutes.Cdr.Handle("/{id}/b", api.ApiSessionRequired(getCdrCall)).Methods("GET")
@@ -33,13 +33,13 @@ func searchCdr(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	searchReq := model.SearchEngineRequestFromJson(r.Body)
 	searchReq.Index = "cdr*"
-	searchReq.Type = "cdr"
+	searchReq.Type = model.CDR_TYPE_NAME
 
-	searchReq.Filter.AddFilter(map[string]interface{}{
-		"term": map[string]interface{}{
-			"presence_id": "10.10.10.144",
-		},
-	})
+	//searchReq.Filter.AddFilter(map[string]interface{}{
+	//	"term": map[string]interface{}{
+	//		"presence_id": "10.10.10.144",
+	//	},
+	//})
 
 	tst, _ := searchReq.Filter.Source()
 	fmt.Println(tst)

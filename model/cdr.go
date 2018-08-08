@@ -2,6 +2,10 @@ package model
 
 import "encoding/json"
 
+const (
+	CDR_TYPE_NAME = "cdr"
+)
+
 type CdrData struct {
 	Event StringInterface
 }

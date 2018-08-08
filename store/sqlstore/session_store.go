@@ -13,8 +13,7 @@ type SqlSessionStore struct {
 func NewSqlSessionStore(sqlStore SqlStore) store.SessionStore {
 	us := &SqlSessionStore{sqlStore}
 	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.Session{}, "session").SetKeys(true, "Id")
-		table.ColMap("Id").SetMaxSize(26)
+		table := db.AddTableWithName(model.Session{}, "session").SetKeys(true, "Key")
 		table.ColMap("Token").SetMaxSize(500)
 		table.ColMap("UserId").SetMaxSize(26)
 	}

@@ -5,9 +5,11 @@ const (
 )
 
 type Session struct {
-	Id     string `json:"id"`
-	Token  string `json:"token"`
-	UserId string `json:"user_id"`
+	Key    string `db:"key" json:"key"`
+	Token  string `db:"token" json:"token"`
+	UserId string `db:"user_id" json:"user_id"`
+	//Domain *string `db:"domain" json:"domain"`
+	//RoleId int     `db:"role_id" json:"role_id"`
 }
 
 func (self *Session) IsExpired() bool {

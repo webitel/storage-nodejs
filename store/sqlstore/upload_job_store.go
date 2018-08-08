@@ -69,51 +69,49 @@ func (self *SqlUploadJobStore) GetAllPageByInstance(limit int, instance string) 
 }
 
 //region  sql sqlUpdateWithProfile
-const sqlUpdateWithProfile = `WITH lck AS (
-    SELECT
-      id,
-      domain
-    FROM upload_file_jobs
-    WHERE state = 0 AND instance = $2 AND (updated_at  <  $4 OR attempts = 0)
-    ORDER BY created_at ASC
-    LIMIT $1
-    FOR UPDATE
-)
-UPDATE upload_file_jobs t
-SET
-  state      = 1,
-  attempts  = attempts + 1,
-  updated_at = extract(EPOCH from now())::BIGINT
-FROM lck
-  inner join lateral
-             (
-             select
-               tmp.domain,
-               tmp.id,
-               tmp.updated_at
-             from (
-                    select
-                      p1.domain,
-                      p1.id,
-                      p1.updated_at,
-					  p1.priority
-                    from file_backend_profiles p1
-                    where p1.domain = lck.domain and NOT p1.disabled is TRUE
-                    union all
-                    select
-                      lck.domain,
-                      p2.id,
-                      p2.updated_at,
-					  p2.priority
-                    from file_backend_profiles p2
-                    where p2.domain = $3 and NOT p2.disabled is TRUE
-                  ) as tmp
-			 order by tmp.priority asc
-             FETCH FIRST 1 ROW ONLY
-             ) profile ON profile.domain = lck.domain
-WHERE
-  t.id = lck.id
-returning t.id, t.name, t.uuid, t.domain, t.mime_type, t.size, t.email_msg, t.email_sub, profile.id, profile.updated_at`
+const sqlUpdateWithProfile = `update upload_file_jobs uu
+set attempts = attempts + 1
+  ,state = 1
+  ,updated_at = extract(EPOCH from now()) :: BIGINT
+from (
+       SELECT
+         t.id,
+         t.name,
+         t.uuid,
+         t.domain,
+         t.mime_type,
+         t.size,
+         t.email_msg,
+         t.email_sub,
+         profile.id as profile_id,
+         profile.updated_at
+       FROM upload_file_jobs as t
+         inner join lateral (              select
+                                             tmp.domain,
+                                             tmp.id,
+                                             tmp.updated_at
+                                           from (select
+                                                   p1.domain,
+                                                   p1.id,
+                                                   p1.updated_at,
+                                                   p1.priority
+                                                 from file_backend_profiles p1
+                                                 where p1.domain = t.domain and NOT p1.disabled is TRUE
+                                                 union all select
+                                                             t.domain,
+                                                             p2.id,
+                                                             p2.updated_at,
+                                                             p2.priority
+                                                           from file_backend_profiles p2
+                                                           where p2.domain = $3 and
+                                                                 NOT p2.disabled is TRUE) as tmp
+                                           order by tmp.priority asc
+                                           FETCH FIRST 1 ROW ONLY              ) profile ON profile.domain = t.domain
+       WHERE state = 0 AND instance = $2 AND (t.updated_at < $4 OR attempts = 0)
+       ORDER BY created_at ASC
+       LIMIT $1) tmp
+WHERE tmp.id = uu.id and state = 0
+returning tmp.*`
 
 var sqlUpdateWithProfileFmt = strings.Replace(sqlUpdateWithProfile, "\n", " ", -1)
 
