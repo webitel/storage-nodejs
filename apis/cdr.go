@@ -7,7 +7,7 @@ import (
 )
 
 func (api *API) initCdr() {
-	api.PublicRoutes.Cdr.Handle("/text", api.ApiSessionRequired(searchCdr)).Methods("POST")
+	api.PublicRoutes.Cdr.Handle("/text", api.ApiHandler(searchCdr)).Methods("POST")
 	api.PublicRoutes.Cdr.Handle("/text/scroll", api.ApiSessionRequired(scrollCdr)).Methods("POST")
 
 	api.PublicRoutes.Cdr.Handle("/{id}", api.ApiSessionRequired(getLegCdr)).Methods("GET")
@@ -32,8 +32,16 @@ func searchCdr(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	defer r.Body.Close()
 	searchReq := model.SearchEngineRequestFromJson(r.Body)
-	searchReq.Index = "cdr*"
 	searchReq.Type = model.CDR_TYPE_NAME
+
+	switch r.URL.Query().Get("leg") {
+	case "b":
+		searchReq.Index = "cdr-b-*"
+	case "*":
+		searchReq.Index = "cdr-*-*"
+	default:
+		searchReq.Index = "cdr-a-*"
+	}
 
 	//searchReq.Filter.AddFilter(map[string]interface{}{
 	//	"term": map[string]interface{}{

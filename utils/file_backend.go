@@ -9,14 +9,28 @@ import (
 	"time"
 )
 
+const (
+	convert = 0.000001
+)
+
 var regCompileMask = regexp.MustCompile(`\$DOMAIN|\$Y|\$M|\$D|\$H|\$m`)
 
 type BaseFileBackend struct {
-	syncTime int64
+	syncTime  int64
+	writeSize float64
 }
 
 func (b *BaseFileBackend) GetSyncTime() int64 {
 	return b.syncTime
+}
+
+func (b *BaseFileBackend) GetSize() float64 {
+	return b.writeSize
+}
+
+// save to megabytes
+func (b *BaseFileBackend) setWriteSize(writtenBytes int64) {
+	b.writeSize += float64(writtenBytes) * convert
 }
 
 type File interface {
@@ -32,6 +46,7 @@ type FileBackend interface {
 	RemoveFile(directory, name string) *model.AppError
 	GetStoreDirectory(domain string) string
 	GetSyncTime() int64
+	GetSize() float64
 	Name() string
 }
 
@@ -39,7 +54,7 @@ func NewBackendStore(profile *model.FileBackendProfile) (FileBackend, *model.App
 	switch profile.TypeId {
 	case model.LOCAL_BACKEND:
 		return &LocalFileBackend{
-			BaseFileBackend: BaseFileBackend{profile.UpdatedAt},
+			BaseFileBackend: BaseFileBackend{profile.UpdatedAt, 0},
 			name:            profile.Name,
 			directory:       profile.Properties.GetString("directory"),
 			pathPattern:     profile.Properties.GetString("path_pattern"),

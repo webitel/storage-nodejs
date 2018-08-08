@@ -18,6 +18,10 @@ func (a *App) LoadConfig(configFile string) *model.AppError {
 		return err
 	}
 
+	if err = cfg.IsValid(); err != nil {
+		return err
+	}
+
 	a.configFile = configPath
 
 	a.config.Store(cfg)

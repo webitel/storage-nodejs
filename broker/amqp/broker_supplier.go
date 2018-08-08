@@ -29,7 +29,7 @@ func NewBrokerSupplier(settings model.BrokerSettings) *AMQP {
 		stop:     make(chan struct{}, 1),
 	}
 
-	//supplier.initConnection()
+	supplier.initConnection()
 	return supplier
 }
 
@@ -60,22 +60,31 @@ func (self *AMQP) initConnection() {
 
 	go func() {
 
-		select {
-		case d := <-msgs:
-			mlog.Debug(fmt.Sprintf("Received a message: %s", d.Body))
-		case <-self.stop:
-			mlog.Debug("Channel received stop signal.")
-			return
+		defer mlog.Info("Close cdr-leg-a channel")
+
+		for {
+			select {
+			case d := <-msgs:
+				mlog.Debug(fmt.Sprintf("Received a message: %d", len(d.Body)))
+			case <-self.stop:
+				mlog.Debug("Channel received stop signal.")
+				return
+			}
 		}
-		fmt.Println("Close cdr-leg-a channel")
 		self.initConnection()
 	}()
 }
 
 func (self *AMQP) Close() {
 	self.stop <- struct{}{}
-	self.channel.Close()
-	self.conn.Close()
+
+	if self.channel != nil {
+		self.channel.Close()
+	}
+
+	if self.conn != nil {
+		self.conn.Close()
+	}
 	mlog.Debug("Broker stopped.")
 }
 

@@ -42,6 +42,7 @@ func (self *LocalFileBackend) WriteFile(src io.Reader, directory, name string) (
 	if err != nil {
 		return written, model.NewAppError("WriteFile", "utils.file.locally.writing.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
+	self.setWriteSize(written)
 	return written, nil
 }
 

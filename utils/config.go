@@ -35,6 +35,10 @@ func LoadConfig(fileName string) (*model.Config, string, map[string]interface{},
 			ListenInternalAddress: model.NewString(":10021"),
 			SessionCacheInMinutes: &sessionCacheInMinutes,
 		},
+		MediaFileStoreSettings: model.MediaFileStoreSettings{
+			Directory:   model.NewString("/tmp/media_storage"),
+			PathPattern: model.NewString("$DOMAIN"),
+		},
 		SqlSettings: model.SqlSettings{
 			DriverName:                  &dbDriverName,
 			DataSource:                  &dbDatasource,
@@ -44,7 +48,8 @@ func LoadConfig(fileName string) (*model.Config, string, map[string]interface{},
 			Trace: false,
 		},
 		NoSqlSettings: model.NoSqlSettings{
-			Host: model.NewString("http://10.10.10.200:9200"),
+			Host:  model.NewString("http://10.10.10.200:9200"),
+			Trace: true,
 		},
 		BrokerSettings: model.BrokerSettings{
 			ConnectionString: model.NewString("amqp://webitel:secret@10.10.10.200:5672?heartbeat=0"),

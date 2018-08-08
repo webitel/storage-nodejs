@@ -80,6 +80,10 @@
     "translation": "Failed to update the backend_profile"
   },
   {
+    "id": "model.config.is_valid.media_store_directory.app_error",
+    "translation": "Invalid media store directory attribute. Must be set."
+  },
+  {
     "id": "model.file_backend_profile.name.app_error",
     "translation": "Name must be 1 or fewer characters"
   },

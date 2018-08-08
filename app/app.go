@@ -86,22 +86,7 @@ func New(options ...string) (outApp *App, outErr error) {
 		return nil, errors.Wrapf(err, "unable to load translation files")
 	}
 
-	var appErr *model.AppError
-	if app.FileBackendLocal, appErr = utils.NewBackendStore(&model.FileBackendProfile{
-		Name:       "Internal",
-		TypeId:     model.LOCAL_BACKEND,
-		Properties: model.StringInterface{"directory": model.CACHE_DIR, "path_pattern": ""},
-	}); appErr != nil {
-		return nil, appErr
-	}
-
-	if app.MediaFileStore, appErr = utils.NewBackendStore(&model.FileBackendProfile{
-		Name:       "Media store",
-		TypeId:     model.LOCAL_BACKEND,
-		Properties: model.StringInterface{"directory": model.CACHE_DIR, "path_pattern": ""},
-	}); appErr != nil {
-		return nil, appErr
-	}
+	app.initLocalFileStores()
 
 	mlog.Info("Server is initializing...")
 
@@ -120,15 +105,43 @@ func New(options ...string) (outApp *App, outErr error) {
 	app.InternalSrv.Router.NotFoundHandler = http.HandlerFunc(app.Handle404)
 
 	app.initJobs()
-
 	app.initUploader()
 	return app, outErr
 }
 
+func (app *App) initLocalFileStores() *model.AppError {
+	var appErr *model.AppError
+	settings := app.Config().MediaFileStoreSettings
+
+	if app.FileBackendLocal, appErr = utils.NewBackendStore(&model.FileBackendProfile{
+		Name:       "Internal",
+		TypeId:     model.LOCAL_BACKEND,
+		Properties: model.StringInterface{"directory": model.CACHE_DIR, "path_pattern": ""},
+	}); appErr != nil {
+		return appErr
+	}
+
+	if app.MediaFileStore, appErr = utils.NewBackendStore(&model.FileBackendProfile{
+		Name:       "Media store",
+		TypeId:     model.LOCAL_BACKEND,
+		Properties: model.StringInterface{"directory": *settings.Directory, "path_pattern": *settings.PathPattern},
+	}); appErr != nil {
+		return appErr
+	}
+
+	return nil
+}
+
 func (app *App) Shutdown() {
 	mlog.Info("Stopping Server...")
-	app.Srv.Server.Close()
-	app.InternalSrv.Server.Close()
+
+	if app.Srv.Server != nil {
+		app.Srv.Server.Close()
+	}
+
+	if app.InternalSrv.Server != nil {
+		app.InternalSrv.Server.Close()
+	}
 }
 
 func (a *App) Handle404(w http.ResponseWriter, r *http.Request) {

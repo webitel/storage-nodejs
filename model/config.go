@@ -1,5 +1,7 @@
 package model
 
+import "net/http"
+
 const (
 	DEFAULT_LOCALE = "en"
 
@@ -49,7 +51,8 @@ type SqlSettings struct {
 }
 
 type NoSqlSettings struct {
-	Host *string
+	Host  *string
+	Trace bool
 }
 
 type BrokerSettings struct {
@@ -69,4 +72,12 @@ type MediaFileStoreSettings struct {
 	MaxMb       *int
 	Directory   *string
 	PathPattern *string
+}
+
+func (c *Config) IsValid() *AppError {
+
+	if c.MediaFileStoreSettings.Directory == nil || len(*c.MediaFileStoreSettings.Directory) == 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.media_store_directory.app_error", nil, "", http.StatusInternalServerError)
+	}
+	return nil
 }

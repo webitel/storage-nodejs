@@ -39,12 +39,17 @@ func NewElasticSupplier(settings model.NoSqlSettings) *ElasticSupplier {
 	}
 
 	supplier := &ElasticSupplier{}
-	supplier.client, err = elastic.NewClient(
-		elastic.SetTraceLog(log.New(os.Stderr, "ELASTIC ", log.LstdFlags)),
+	options := []elastic.ClientOptionFunc{
 		elastic.SetURL(*settings.Host),
 		elastic.SetSniff(false),
-		elastic.SetHealthcheckTimeout(time.Second*DB_PING_TIMEOUT_SECS),
-	)
+		elastic.SetHealthcheckTimeout(time.Second * DB_PING_TIMEOUT_SECS),
+	}
+
+	if settings.Trace {
+		options = append(options, elastic.SetTraceLog(log.New(os.Stderr, "ELASTIC ", log.LstdFlags)))
+	}
+
+	supplier.client, err = elastic.NewClient(options...)
 
 	if err != nil {
 		mlog.Critical(fmt.Sprintf("Failed to open NoSQL connection to err:%v", err.Error()))

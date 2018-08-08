@@ -46,7 +46,7 @@ func (u *UploadTask) Execute() {
 		return
 	}
 
-	mlog.Debug(fmt.Sprintf("Store to %s/%s", directory, storeName))
+	mlog.Debug(fmt.Sprintf("Store to %s/%s %d bytes", directory, storeName, u.job.Size))
 
 	result := <-u.app.Store.File().MoveFromJob(int(u.job.Id), u.job.ProfileId, model.StringInterface{"directory": directory})
 	if result.Err != nil {
