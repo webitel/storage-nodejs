@@ -61,7 +61,7 @@ func (self *AMQP) initConnection() {
 	go func() {
 
 		defer mlog.Info("Close cdr-leg-a channel")
-
+		// check close...
 		for {
 			select {
 			case d := <-msgs:
@@ -95,6 +95,8 @@ func setupConnection(dial string) *amqp.Connection {
 		conn, err = amqp.Dial(dial)
 		if err == nil {
 			break
+		} else {
+			mlog.Error(fmt.Sprintf("Failed to dial AMQP retrying in %v seconds err=%v", PING_TIME_SEC, err))
 		}
 		time.Sleep(time.Second * PING_TIME_SEC)
 	}

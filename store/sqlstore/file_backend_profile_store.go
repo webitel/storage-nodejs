@@ -144,7 +144,7 @@ func (s SqlFileBackendProfileStore) Delete(id int, domain string) store.StoreCha
 
 func (s SqlFileBackendProfileStore) Update(profile *model.FileBackendProfile) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		if sqlResult, err := s.GetReplica().Exec(`
+		if sqlResult, err := s.GetMaster().Exec(`
 		UPDATE 
 			file_backend_profiles
 		SET name = :Name

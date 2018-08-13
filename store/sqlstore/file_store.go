@@ -42,7 +42,7 @@ func (self SqlFileStore) CreateIndexesIfNotExists() {
 //TODO reference tables ?
 func (self *SqlFileStore) MoveFromJob(jobId, profileId int, properties model.StringInterface) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		_, err := self.GetReplica().Exec(`with del as (
+		_, err := self.GetMaster().Exec(`with del as (
   delete from upload_file_jobs
   where id = $1
   returning name, uuid, size, domain, mime_type, created_at, instance

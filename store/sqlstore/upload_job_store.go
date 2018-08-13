@@ -48,7 +48,7 @@ func (self *SqlUploadJobStore) GetAllPageByInstance(limit int, instance string) 
 	return store.Do(func(result *store.StoreResult) {
 		var jobs []*model.JobUploadFile
 
-		res, err := self.GetMaster().Query("SELECT id, name, uuid, domain, mime_type, size, email_msg, email_sub, instance, attempts FROM upload_file_jobs LIMIT $1", limit)
+		res, err := self.GetReplica().Query("SELECT id, name, uuid, domain, mime_type, size, email_msg, email_sub, instance, attempts FROM upload_file_jobs LIMIT $1", limit)
 		if err != nil {
 			result.Err = model.NewAppError("SqlUploadJobStore.List", "store.sql_upload_job.list.app_error", nil, err.Error(), http.StatusInternalServerError)
 			return
@@ -121,7 +121,7 @@ func (self *SqlUploadJobStore) UpdateWithProfile(limit int, instance string, bet
 	return store.Do(func(result *store.StoreResult) {
 		var jobs = make([]*model.JobUploadFileWithProfile, 0, limit)
 
-		rows, err := self.GetReplica().Query(sqlUpdateWithProfileFmt, limit, instance, model.ROOT_FILE_BACKEND_DOMAIN, model.GetMillis()-betweenAttemptSec)
+		rows, err := self.GetMaster().Query(sqlUpdateWithProfileFmt, limit, instance, model.ROOT_FILE_BACKEND_DOMAIN, model.GetMillis()-betweenAttemptSec)
 		if err != nil {
 			result.Err = model.NewAppError("SqlUploadJobStore.UpdateWithProfile", "store.sql_upload_job.update_with_profile.app_error", nil, err.Error(), http.StatusInternalServerError)
 			return
@@ -144,7 +144,7 @@ func (self *SqlUploadJobStore) UpdateWithProfile(limit int, instance string, bet
 
 func (self *SqlUploadJobStore) SetStateError(id int, errMsg string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		self.GetReplica().Exec(`update upload_file_jobs
+		self.GetMaster().Exec(`update upload_file_jobs
 set state = 0,
   updated_at = $2
 where id = $1`, id, model.GetMillis())
