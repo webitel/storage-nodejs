@@ -20,6 +20,10 @@
     "translation": "Encountered an error creating the directory for the new file"
   },
   {
+    "id": "utils.file.locally.exists.app_error",
+    "translation": "This file name is already in use. Please choose another name."
+  },
+  {
     "id": "api.file.reader.reading_local.app_error",
     "translation": "Encountered an error opening a reader from local server file storage"
   },
@@ -194,5 +198,9 @@
   {
     "id": "store.sql_media_file.get_by_name.finding.app_error",
     "translation": "We encountered an error finding the media file"
+  },
+  {
+    "id": "store.sql_media_file.save.saving.duplicate",
+    "translation": "This media file name is already in use. Please choose another name."
   }
 ]

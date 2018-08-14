@@ -48,7 +48,7 @@ func (cw *CorsWrapper) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "OPTIONS" {
 		w.Header().Set(
 			"Access-Control-Allow-Methods",
-			strings.Join([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}, ", "))
+			strings.Join([]string{"GET", "POST", "PUT", "DELETE"}, ", "))
 
 		w.Header().Set(
 			"Access-Control-Allow-Headers",

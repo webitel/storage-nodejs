@@ -90,6 +90,8 @@ type MediaFileStore interface {
 	GetCountByDomain(domain string) StoreChannel
 	Get(id int64, domain string) StoreChannel
 	GetByName(name, domain string) StoreChannel
+	DeleteByName(name, domain string) StoreChannel
+	DeleteById(id int64) StoreChannel
 }
 
 type ScheduleStore interface {

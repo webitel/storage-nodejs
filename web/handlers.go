@@ -30,8 +30,6 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.Path = r.URL.Path
 	c.Log = c.App.Log
 
-	token, _ := app.ParseAuthTokenFromRequest(r)
-
 	w.Header().Set(model.HEADER_REQUEST_ID, c.RequestId)
 	w.Header().Set("Content-Type", "application/json")
 	if r.Method == "GET" {
@@ -39,6 +37,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//TODO
+	token, _ := app.ParseAuthTokenFromRequest(r)
 	if len(token) != 0 && h.RequireSession {
 		session, err := c.App.GetSession(token)
 		if err != nil {

@@ -31,11 +31,19 @@ func (self *LocalFileBackend) TestConnection() *model.AppError {
 func (self *LocalFileBackend) Write(src io.Reader, file File) (int64, *model.AppError) {
 	directory := self.GetStoreDirectory(file.DomainName())
 	root := path.Join(self.directory, directory)
+	allPath := path.Join(root, file.GetStoreName())
+	var err error
 
-	if err := os.MkdirAll(root, 0774); err != nil {
+	_, err = os.Stat(allPath)
+	if !os.IsNotExist(err) {
+		return 0, model.NewAppError("WriteFile", "utils.file.locally.exists.app_error", nil, "root="+root+" name="+file.GetStoreName(), http.StatusInternalServerError)
+	}
+
+	if err = os.MkdirAll(root, 0774); err != nil {
 		return 0, model.NewAppError("WriteFile", "utils.file.locally.create_dir.app_error", nil, "root="+root+", err="+err.Error(), http.StatusInternalServerError)
 	}
-	fw, err := os.OpenFile(path.Join(root, file.GetStoreName()), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+
+	fw, err := os.OpenFile(allPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
 		return 0, model.NewAppError("WriteFile", "utils.file.locally.writing.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}

@@ -1,22 +1,25 @@
 package apis
 
 import (
-	"fmt"
 	"github.com/webitel/storage/model"
 	"io"
 	"mime"
 	"mime/multipart"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 func (api *API) InitMediaFile() {
 	api.PublicRoutes.MediaFiles.Handle("", api.ApiHandler(listMediaFiles)).Methods("GET")
 	api.PublicRoutes.MediaFiles.Handle("/{id}", api.ApiHandler(getMediaFile)).Methods("GET")
 	api.PublicRoutes.MediaFiles.Handle("/{id}/stream", api.ApiHandler(streamMediaFile)).Methods("GET")
+
 	// Old version
 	api.PublicRoutes.MediaFiles.Handle("/{id}", api.ApiHandler(saveMediaFile)).Methods("POST")
 	api.PublicRoutes.MediaFiles.Handle("/", api.ApiHandler(saveMediaFile)).Methods("POST")
+
+	api.PublicRoutes.MediaFiles.Handle("/{id}", api.ApiHandler(removeMediaFile)).Methods("DELETE")
 }
 
 func getMediaFile(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -26,11 +29,10 @@ func getMediaFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.Err != nil {
 		return
 	}
-	var id int
-	var file *model.MediaFile
-	id, _ = strconv.Atoi(c.Params.Id)
 
-	if file, c.Err = c.App.GetMediaFile(int64(id), c.Params.Domain); c.Err != nil {
+	var file *model.MediaFile
+
+	if file, c.Err = c.App.GetMediaFileByName(c.Params.Id, c.Params.Domain); c.Err != nil {
 		return
 	}
 
@@ -72,8 +74,6 @@ func streamMediaFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		//TODO
 	}
 
-	file.Properties["directory"] = "10.10.10.144"
-
 	reader, err := c.App.MediaFileStore.Reader(file, offset)
 	if err != nil {
 		c.Err = err
@@ -102,35 +102,47 @@ func saveMediaFile(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	defer r.Body.Close()
 
-	//TODO check mime multipart
 	mediaType, params, err := mime.ParseMediaType(r.Header.Get("Content-Type"))
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(mediaType)
-	writer := multipart.NewReader(r.Body, params["boundary"])
 
-	for {
-		part, err := writer.NextPart()
-		if err == io.EOF {
-			return
+	if strings.HasPrefix(mediaType, "multipart/form-data") {
+		writer := multipart.NewReader(r.Body, params["boundary"])
+
+		for {
+			part, err := writer.NextPart()
+			if err == io.EOF {
+				return
+			}
+
+			if err != nil {
+				panic(err)
+			}
+
+			file := &model.MediaFile{}
+			file.Properties = model.StringInterface{}
+			file.Name = part.FileName()
+			file.Domain = c.Params.Domain
+			file.MimeType = part.Header.Get("Content-Type")
+
+			if _, err := c.App.SaveMediaFile(part, file); err != nil {
+				c.Err = err
+				return
+			}
+			part.Close()
 		}
-
-		if err != nil {
-			panic(err)
-		}
-
+	} else {
 		file := &model.MediaFile{}
 		file.Properties = model.StringInterface{}
-		file.Name = part.FileName()
+		file.Name = r.URL.Query().Get("name")
 		file.Domain = c.Params.Domain
-		file.MimeType = part.Header.Get("Content-Type")
+		file.MimeType = r.Header.Get("Content-Type")
 
-		if _, err := c.App.SaveMediaFile(part, file); err != nil {
+		if _, err := c.App.SaveMediaFile(r.Body, file); err != nil {
 			c.Err = err
 			return
 		}
-		part.Close()
 	}
 
 }
@@ -159,4 +171,21 @@ func listMediaFiles(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Write([]byte(response.ToJson()))
 
+}
+
+func removeMediaFile(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireDomain()
+	c.RequireId()
+
+	if c.Err != nil {
+		return
+	}
+
+	_, c.Err = c.App.RemoveMediaFileByName(c.Params.Id, c.Params.Domain)
+
+	if c.Err != nil {
+		return
+	}
+
+	ReturnStatusOK(w)
 }

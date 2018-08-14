@@ -6,6 +6,7 @@ import (
 	"github.com/webitel/storage/model"
 	"github.com/webitel/storage/store"
 	"net/http"
+	"strings"
 )
 
 type SqlMediaFileStore struct {
@@ -35,8 +36,14 @@ func (self *SqlMediaFileStore) Save(file *model.MediaFile) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		file.PreSave()
 		if err := self.GetMaster().Insert(file); err != nil {
-			result.Err = model.NewAppError("SqlMediaFileStore.Save", "store.sql_media_file.save.saving.app_error", nil,
-				fmt.Sprintf("name=%s, %s", file.Name, err.Error()), http.StatusInternalServerError)
+			//TODO
+			if strings.Index(err.Error(), "duplicate") > -1 {
+				result.Err = model.NewAppError("SqlMediaFileStore.Save", "store.sql_media_file.save.saving.duplicate", nil,
+					fmt.Sprintf("name=%s, %s", file.Name, err.Error()), http.StatusInternalServerError)
+			} else {
+				result.Err = model.NewAppError("SqlMediaFileStore.Save", "store.sql_media_file.save.saving.app_error", nil,
+					fmt.Sprintf("name=%s, %s", file.Name, err.Error()), http.StatusInternalServerError)
+			}
 		} else {
 			result.Data = file
 		}
@@ -106,6 +113,38 @@ func (self *SqlMediaFileStore) GetByName(name, domain string) store.StoreChannel
 			}
 		} else {
 			result.Data = file
+		}
+	})
+}
+
+func (self *SqlMediaFileStore) DeleteByName(name, domain string) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		res, err := self.GetMaster().Exec("DELETE FROM media_files WHERE name = :Name AND domain = :Domain", map[string]interface{}{"Name": name, "Domain": domain})
+		if err != nil {
+			result.Err = model.NewAppError("SqlMediaFileStore.DeleteByName", "store.sql_media_file.delete.app_error", nil,
+				fmt.Sprintf("name=%s, err: %s", name, err.Error()), http.StatusInternalServerError)
+			return
+		}
+		count, _ := res.RowsAffected()
+		if count == 0 {
+			result.Err = model.NewAppError("SqlMediaFileStore.DeleteByName", "store.sql_media_file.delete.not_found.app_error", map[string]interface{}{"Name": name},
+				"", http.StatusNotFound)
+		}
+	})
+}
+
+func (self *SqlMediaFileStore) DeleteById(id int64) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		res, err := self.GetMaster().Exec("DELETE FROM media_files WHERE id = :Id", map[string]interface{}{"Id": id})
+		if err != nil {
+			result.Err = model.NewAppError("SqlMediaFileStore.DeleteById", "store.sql_media_file.delete.app_error", nil,
+				fmt.Sprintf("id=%d, err: %s", id, err.Error()), http.StatusInternalServerError)
+			return
+		}
+		count, _ := res.RowsAffected()
+		if count == 0 {
+			result.Err = model.NewAppError("SqlMediaFileStore.DeleteById", "store.sql_media_file.delete.not_found.app_error", map[string]interface{}{"Id": id},
+				"", http.StatusNotFound)
 		}
 	})
 }

@@ -30,7 +30,9 @@ func (app *App) SaveMediaFile(src io.Reader, mediaFile *model.MediaFile) (*model
 	}
 
 	if result := <-app.Store.MediaFile().Save(mediaFile); result.Err != nil {
-		app.MediaFileStore.Remove(mediaFile)
+		if result.Err.Id != "store.sql_media_file.save.saving.duplicate" {
+			app.MediaFileStore.Remove(mediaFile)
+		}
 		return nil, result.Err
 	} else {
 		return result.Data.(*model.MediaFile), nil
@@ -67,4 +69,20 @@ func (app *App) GetMediaFileByName(name, domain string) (*model.MediaFile, *mode
 	} else {
 		return result.Data.(*model.MediaFile), nil
 	}
+}
+
+func (app *App) RemoveMediaFileByName(name, domain string) (file *model.MediaFile, err *model.AppError) {
+
+	file, err = app.GetMediaFileByName(name, domain)
+	if err != nil {
+		return
+	}
+
+	err = app.MediaFileStore.Remove(file)
+	if err != nil {
+		return
+	}
+
+	result := <-app.Store.MediaFile().DeleteById(file.Id)
+	return nil, result.Err
 }
