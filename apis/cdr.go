@@ -43,6 +43,14 @@ func searchCdr(c *Context, w http.ResponseWriter, r *http.Request) {
 		searchReq.Index = "cdr-a-*"
 	}
 
+	if c.Params.Domain != "" {
+		searchReq.Domain = model.NewString(c.Params.Domain)
+	}
+
+	if searchReq.Domain != nil {
+		searchReq.Index += "-" + *searchReq.Domain
+	}
+
 	//searchReq.Filter.AddFilter(map[string]interface{}{
 	//	"term": map[string]interface{}{
 	//		"presence_id": "10.10.10.144",

@@ -178,5 +178,9 @@
   {
     "id": "store.no_sql.search.app_error",
     "translation": "We couldn't get the data from {{.Type}}"
+  },
+  {
+    "id": "store.sql_media_file.save.saving.app_error",
+    "translation": "We couldn't save the media file"
   }
 ]

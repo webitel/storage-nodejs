@@ -85,6 +85,9 @@ type FileStore interface {
 }
 
 type MediaFileStore interface {
+	Save(file *model.MediaFile) StoreChannel
+	GetAllByDomain(domain string, offset, limit int) StoreChannel
+	GetCountByDomain(domain string) StoreChannel
 }
 
 type ScheduleStore interface {

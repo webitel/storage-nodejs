@@ -8,6 +8,7 @@ import (
 type SearchEngineRequest struct {
 	Index           string
 	Type            string
+	Domain          *string                   `json:"domain"`
 	Columns         []string                  `json:"columnsDate"` //TODO rename to columns
 	Includes        []string                  `json:"includes"`
 	Excludes        []string                  `json:"excludes"`

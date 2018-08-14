@@ -5,18 +5,22 @@ import (
 	"fmt"
 )
 
-type File struct {
+type BaseFile struct {
 	Id         int64           `db:"id" json:"id"`
-	Name       string          `db:"name" json:"name"`
-	Uuid       string          `db:"uuid" json:"uuid"`
-	ProfileId  int             `db:"profile_id" json:"profile_id"`
-	Size       int64           `db:"size" json:"size"`
 	Domain     string          `db:"domain" json:"domain"`
+	Name       string          `db:"name" json:"name"`
+	Size       int64           `db:"size" json:"size"`
 	MimeType   string          `db:"mime_type" json:"mime_type"`
 	Properties StringInterface `db:"properties" json:"properties"`
-	CreatedAt  int64           `db:"created_at" json:"created_at"`
 	Instance   string          `db:"instance" json:"-"`
-	Removed    *bool           `db:"removed" json:"-"`
+}
+
+type File struct {
+	BaseFile
+	Uuid      string `db:"uuid" json:"uuid"`
+	ProfileId int    `db:"profile_id" json:"profile_id"`
+	CreatedAt int64  `db:"created_at" json:"created_at"`
+	Removed   *bool  `db:"removed" json:"-"`
 }
 
 type RemoveFile struct {
@@ -35,13 +39,6 @@ type RemoveFileJob struct {
 	RemoveFile
 }
 
-type MediaFile struct {
-	File
-	CreatedBy string `db:"created_by"`
-	UpdatedBy string `db:"updated_by"`
-	UpdatedAt int64  `db:"updated_at"`
-}
-
 type FileWithProfile struct {
 	File
 	ProfileUpdatedAt int64 `db:"profile_updated_at"`
@@ -57,7 +54,7 @@ func FileListToJson(list []*File) string {
 	return string(b)
 }
 
-func (self File) GetPropertyString(name string) string {
+func (self BaseFile) GetPropertyString(name string) string {
 	return self.Properties.GetString(name)
 }
 

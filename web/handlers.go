@@ -38,7 +38,8 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Expires", "0")
 	}
 
-	if len(token) != 0 {
+	//TODO
+	if len(token) != 0 && h.RequireSession {
 		session, err := c.App.GetSession(token)
 		if err != nil {
 			c.Log.Info("Invalid session", mlog.Err(err))

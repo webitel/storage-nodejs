@@ -29,7 +29,7 @@ func NewBrokerSupplier(settings model.BrokerSettings) *AMQP {
 		stop:     make(chan struct{}, 1),
 	}
 
-	supplier.initConnection()
+	//supplier.initConnection()
 	return supplier
 }
 

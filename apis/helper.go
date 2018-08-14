@@ -1,6 +1,7 @@
 package apis
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/webitel/storage/model"
 	"net/http"
@@ -10,6 +11,11 @@ import (
 
 type HttpRange struct {
 	Start, Length int64
+}
+
+type ListResponse struct {
+	Total int64       `json:"total"`
+	Items interface{} `json:"items"`
 }
 
 func (r HttpRange) ContentRange(size int64) string {
@@ -86,4 +92,9 @@ func parseRange(s string, size int64) ([]HttpRange, *model.AppError) {
 		return nil, errFailedToOverlapRange
 	}
 	return ranges, nil
+}
+
+func (list *ListResponse) ToJson() string {
+	b, _ := json.Marshal(list)
+	return string(b)
 }

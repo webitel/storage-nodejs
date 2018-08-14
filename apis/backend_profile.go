@@ -29,7 +29,7 @@ func createProfile(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	profile.Domain = c.Params.Domain
 
-	if profile, err := c.App.CreateFileBackendProfile(profile); err != nil {
+	if profile, err := c.App.SaveFileBackendProfile(profile); err != nil {
 		c.Err = err
 		return
 	} else {

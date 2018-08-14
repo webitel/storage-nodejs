@@ -6,7 +6,7 @@ import (
 	"github.com/webitel/storage/utils"
 )
 
-func (app *App) CreateFileBackendProfile(profile *model.FileBackendProfile) (*model.FileBackendProfile, *model.AppError) {
+func (app *App) SaveFileBackendProfile(profile *model.FileBackendProfile) (*model.FileBackendProfile, *model.AppError) {
 	if err := profile.IsValid(); err != nil {
 		return nil, err
 	}

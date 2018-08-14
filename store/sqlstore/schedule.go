@@ -30,6 +30,7 @@ func NewSqlScheduleStore(sqlStore SqlStore) store.ScheduleStore {
 func (self SqlScheduleStore) CreateIndexesIfNotExists() {
 
 }
+
 func (self SqlScheduleStore) GetAllEnablePage(limit, offset int) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var data []*model.Schedule
