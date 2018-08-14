@@ -11,7 +11,7 @@ type JobUploadFile struct {
 	Uuid      string `db:"uuid"`
 	Domain    string `db:"domain"`
 	MimeType  string `db:"mime_type"`
-	Size      int    `db:"size"`
+	Size      int64  `db:"size"`
 	EmailMsg  string `db:"email_msg"`
 	EmailSub  string `db:"email_sub"`
 	Instance  string `db:"instance"`
@@ -37,6 +37,13 @@ func (self *JobUploadFile) GetStoreName() string {
 	return fmt.Sprintf("%s_%s", self.Uuid, self.Name)
 }
 
+//TODO
 func (self *JobUploadFile) GetPropertyString(name string) string {
+	return ""
+}
+func (self *JobUploadFile) SetPropertyString(name, value string) {
+
+}
+func (self *JobUploadFile) DomainName() string {
 	return ""
 }

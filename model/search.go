@@ -108,10 +108,8 @@ func SearchEngineRequestFromJson(data io.Reader) *SearchEngineRequest {
 		if req.Page > 0 {
 			req.Page--
 		}
-		return &req
-	} else {
-		return nil
 	}
+	return &req
 }
 func SearchEngineScrollFromJson(data io.Reader) *SearchEngineScroll {
 	var req SearchEngineScroll

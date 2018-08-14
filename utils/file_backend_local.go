@@ -28,12 +28,14 @@ func (self *LocalFileBackend) TestConnection() *model.AppError {
 	return nil
 }
 
-func (self *LocalFileBackend) WriteFile(src io.Reader, directory, name string) (int64, *model.AppError) {
-	directory = path.Join(self.directory, directory)
-	if err := os.MkdirAll(directory, 0774); err != nil {
-		return 0, model.NewAppError("WriteFile", "utils.file.locally.create_dir.app_error", nil, "directory="+directory+", err="+err.Error(), http.StatusInternalServerError)
+func (self *LocalFileBackend) Write(src io.Reader, file File) (int64, *model.AppError) {
+	directory := self.GetStoreDirectory(file.DomainName())
+	root := path.Join(self.directory, directory)
+
+	if err := os.MkdirAll(root, 0774); err != nil {
+		return 0, model.NewAppError("WriteFile", "utils.file.locally.create_dir.app_error", nil, "root="+root+", err="+err.Error(), http.StatusInternalServerError)
 	}
-	fw, err := os.OpenFile(path.Join(directory, name), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+	fw, err := os.OpenFile(path.Join(root, file.GetStoreName()), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
 		return 0, model.NewAppError("WriteFile", "utils.file.locally.writing.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -43,6 +45,7 @@ func (self *LocalFileBackend) WriteFile(src io.Reader, directory, name string) (
 		return written, model.NewAppError("WriteFile", "utils.file.locally.writing.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	self.setWriteSize(written)
+	file.SetPropertyString("directory", directory)
 	return written, nil
 }
 

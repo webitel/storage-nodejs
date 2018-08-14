@@ -34,17 +34,17 @@ func (b *BaseFileBackend) setWriteSize(writtenBytes int64) {
 }
 
 type File interface {
+	DomainName() string
 	GetStoreName() string
 	GetPropertyString(name string) string
+	SetPropertyString(name, value string)
 }
 
 type FileBackend interface {
 	TestConnection() *model.AppError
 	Reader(file File, offset int64) (io.ReadCloser, *model.AppError)
 	Remove(file File) *model.AppError
-	WriteFile(fr io.Reader, directory, name string) (int64, *model.AppError)
-	RemoveFile(directory, name string) *model.AppError
-	GetStoreDirectory(domain string) string
+	Write(src io.Reader, file File) (int64, *model.AppError)
 	GetSyncTime() int64
 	GetSize() float64
 	Name() string

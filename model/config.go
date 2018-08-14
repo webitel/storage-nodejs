@@ -69,7 +69,8 @@ type Config struct {
 }
 
 type MediaFileStoreSettings struct {
-	MaxMb       *int
+	MaxSizeByte *int
+	AllowMime   []string
 	Directory   *string
 	PathPattern *string
 }

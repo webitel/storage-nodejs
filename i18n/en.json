@@ -182,5 +182,17 @@
   {
     "id": "store.sql_media_file.save.saving.app_error",
     "translation": "We couldn't save the media file"
+  },
+  {
+    "id": "store.sql_media_file.get_all.finding.app_error",
+    "translation": "We couldn't get the media file"
+  },
+  {
+    "id": "store.sql_media_file.get.finding.app_error",
+    "translation": "We encountered an error finding the media file"
+  },
+  {
+    "id": "store.sql_media_file.get_by_name.finding.app_error",
+    "translation": "We encountered an error finding the media file"
   }
 ]

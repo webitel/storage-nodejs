@@ -1,5 +1,9 @@
 package model
 
+import (
+	"encoding/json"
+)
+
 type MediaFile struct {
 	BaseFile
 	CreatedBy string `db:"created_by" json:"created_by"`
@@ -14,6 +18,16 @@ func (self *MediaFile) PreSave() *AppError {
 	return nil
 }
 
+func (self *MediaFile) IsValid() *AppError {
+
+	return nil
+}
+
 func (self MediaFile) GetStoreName() string {
 	return self.Name
+}
+
+func (self *MediaFile) ToJson() string {
+	b, _ := json.Marshal(self)
+	return string(b)
 }

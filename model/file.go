@@ -58,6 +58,14 @@ func (self BaseFile) GetPropertyString(name string) string {
 	return self.Properties.GetString(name)
 }
 
+func (self BaseFile) SetPropertyString(name, value string) {
+	self.Properties[name] = value
+}
+
+func (self BaseFile) DomainName() string {
+	return self.Domain
+}
+
 func (self File) GetStoreName() string {
 	return fmt.Sprintf("%s_%s", self.Uuid, self.Name)
 }

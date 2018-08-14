@@ -9,8 +9,8 @@ import (
 )
 
 func (api *API) InitFiles() {
-	api.PublicRoutes.Files.Handle("", api.ApiSessionRequired(listFiles)).Methods("GET")
-	api.PublicRoutes.Files.Handle("/{id}", api.ApiSessionRequired(getFile)).Methods("GET")
+	api.PublicRoutes.Files.Handle("", api.ApiHandler(listFiles)).Methods("GET")
+	api.PublicRoutes.Files.Handle("/{id}", api.ApiHandler(getFile)).Methods("GET")
 }
 
 func listFiles(c *Context, w http.ResponseWriter, r *http.Request) {

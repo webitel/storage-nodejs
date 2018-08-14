@@ -2,6 +2,7 @@ package model
 
 const (
 	API_URL_SUFFIX_V2          = "/api/v2"
+	API_URL_SUFFIX_V3          = "/api/v3"
 	API_INTERNAL_URL_SUFFIX_V1 = "/sys"
 	API_URL_SUFFIX             = API_URL_SUFFIX_V2
 

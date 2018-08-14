@@ -1,6 +1,7 @@
 package sqlstore
 
 import (
+	"database/sql"
 	"fmt"
 	"github.com/webitel/storage/model"
 	"github.com/webitel/storage/store"
@@ -19,7 +20,7 @@ func NewSqlMediaFileStore(sqlStore SqlStore) store.MediaFileStore {
 		table.ColMap("Name").SetNotNull(true).SetMaxSize(100)
 		table.ColMap("Size").SetNotNull(true)
 		table.ColMap("Domain").SetNotNull(true).SetMaxSize(100)
-		table.ColMap("MimeType").SetNotNull(false).SetMaxSize(20)
+		table.ColMap("MimeType").SetNotNull(false).SetMaxSize(40)
 		table.ColMap("Instance").SetNotNull(false).SetMaxSize(20)
 	}
 
@@ -67,6 +68,44 @@ func (self *SqlMediaFileStore) GetCountByDomain(domain string) store.StoreChanne
 			result.Err = model.NewAppError("SqlMediaFileStore.LiGetCountByDomainst", "store.sql_media_file.get_all.finding.app_error", nil, err.Error(), http.StatusInternalServerError)
 		} else {
 			result.Data = count
+		}
+	})
+}
+
+func (self *SqlMediaFileStore) Get(id int64, domain string) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		query := `SELECT * FROM media_files WHERE id = :Id AND domain = :Domain`
+
+		file := &model.MediaFile{}
+
+		if err := self.GetReplica().SelectOne(file, query, map[string]interface{}{"Id": id, "Domain": domain}); err != nil {
+			result.Err = model.NewAppError("SqlMediaFileStore.Get", "store.sql_media_file.get.finding.app_error", nil,
+				fmt.Sprintf("id=%d, domain=%s, %s", id, domain, err.Error()), http.StatusInternalServerError)
+
+			if err == sql.ErrNoRows {
+				result.Err.StatusCode = http.StatusNotFound
+			}
+		} else {
+			result.Data = file
+		}
+	})
+}
+
+func (self *SqlMediaFileStore) GetByName(name, domain string) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		query := `SELECT * FROM media_files WHERE name = :Name AND domain = :Domain`
+
+		file := &model.MediaFile{}
+
+		if err := self.GetReplica().SelectOne(file, query, map[string]interface{}{"Name": name, "Domain": domain}); err != nil {
+			result.Err = model.NewAppError("SqlMediaFileStore.GetByName", "store.sql_media_file.get_by_name.finding.app_error", nil,
+				fmt.Sprintf("name=%s, domain=%s, %s", name, domain, err.Error()), http.StatusInternalServerError)
+
+			if err == sql.ErrNoRows {
+				result.Err.StatusCode = http.StatusNotFound
+			}
+		} else {
+			result.Data = file
 		}
 	})
 }

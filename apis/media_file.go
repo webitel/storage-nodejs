@@ -7,13 +7,90 @@ import (
 	"mime"
 	"mime/multipart"
 	"net/http"
+	"strconv"
 )
 
 func (api *API) InitMediaFile() {
 	api.PublicRoutes.MediaFiles.Handle("", api.ApiHandler(listMediaFiles)).Methods("GET")
+	api.PublicRoutes.MediaFiles.Handle("/{id}", api.ApiHandler(getMediaFile)).Methods("GET")
+	api.PublicRoutes.MediaFiles.Handle("/{id}/stream", api.ApiHandler(streamMediaFile)).Methods("GET")
 	// Old version
 	api.PublicRoutes.MediaFiles.Handle("/{id}", api.ApiHandler(saveMediaFile)).Methods("POST")
 	api.PublicRoutes.MediaFiles.Handle("/", api.ApiHandler(saveMediaFile)).Methods("POST")
+}
+
+func getMediaFile(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireDomain()
+	c.RequireId()
+
+	if c.Err != nil {
+		return
+	}
+	var id int
+	var file *model.MediaFile
+	id, _ = strconv.Atoi(c.Params.Id)
+
+	if file, c.Err = c.App.GetMediaFile(int64(id), c.Params.Domain); c.Err != nil {
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(file.ToJson()))
+}
+
+func streamMediaFile(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireDomain()
+	c.RequireId()
+
+	if c.Err != nil {
+		return
+	}
+
+	var file *model.MediaFile
+
+	if file, c.Err = c.App.GetMediaFileByName(c.Params.Id, c.Params.Domain); c.Err != nil {
+		return
+	}
+
+	ranges, err := parseRange(r.Header.Get("Range"), int64(file.Size))
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	var offset int64 = 0
+	sendSize := file.Size
+	code := http.StatusOK
+
+	switch {
+	case len(ranges) == 1:
+		code = http.StatusPartialContent
+		offset = ranges[0].Start
+		sendSize = ranges[0].Length
+		w.Header().Set("Content-Range", ranges[0].ContentRange(file.Size))
+	default:
+		//TODO
+	}
+
+	file.Properties["directory"] = "10.10.10.144"
+
+	reader, err := c.App.MediaFileStore.Reader(file, offset)
+	if err != nil {
+		c.Err = err
+		return
+	}
+	defer reader.Close()
+
+	w.Header().Set("Accept-Ranges", "bytes")
+	//w.Header().Set("Cache-Control", "no-cache, must-revalidate, max-age=0")
+	w.Header().Set("Content-Type", file.MimeType)
+
+	if w.Header().Get("Content-Encoding") == "" {
+		w.Header().Set("Content-Length", strconv.FormatInt(sendSize, 10))
+	}
+
+	w.WriteHeader(code)
+	io.CopyN(w, reader, sendSize)
 }
 
 func saveMediaFile(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -48,6 +125,7 @@ func saveMediaFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		file.Name = part.FileName()
 		file.Domain = c.Params.Domain
 		file.MimeType = part.Header.Get("Content-Type")
+
 		if _, err := c.App.SaveMediaFile(part, file); err != nil {
 			c.Err = err
 			return

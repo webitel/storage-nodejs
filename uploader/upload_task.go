@@ -37,25 +37,36 @@ func (u *UploadTask) Execute() {
 	}
 	defer r.Close()
 
-	storeName := u.job.GetStoreName()
-	directory := store.GetStoreDirectory(u.job.Domain)
+	f := &model.File{
+		Uuid:      u.job.Uuid,
+		ProfileId: u.job.ProfileId,
+		CreatedAt: u.job.CreatedAt,
+		BaseFile: model.BaseFile{
+			Size:       u.job.Size,
+			Domain:     u.job.Domain,
+			Name:       u.job.Name,
+			MimeType:   u.job.MimeType,
+			Properties: model.StringInterface{},
+			Instance:   u.job.Instance,
+		},
+	}
 
-	if _, err = store.WriteFile(r, directory, storeName); err != nil {
+	if _, err = store.Write(r, f); err != nil {
 		mlog.Critical(err.Error())
 		u.app.Store.UploadJob().SetStateError(int(u.job.Id), err.Error())
 		return
 	}
 
-	mlog.Debug(fmt.Sprintf("Store to %s/%s %d bytes", directory, storeName, u.job.Size))
+	mlog.Debug(fmt.Sprintf("Store %s to %s %d bytes", u.job.GetStoreName(), store.Name(), u.job.Size))
 
-	result := <-u.app.Store.File().MoveFromJob(int(u.job.Id), u.job.ProfileId, model.StringInterface{"directory": directory})
+	result := <-u.app.Store.File().MoveFromJob(int(u.job.Id), u.job.ProfileId, f.Properties)
 	if result.Err != nil {
 		mlog.Critical(result.Err.Error())
 		u.app.Store.UploadJob().SetStateError(int(u.job.Id), result.Err.Error())
 		return
 	}
 
-	err = u.app.FileBackendLocal.RemoveFile(u.app.FileBackendLocal.GetStoreDirectory(""), u.job.GetStoreName())
+	err = u.app.FileBackendLocal.Remove(u.job)
 	if err != nil {
 		mlog.Critical(err.Error())
 	}

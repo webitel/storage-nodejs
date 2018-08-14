@@ -36,8 +36,10 @@ func LoadConfig(fileName string) (*model.Config, string, map[string]interface{},
 			SessionCacheInMinutes: &sessionCacheInMinutes,
 		},
 		MediaFileStoreSettings: model.MediaFileStoreSettings{
+			MaxSizeByte: model.NewInt(50 * 1000000),
 			Directory:   model.NewString("/tmp/media_storage"),
 			PathPattern: model.NewString("$DOMAIN"),
+			AllowMime:   []string{"video/mp4", "audio/mp3", "audio/wav"},
 		},
 		SqlSettings: model.SqlSettings{
 			DriverName:                  &dbDriverName,
