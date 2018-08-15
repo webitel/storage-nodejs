@@ -54,6 +54,7 @@ func (self *SqlCdrStore) GetLegBDataByUuid(uuid string) store.StoreChannel {
 func (self *SqlCdrStore) GetByUuidCall(uuid string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		cdrCall := model.CdrCall{}
+
 		err := self.GetReplica().SelectOne(&cdrCall, `select event as leg_a,
                     (select array_to_json(array_agg(event))
 						from (

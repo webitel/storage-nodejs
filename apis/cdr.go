@@ -8,10 +8,10 @@ import (
 
 func (api *API) initCdr() {
 	api.PublicRoutes.Cdr.Handle("/text", api.ApiHandler(searchCdr)).Methods("POST")
-	api.PublicRoutes.Cdr.Handle("/text/scroll", api.ApiSessionRequired(scrollCdr)).Methods("POST")
+	api.PublicRoutes.Cdr.Handle("/text/scroll", api.ApiHandler(scrollCdr)).Methods("POST")
 
-	api.PublicRoutes.Cdr.Handle("/{id}", api.ApiSessionRequired(getLegCdr)).Methods("GET")
-	api.PublicRoutes.Cdr.Handle("/{id}/b", api.ApiSessionRequired(getCdrCall)).Methods("GET")
+	api.PublicRoutes.Cdr.Handle("/{id}", api.ApiHandler(getLegCdr)).Methods("GET")
+	api.PublicRoutes.Cdr.Handle("/{id}/b", api.ApiHandler(getCdrCall)).Methods("GET")
 }
 
 func scrollCdr(c *Context, w http.ResponseWriter, r *http.Request) {

@@ -22,8 +22,8 @@ type NoSQLRequest struct {
 }
 
 type CdrCall struct {
-	LegA  StringInterface   `json:"leg_a" db:"leg_a"`
-	LegsB []StringInterface `json:"legs_b" db:"legs_b"`
+	LegA  StringInterface    `json:"leg_a" db:"leg_a"`
+	LegsB *[]StringInterface `json:"legs_b" db:"legs_b"`
 }
 
 func (self *CdrCall) ToJSON() string {
