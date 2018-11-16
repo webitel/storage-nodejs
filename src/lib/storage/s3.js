@@ -32,7 +32,7 @@ module.exports = class S3Storage {
 
     get (fileDb, options, cb) {
         let params = {
-            Bucket: fileDb.bucketName,
+            Bucket: this._bucketName,
             Key: fileDb.path
         };
 
@@ -52,6 +52,9 @@ module.exports = class S3Storage {
                 .send();
         } else {
             this._client.getSignedUrl('getObject', params, function (err, url) {
+                if (err)
+                    return cb(err);
+
                 log.debug(`try redirect to ${url}`);
                 return cb(null, {
                     location: url,
@@ -107,19 +110,19 @@ module.exports = class S3Storage {
 
     del (fileConf, cb) {
         this._client.deleteObject({
-            Bucket: fileConf.bucketName,
+            Bucket: this._bucketName,
             Key: fileConf.path
         }, cb);
     }
 
     existsFile (fileConf, cb) {
         let params = {
-            Bucket: fileConf.bucketName,
+            Bucket: this._bucketName,
             Key: fileConf.path
         };
 
         this._client.headObject(params, (err, data) => {
-            if (err && err.statusCode != 404)
+            if (err && err.statusCode !== 404)
                 return cb(err);
 
             return cb(null, !!data)
