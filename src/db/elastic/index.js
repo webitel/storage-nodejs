@@ -50,6 +50,9 @@ class ElasticClient extends EventEmitter2 {
         this.client.ping({}, (err) => {
             if (err) {
                 log.error(err);
+                if (err.statusCode === 403) {
+                    throw err
+                }
                 this.pingId = setTimeout(this.ping.bind(this), 1000);
                 return null;
             }
