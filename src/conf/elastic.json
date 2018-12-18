@@ -1,10 +1,10 @@
 {
   "elastic": {
     "enabled": true,
-    "log": "warning",
+    "httpAuth": "kibana:kibana",
     "host": "elasticsearch:9200",
+    "log": "warning",
     "keepAlive": false,
-
     "requestTimeout": 60000
   }
 }
