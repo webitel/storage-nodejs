@@ -258,6 +258,7 @@ const Service = module.exports = {
                     application.elastic.insertFile({
                         uuid: doc.uuid,
                         domain_name: doc.domain,
+                        created_on: +option.created_on,
                         recordings: [doc]
                     }, (err) => {
                         if (err)

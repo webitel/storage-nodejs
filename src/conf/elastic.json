@@ -5,6 +5,8 @@
     "host": "elasticsearch:9200",
     "log": "warning",
     "keepAlive": false,
-    "requestTimeout": 60000
+    "requestTimeout": 60000,
+    "indexNameCdr": "cdr",
+    "indexNameCdrTemplate": "${INDEX}-${LEG}-${YEAR}-${MONTH}-${WEEK}-${DOMAIN}"
   }
 }

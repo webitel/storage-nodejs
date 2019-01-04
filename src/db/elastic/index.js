@@ -8,7 +8,7 @@ const elasticsearch = require('elasticsearch'),
     EventEmitter2 = require('eventemitter2').EventEmitter2,
     log = require(__appRoot + '/lib/log')(module),
     setCustomAttribute = require(__appRoot + '/utils/cdr').setCustomAttribute,
-    conf = require(`${__appRoot}/conf`)
+    moment = require("moment")
 ;
 
 const CDR_NAME = 'cdr',
@@ -31,6 +31,34 @@ const scriptDelPin = `if (ctx._source["pinned_items"] != null) {
     }
 }`;
 
+const dropTimeFromTimestamp = (time) => {
+    return (time - (time % 86400000))
+};
+
+const getIndexName = (template, index, domain, leg, startTimestamp) => {
+    const time = moment(dropTimeFromTimestamp(startTimestamp)).utc();
+    return template.replace(/\$\{([\s\S]*?)\}/g, (pattern) => {
+        switch (pattern) {
+            case "${INDEX}":
+                return index;
+            case "${LEG}":
+                return leg;
+            case "${YEAR}":
+                return time.format('YYYY');
+            case "${MONTH}":
+                return time.format('MM');
+            case "${WEEK}":
+                return time.format('WW');
+            case "${DAY}":
+                return time.format('DD');
+            case "${DOMAIN}":
+                return domain
+
+        }
+        return ""
+    }).toLowerCase()
+};
+
 class ElasticClient extends EventEmitter2 {
     constructor (config) {
         super();
@@ -38,6 +66,22 @@ class ElasticClient extends EventEmitter2 {
         this.config = config;
 
         this.client = new elasticsearch.Client(this.config);
+
+        [
+            this.indexNameCdr,
+            this.indexNameCdrTemplate,
+            this.indexNameAccounts,
+            this.indexNameAccountsTemplate
+        ] = [
+            config.indexNameCdr,
+            config.indexNameCdrTemplate,
+            config.indexNameAccounts,
+            config.indexNameAccountsTemplate
+        ];
+
+        if (!this.indexNameCdr || !this.indexNameCdrTemplate) {
+            throw 'Config indexNameCdrTemplate is required'
+        }
 
         this.ping();
         this.pingId = null;
@@ -93,6 +137,7 @@ class ElasticClient extends EventEmitter2 {
     }
 
     insertPostProcess (doc, cb) {
+        //TODO
         const r = this.getCdrInsertParam(doc, true);
         this.client.update(r, cb);
     }
@@ -134,13 +179,13 @@ class ElasticClient extends EventEmitter2 {
 
 
     insertFile (doc, cb) {
-        let currentDate = new Date(),
-            indexName = `${CDR_NAME}-a-${currentDate.getFullYear()}`,
-            _record = doc,
+        const _record = doc,
             _id = _record && _record.uuid;
 
+        const index = getIndexName(this.indexNameCdrTemplate, this.indexNameCdr, (doc.domain_name || ''), 'a', doc.created_on || Date.now());
+        log.trace(`Try save recordings to elastic index ${index} from id ${_id}`);
         this.client.update({
-            index: (indexName + (doc.domain_name ? '-' + doc.domain_name : '')).toLowerCase(),
+            index,
             type: CDR_TYPE_NAME,
             id: _id,
             body: {
