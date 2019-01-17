@@ -130,13 +130,14 @@ const PROVIDERS = {
         const microsoftDefaultSettings = getDefaultSetting('microsoft');
         const keyId = req.query.accessKey || microsoftDefaultSettings.accessKey;
         const keySecret = req.query.accessToken || microsoftDefaultSettings.accessToken;
+        const region = req.query.region || microsoftDefaultSettings.region;
 
-        if (!keyId || !keySecret) {
-            log.error(`Microsoft bad request accessKey or accessToken is required`);
-            return res.status(400).send(`Microsoft bad request accessKey or accessToken is required`);
+        if (!keyId || !keySecret || !region) {
+            log.error(`Microsoft bad request accessKey, region or accessToken is required`);
+            return res.status(400).send(`Microsoft bad request accessKey, region or accessToken is required`);
         }
 
-        microsoftAccessToken(keyId, keySecret, 'https://speech.platform.bing.com', (err, token) => {
+        microsoftAccessToken(keyId, keySecret, region, (err, token) => {
             if (err || !token )
                 return res.status(500).send('Bad response');
 
@@ -149,8 +150,8 @@ const PROVIDERS = {
                         </voice>
                       </speak>`);
             let requestParams = {
-                path: `/synthesize`,
-                host: 'speech.platform.bing.com',
+                path: `/cognitiveservices/v1`,
+                host: `${region}.tts.speech.microsoft.com`,
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -206,10 +207,10 @@ function _handleResponseTTS(responseTTS, res) {
     responseTTS.resume();
 }
 
-function microsoftAccessToken(clientId, clientSecret, service, cb) {
+function microsoftAccessToken(clientId, clientSecret, region, cb) {
     let requestParams = {
         path: `/sts/v1.0/issueToken`,
-        host: 'api.cognitive.microsoft.com',
+        host: `${region}.api.cognitive.microsoft.com`,
         method: 'POST',
         headers: {
             'Content-Type': 'text/plain',
