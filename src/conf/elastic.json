@@ -1,8 +1,8 @@
 {
   "elastic": {
     "enabled": true,
-    "httpAuth": "kibana:kibana",
-    "host": "elasticsearch:9200",
+    "httpAuth": "",
+    "host": "elasticsearch2:9200",
     "log": "warning",
     "keepAlive": false,
     "requestTimeout": 60000,
