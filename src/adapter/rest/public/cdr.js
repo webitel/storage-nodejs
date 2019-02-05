@@ -40,7 +40,7 @@ function savePostProcess(req, res, next) {
         post_data: req.body
     };
 
-    application.elastic.insertPostProcess(data, (err) => {
+    application.elastic.insertPostProcess(data, +req.query.createdAt,  (err) => {
         if (err) {
             log.error(err);
             return next(err);

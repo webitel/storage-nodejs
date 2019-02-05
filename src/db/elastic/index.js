@@ -118,14 +118,15 @@ class ElasticClient extends EventEmitter2 {
     }
 
 
-    getCdrInsertParam (doc, skipAttribute) {
-        let currentDate = new Date(),
-            indexName = `${CDR_NAME}-a-${currentDate.getFullYear()}`,
-            _record = skipAttribute ? doc : setCustomAttribute(doc),
+    getCdrInsertParam (doc, createdAt, skipAttribute) {
+        const index = getIndexName(this.indexNameCdrTemplate, this.indexNameCdr
+            , ((doc.variables && doc.variables.domain_name) || ''), 'a', createdAt || Date.now());
+
+        let _record = skipAttribute ? doc : setCustomAttribute(doc),
             _id = (_record.variables && _record.variables.uuid) || _record._id.toString();
         delete _record._id;
         return {
-            index: (indexName + (doc.variables.domain_name ? '-' + doc.variables.domain_name : '')).toLowerCase(),
+            index,
             type: CDR_TYPE_NAME,
             id: _id,
             body: {
@@ -136,9 +137,9 @@ class ElasticClient extends EventEmitter2 {
         };
     }
 
-    insertPostProcess (doc, cb) {
+    insertPostProcess (doc, createdAt, cb) {
         //TODO
-        const r = this.getCdrInsertParam(doc, true);
+        const r = this.getCdrInsertParam(doc, createdAt, true);
         this.client.update(r, cb);
     }
 
