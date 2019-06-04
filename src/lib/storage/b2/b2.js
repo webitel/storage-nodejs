@@ -216,6 +216,8 @@ function getJson(requestParams, cb) {
             }
         });
     });
+
+    request.on('error', cb);
     if (requestParams.body) request.write(requestParams.body);
     request.end();
 }

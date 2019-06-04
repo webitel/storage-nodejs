@@ -93,12 +93,6 @@
     "defaultDaysLifeFiles": 365,
 
     "providers": {
-      "b2": {
-        "accountId" : "xx",
-        "bucketId" : "xx",
-        "applicationKey" : "xx",
-        "bucketName" : "xx"
-      },
       "local": {
         "fileRoot": "/tmp/archive/"
       }
@@ -111,12 +105,6 @@
     "maskPath": "/media/$DOMAIN",
 
     "providers": {
-      "b2": {
-        "accountId" : "xx",
-        "bucketId" : "xx",
-        "applicationKey" : "xx",
-        "bucketName" : "xx"
-      },
       "local": {
         "fileRoot": "/tmp/"
       }
