@@ -7,6 +7,6 @@
     "keepAlive": false,
     "requestTimeout": 60000,
     "indexNameCdr": "cdr",
-    "indexNameCdrTemplate": "${INDEX}-${LEG}-${YEAR}-${MONTH}-${WEEK}-${DOMAIN}"
+    "indexNameCdrTemplate": "${INDEX}-${LEG}-${YEAR}-${MONTH}-${DOMAIN}"
   }
 }
