@@ -28,7 +28,7 @@ function generateFileFromTTS(req, res, next) {
     if (!checkPermission(req.webitelUser.acl, 'cdr/media', 'c'))
         return next(new CodeError(403, 'Forbidden!'));
 
-    return TTSMiddleware(req, res)
+    return TTSMiddleware(req, res, next)
 }
 
 function saveFile(req, res, next) {
