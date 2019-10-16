@@ -3,6 +3,7 @@
   "version": "3.5.0",
   "private": true,
   "dependencies": {
+    "@google-cloud/text-to-speech": "^1.4.0",
     "amqplib": "^0.5.1",
     "async": "^2.0.1",
     "aws-sdk": "^2.5.5",

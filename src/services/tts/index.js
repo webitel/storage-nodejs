@@ -9,6 +9,7 @@ const https = require('https'),
     aws = require('./aws4'),
     conf = require(__appRoot + '/conf'),
     defSettings = conf.get('tts'),
+    google = require('./google'),
     defProviders = new Map()
     ;
 
@@ -170,7 +171,8 @@ const PROVIDERS = {
             return _sendRequest(requestParams, res);
 
         });
-    }
+    },
+    google
 };
 
 function _sendRequest(requestParams, res) {
