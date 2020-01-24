@@ -42,7 +42,7 @@ func loadConfig(fileName string) (*model.Config, *model.AppError) {
 			MaxIdleConns:                model.NewInt(5),
 			MaxOpenConns:                model.NewInt(5),
 			ConnMaxLifetimeMilliseconds: model.NewInt(3600000),
-			Trace:                       true,
+			Trace:                       false,
 		},
 		NoSqlSettings: model.NoSqlSettings{
 			Host:  elasticSource,
