@@ -25,6 +25,408 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
+type DeleteBackendProfileRequest struct {
+	Id                   int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	DomainId             int64    `protobuf:"varint,2,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *DeleteBackendProfileRequest) Reset()         { *m = DeleteBackendProfileRequest{} }
+func (m *DeleteBackendProfileRequest) String() string { return proto.CompactTextString(m) }
+func (*DeleteBackendProfileRequest) ProtoMessage()    {}
+func (*DeleteBackendProfileRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_5d7b07ba17e92942, []int{0}
+}
+
+func (m *DeleteBackendProfileRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DeleteBackendProfileRequest.Unmarshal(m, b)
+}
+func (m *DeleteBackendProfileRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DeleteBackendProfileRequest.Marshal(b, m, deterministic)
+}
+func (m *DeleteBackendProfileRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeleteBackendProfileRequest.Merge(m, src)
+}
+func (m *DeleteBackendProfileRequest) XXX_Size() int {
+	return xxx_messageInfo_DeleteBackendProfileRequest.Size(m)
+}
+func (m *DeleteBackendProfileRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_DeleteBackendProfileRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DeleteBackendProfileRequest proto.InternalMessageInfo
+
+func (m *DeleteBackendProfileRequest) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+func (m *DeleteBackendProfileRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+type PatchBackendProfileRequest struct {
+	Id                   int64             `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name                 string            `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	ExpireDays           int32             `protobuf:"varint,3,opt,name=expire_days,json=expireDays,proto3" json:"expire_days,omitempty"`
+	MaxSize              int64             `protobuf:"varint,4,opt,name=max_size,json=maxSize,proto3" json:"max_size,omitempty"`
+	Priority             int32             `protobuf:"varint,5,opt,name=priority,proto3" json:"priority,omitempty"`
+	Properties           map[string]string `protobuf:"bytes,6,rep,name=properties,proto3" json:"properties,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	Description          string            `protobuf:"bytes,7,opt,name=description,proto3" json:"description,omitempty"`
+	Disabled             bool              `protobuf:"varint,8,opt,name=disabled,proto3" json:"disabled,omitempty"`
+	Fields               []string          `protobuf:"bytes,9,rep,name=fields,proto3" json:"fields,omitempty"`
+	DomainId             int64             `protobuf:"varint,10,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
+	XXX_unrecognized     []byte            `json:"-"`
+	XXX_sizecache        int32             `json:"-"`
+}
+
+func (m *PatchBackendProfileRequest) Reset()         { *m = PatchBackendProfileRequest{} }
+func (m *PatchBackendProfileRequest) String() string { return proto.CompactTextString(m) }
+func (*PatchBackendProfileRequest) ProtoMessage()    {}
+func (*PatchBackendProfileRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_5d7b07ba17e92942, []int{1}
+}
+
+func (m *PatchBackendProfileRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_PatchBackendProfileRequest.Unmarshal(m, b)
+}
+func (m *PatchBackendProfileRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_PatchBackendProfileRequest.Marshal(b, m, deterministic)
+}
+func (m *PatchBackendProfileRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PatchBackendProfileRequest.Merge(m, src)
+}
+func (m *PatchBackendProfileRequest) XXX_Size() int {
+	return xxx_messageInfo_PatchBackendProfileRequest.Size(m)
+}
+func (m *PatchBackendProfileRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_PatchBackendProfileRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_PatchBackendProfileRequest proto.InternalMessageInfo
+
+func (m *PatchBackendProfileRequest) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+func (m *PatchBackendProfileRequest) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *PatchBackendProfileRequest) GetExpireDays() int32 {
+	if m != nil {
+		return m.ExpireDays
+	}
+	return 0
+}
+
+func (m *PatchBackendProfileRequest) GetMaxSize() int64 {
+	if m != nil {
+		return m.MaxSize
+	}
+	return 0
+}
+
+func (m *PatchBackendProfileRequest) GetPriority() int32 {
+	if m != nil {
+		return m.Priority
+	}
+	return 0
+}
+
+func (m *PatchBackendProfileRequest) GetProperties() map[string]string {
+	if m != nil {
+		return m.Properties
+	}
+	return nil
+}
+
+func (m *PatchBackendProfileRequest) GetDescription() string {
+	if m != nil {
+		return m.Description
+	}
+	return ""
+}
+
+func (m *PatchBackendProfileRequest) GetDisabled() bool {
+	if m != nil {
+		return m.Disabled
+	}
+	return false
+}
+
+func (m *PatchBackendProfileRequest) GetFields() []string {
+	if m != nil {
+		return m.Fields
+	}
+	return nil
+}
+
+func (m *PatchBackendProfileRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+type UpdateBackendProfileRequest struct {
+	Id                   int64             `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name                 string            `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	ExpireDays           int32             `protobuf:"varint,3,opt,name=expire_days,json=expireDays,proto3" json:"expire_days,omitempty"`
+	MaxSize              int64             `protobuf:"varint,4,opt,name=max_size,json=maxSize,proto3" json:"max_size,omitempty"`
+	Priority             int32             `protobuf:"varint,5,opt,name=priority,proto3" json:"priority,omitempty"`
+	Properties           map[string]string `protobuf:"bytes,6,rep,name=properties,proto3" json:"properties,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	Description          string            `protobuf:"bytes,7,opt,name=description,proto3" json:"description,omitempty"`
+	Disabled             bool              `protobuf:"varint,8,opt,name=disabled,proto3" json:"disabled,omitempty"`
+	DomainId             int64             `protobuf:"varint,9,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
+	XXX_unrecognized     []byte            `json:"-"`
+	XXX_sizecache        int32             `json:"-"`
+}
+
+func (m *UpdateBackendProfileRequest) Reset()         { *m = UpdateBackendProfileRequest{} }
+func (m *UpdateBackendProfileRequest) String() string { return proto.CompactTextString(m) }
+func (*UpdateBackendProfileRequest) ProtoMessage()    {}
+func (*UpdateBackendProfileRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_5d7b07ba17e92942, []int{2}
+}
+
+func (m *UpdateBackendProfileRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UpdateBackendProfileRequest.Unmarshal(m, b)
+}
+func (m *UpdateBackendProfileRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UpdateBackendProfileRequest.Marshal(b, m, deterministic)
+}
+func (m *UpdateBackendProfileRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateBackendProfileRequest.Merge(m, src)
+}
+func (m *UpdateBackendProfileRequest) XXX_Size() int {
+	return xxx_messageInfo_UpdateBackendProfileRequest.Size(m)
+}
+func (m *UpdateBackendProfileRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateBackendProfileRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateBackendProfileRequest proto.InternalMessageInfo
+
+func (m *UpdateBackendProfileRequest) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+func (m *UpdateBackendProfileRequest) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *UpdateBackendProfileRequest) GetExpireDays() int32 {
+	if m != nil {
+		return m.ExpireDays
+	}
+	return 0
+}
+
+func (m *UpdateBackendProfileRequest) GetMaxSize() int64 {
+	if m != nil {
+		return m.MaxSize
+	}
+	return 0
+}
+
+func (m *UpdateBackendProfileRequest) GetPriority() int32 {
+	if m != nil {
+		return m.Priority
+	}
+	return 0
+}
+
+func (m *UpdateBackendProfileRequest) GetProperties() map[string]string {
+	if m != nil {
+		return m.Properties
+	}
+	return nil
+}
+
+func (m *UpdateBackendProfileRequest) GetDescription() string {
+	if m != nil {
+		return m.Description
+	}
+	return ""
+}
+
+func (m *UpdateBackendProfileRequest) GetDisabled() bool {
+	if m != nil {
+		return m.Disabled
+	}
+	return false
+}
+
+func (m *UpdateBackendProfileRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+type ReadBackendProfileRequest struct {
+	Id                   int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	DomainId             int64    `protobuf:"varint,2,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *ReadBackendProfileRequest) Reset()         { *m = ReadBackendProfileRequest{} }
+func (m *ReadBackendProfileRequest) String() string { return proto.CompactTextString(m) }
+func (*ReadBackendProfileRequest) ProtoMessage()    {}
+func (*ReadBackendProfileRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_5d7b07ba17e92942, []int{3}
+}
+
+func (m *ReadBackendProfileRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ReadBackendProfileRequest.Unmarshal(m, b)
+}
+func (m *ReadBackendProfileRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ReadBackendProfileRequest.Marshal(b, m, deterministic)
+}
+func (m *ReadBackendProfileRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ReadBackendProfileRequest.Merge(m, src)
+}
+func (m *ReadBackendProfileRequest) XXX_Size() int {
+	return xxx_messageInfo_ReadBackendProfileRequest.Size(m)
+}
+func (m *ReadBackendProfileRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_ReadBackendProfileRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ReadBackendProfileRequest proto.InternalMessageInfo
+
+func (m *ReadBackendProfileRequest) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+func (m *ReadBackendProfileRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+type SearchBackendProfileRequest struct {
+	Page                 int32    `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
+	Size                 int32    `protobuf:"varint,2,opt,name=size,proto3" json:"size,omitempty"`
+	DomainId             int64    `protobuf:"varint,3,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *SearchBackendProfileRequest) Reset()         { *m = SearchBackendProfileRequest{} }
+func (m *SearchBackendProfileRequest) String() string { return proto.CompactTextString(m) }
+func (*SearchBackendProfileRequest) ProtoMessage()    {}
+func (*SearchBackendProfileRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_5d7b07ba17e92942, []int{4}
+}
+
+func (m *SearchBackendProfileRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_SearchBackendProfileRequest.Unmarshal(m, b)
+}
+func (m *SearchBackendProfileRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_SearchBackendProfileRequest.Marshal(b, m, deterministic)
+}
+func (m *SearchBackendProfileRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SearchBackendProfileRequest.Merge(m, src)
+}
+func (m *SearchBackendProfileRequest) XXX_Size() int {
+	return xxx_messageInfo_SearchBackendProfileRequest.Size(m)
+}
+func (m *SearchBackendProfileRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_SearchBackendProfileRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SearchBackendProfileRequest proto.InternalMessageInfo
+
+func (m *SearchBackendProfileRequest) GetPage() int32 {
+	if m != nil {
+		return m.Page
+	}
+	return 0
+}
+
+func (m *SearchBackendProfileRequest) GetSize() int32 {
+	if m != nil {
+		return m.Size
+	}
+	return 0
+}
+
+func (m *SearchBackendProfileRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+type ListBackendProfile struct {
+	Items                []*BackendProfile `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
+	XXX_unrecognized     []byte            `json:"-"`
+	XXX_sizecache        int32             `json:"-"`
+}
+
+func (m *ListBackendProfile) Reset()         { *m = ListBackendProfile{} }
+func (m *ListBackendProfile) String() string { return proto.CompactTextString(m) }
+func (*ListBackendProfile) ProtoMessage()    {}
+func (*ListBackendProfile) Descriptor() ([]byte, []int) {
+	return fileDescriptor_5d7b07ba17e92942, []int{5}
+}
+
+func (m *ListBackendProfile) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ListBackendProfile.Unmarshal(m, b)
+}
+func (m *ListBackendProfile) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ListBackendProfile.Marshal(b, m, deterministic)
+}
+func (m *ListBackendProfile) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListBackendProfile.Merge(m, src)
+}
+func (m *ListBackendProfile) XXX_Size() int {
+	return xxx_messageInfo_ListBackendProfile.Size(m)
+}
+func (m *ListBackendProfile) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListBackendProfile.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListBackendProfile proto.InternalMessageInfo
+
+func (m *ListBackendProfile) GetItems() []*BackendProfile {
+	if m != nil {
+		return m.Items
+	}
+	return nil
+}
+
 type BackendProfile struct {
 	Id                   int64             `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	CreatedAt            int64             `protobuf:"varint,2,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
@@ -41,7 +443,6 @@ type BackendProfile struct {
 	Properties           map[string]string `protobuf:"bytes,13,rep,name=properties,proto3" json:"properties,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 	Description          string            `protobuf:"bytes,14,opt,name=description,proto3" json:"description,omitempty"`
 	Disabled             bool              `protobuf:"varint,15,opt,name=disabled,proto3" json:"disabled,omitempty"`
-	DomainId             int64             `protobuf:"varint,16,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
 	XXX_unrecognized     []byte            `json:"-"`
 	XXX_sizecache        int32             `json:"-"`
@@ -51,7 +452,7 @@ func (m *BackendProfile) Reset()         { *m = BackendProfile{} }
 func (m *BackendProfile) String() string { return proto.CompactTextString(m) }
 func (*BackendProfile) ProtoMessage()    {}
 func (*BackendProfile) Descriptor() ([]byte, []int) {
-	return fileDescriptor_5d7b07ba17e92942, []int{0}
+	return fileDescriptor_5d7b07ba17e92942, []int{6}
 }
 
 func (m *BackendProfile) XXX_Unmarshal(b []byte) error {
@@ -177,99 +578,26 @@ func (m *BackendProfile) GetDisabled() bool {
 	return false
 }
 
-func (m *BackendProfile) GetDomainId() int64 {
-	if m != nil {
-		return m.DomainId
-	}
-	return 0
-}
-
-type LocalBackendProperties struct {
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *LocalBackendProperties) Reset()         { *m = LocalBackendProperties{} }
-func (m *LocalBackendProperties) String() string { return proto.CompactTextString(m) }
-func (*LocalBackendProperties) ProtoMessage()    {}
-func (*LocalBackendProperties) Descriptor() ([]byte, []int) {
-	return fileDescriptor_5d7b07ba17e92942, []int{1}
-}
-
-func (m *LocalBackendProperties) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_LocalBackendProperties.Unmarshal(m, b)
-}
-func (m *LocalBackendProperties) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_LocalBackendProperties.Marshal(b, m, deterministic)
-}
-func (m *LocalBackendProperties) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_LocalBackendProperties.Merge(m, src)
-}
-func (m *LocalBackendProperties) XXX_Size() int {
-	return xxx_messageInfo_LocalBackendProperties.Size(m)
-}
-func (m *LocalBackendProperties) XXX_DiscardUnknown() {
-	xxx_messageInfo_LocalBackendProperties.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_LocalBackendProperties proto.InternalMessageInfo
-
-type S3BackendProperties struct {
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *S3BackendProperties) Reset()         { *m = S3BackendProperties{} }
-func (m *S3BackendProperties) String() string { return proto.CompactTextString(m) }
-func (*S3BackendProperties) ProtoMessage()    {}
-func (*S3BackendProperties) Descriptor() ([]byte, []int) {
-	return fileDescriptor_5d7b07ba17e92942, []int{2}
-}
-
-func (m *S3BackendProperties) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_S3BackendProperties.Unmarshal(m, b)
-}
-func (m *S3BackendProperties) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_S3BackendProperties.Marshal(b, m, deterministic)
-}
-func (m *S3BackendProperties) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_S3BackendProperties.Merge(m, src)
-}
-func (m *S3BackendProperties) XXX_Size() int {
-	return xxx_messageInfo_S3BackendProperties.Size(m)
-}
-func (m *S3BackendProperties) XXX_DiscardUnknown() {
-	xxx_messageInfo_S3BackendProperties.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_S3BackendProperties proto.InternalMessageInfo
-
 type CreateBackendProfileRequest struct {
-	Name       string  `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	ExpireDays int32   `protobuf:"varint,2,opt,name=expire_days,json=expireDays,proto3" json:"expire_days,omitempty"`
-	MaxSize    int64   `protobuf:"varint,3,opt,name=max_size,json=maxSize,proto3" json:"max_size,omitempty"`
-	Priority   int32   `protobuf:"varint,4,opt,name=priority,proto3" json:"priority,omitempty"`
-	Type       *Lookup `protobuf:"bytes,5,opt,name=type,proto3" json:"type,omitempty"`
-	// Types that are valid to be assigned to Properties:
-	//	*CreateBackendProfileRequest_Local
-	//	*CreateBackendProfileRequest_S3
-	Properties isCreateBackendProfileRequest_Properties `protobuf_oneof:"properties"`
-	//    map<string,string> properties = 6;
-	Description          string   `protobuf:"bytes,8,opt,name=description,proto3" json:"description,omitempty"`
-	Disabled             bool     `protobuf:"varint,9,opt,name=disabled,proto3" json:"disabled,omitempty"`
-	DomainId             int64    `protobuf:"varint,10,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	Name                 string            `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	ExpireDays           int32             `protobuf:"varint,2,opt,name=expire_days,json=expireDays,proto3" json:"expire_days,omitempty"`
+	MaxSize              int64             `protobuf:"varint,3,opt,name=max_size,json=maxSize,proto3" json:"max_size,omitempty"`
+	Priority             int32             `protobuf:"varint,4,opt,name=priority,proto3" json:"priority,omitempty"`
+	Type                 *Lookup           `protobuf:"bytes,5,opt,name=type,proto3" json:"type,omitempty"`
+	Properties           map[string]string `protobuf:"bytes,6,rep,name=properties,proto3" json:"properties,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	Description          string            `protobuf:"bytes,7,opt,name=description,proto3" json:"description,omitempty"`
+	Disabled             bool              `protobuf:"varint,8,opt,name=disabled,proto3" json:"disabled,omitempty"`
+	DomainId             int64             `protobuf:"varint,9,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
+	XXX_unrecognized     []byte            `json:"-"`
+	XXX_sizecache        int32             `json:"-"`
 }
 
 func (m *CreateBackendProfileRequest) Reset()         { *m = CreateBackendProfileRequest{} }
 func (m *CreateBackendProfileRequest) String() string { return proto.CompactTextString(m) }
 func (*CreateBackendProfileRequest) ProtoMessage()    {}
 func (*CreateBackendProfileRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_5d7b07ba17e92942, []int{3}
+	return fileDescriptor_5d7b07ba17e92942, []int{7}
 }
 
 func (m *CreateBackendProfileRequest) XXX_Unmarshal(b []byte) error {
@@ -325,39 +653,9 @@ func (m *CreateBackendProfileRequest) GetType() *Lookup {
 	return nil
 }
 
-type isCreateBackendProfileRequest_Properties interface {
-	isCreateBackendProfileRequest_Properties()
-}
-
-type CreateBackendProfileRequest_Local struct {
-	Local *LocalBackendProperties `protobuf:"bytes,6,opt,name=local,proto3,oneof"`
-}
-
-type CreateBackendProfileRequest_S3 struct {
-	S3 *S3BackendProperties `protobuf:"bytes,7,opt,name=s3,proto3,oneof"`
-}
-
-func (*CreateBackendProfileRequest_Local) isCreateBackendProfileRequest_Properties() {}
-
-func (*CreateBackendProfileRequest_S3) isCreateBackendProfileRequest_Properties() {}
-
-func (m *CreateBackendProfileRequest) GetProperties() isCreateBackendProfileRequest_Properties {
+func (m *CreateBackendProfileRequest) GetProperties() map[string]string {
 	if m != nil {
 		return m.Properties
-	}
-	return nil
-}
-
-func (m *CreateBackendProfileRequest) GetLocal() *LocalBackendProperties {
-	if x, ok := m.GetProperties().(*CreateBackendProfileRequest_Local); ok {
-		return x.Local
-	}
-	return nil
-}
-
-func (m *CreateBackendProfileRequest) GetS3() *S3BackendProperties {
-	if x, ok := m.GetProperties().(*CreateBackendProfileRequest_S3); ok {
-		return x.S3
 	}
 	return nil
 }
@@ -383,64 +681,76 @@ func (m *CreateBackendProfileRequest) GetDomainId() int64 {
 	return 0
 }
 
-// XXX_OneofWrappers is for the internal use of the proto package.
-func (*CreateBackendProfileRequest) XXX_OneofWrappers() []interface{} {
-	return []interface{}{
-		(*CreateBackendProfileRequest_Local)(nil),
-		(*CreateBackendProfileRequest_S3)(nil),
-	}
-}
-
 func init() {
+	proto.RegisterType((*DeleteBackendProfileRequest)(nil), "storage.DeleteBackendProfileRequest")
+	proto.RegisterType((*PatchBackendProfileRequest)(nil), "storage.PatchBackendProfileRequest")
+	proto.RegisterMapType((map[string]string)(nil), "storage.PatchBackendProfileRequest.PropertiesEntry")
+	proto.RegisterType((*UpdateBackendProfileRequest)(nil), "storage.UpdateBackendProfileRequest")
+	proto.RegisterMapType((map[string]string)(nil), "storage.UpdateBackendProfileRequest.PropertiesEntry")
+	proto.RegisterType((*ReadBackendProfileRequest)(nil), "storage.ReadBackendProfileRequest")
+	proto.RegisterType((*SearchBackendProfileRequest)(nil), "storage.SearchBackendProfileRequest")
+	proto.RegisterType((*ListBackendProfile)(nil), "storage.ListBackendProfile")
 	proto.RegisterType((*BackendProfile)(nil), "storage.BackendProfile")
 	proto.RegisterMapType((map[string]string)(nil), "storage.BackendProfile.PropertiesEntry")
-	proto.RegisterType((*LocalBackendProperties)(nil), "storage.LocalBackendProperties")
-	proto.RegisterType((*S3BackendProperties)(nil), "storage.S3BackendProperties")
 	proto.RegisterType((*CreateBackendProfileRequest)(nil), "storage.CreateBackendProfileRequest")
+	proto.RegisterMapType((map[string]string)(nil), "storage.CreateBackendProfileRequest.PropertiesEntry")
 }
 
 func init() { proto.RegisterFile("backend_profile.proto", fileDescriptor_5d7b07ba17e92942) }
 
 var fileDescriptor_5d7b07ba17e92942 = []byte{
-	// 595 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x7c, 0x94, 0xd1, 0x4e, 0xdb, 0x3c,
-	0x14, 0xc7, 0x49, 0xd2, 0x42, 0x72, 0xc2, 0x07, 0xc8, 0x1f, 0x6c, 0xa6, 0xb0, 0x11, 0x75, 0x48,
-	0x8b, 0x76, 0x91, 0x4a, 0xed, 0xc5, 0x26, 0xa4, 0x5d, 0xac, 0x6c, 0x1a, 0x93, 0xb8, 0x40, 0xe1,
-	0x01, 0x2a, 0x37, 0xf6, 0x90, 0x45, 0x1a, 0x67, 0xb6, 0x8b, 0x08, 0xbb, 0x99, 0xf6, 0x0a, 0xdb,
-	0x9b, 0xed, 0x15, 0x76, 0xbd, 0x67, 0x98, 0xe2, 0x84, 0xd0, 0xb2, 0xb6, 0x77, 0xf1, 0xff, 0x1c,
-	0xff, 0x8f, 0xcf, 0xf9, 0x1d, 0x05, 0xf6, 0xc6, 0x24, 0xb9, 0x66, 0x19, 0x1d, 0xe5, 0x52, 0x7c,
-	0xe6, 0x29, 0x8b, 0x72, 0x29, 0xb4, 0x40, 0x1b, 0x4a, 0x0b, 0x49, 0xae, 0x58, 0xc7, 0x4f, 0x44,
-	0xa6, 0x74, 0xa5, 0x76, 0x0e, 0xaf, 0x84, 0xb8, 0x4a, 0x59, 0x8f, 0xe4, 0xbc, 0x47, 0xb2, 0x4c,
-	0x68, 0xa2, 0xb9, 0xc8, 0x54, 0x15, 0xed, 0xfe, 0x69, 0xc1, 0xd6, 0xb0, 0x72, 0xbb, 0xa8, 0xcc,
-	0xd0, 0x16, 0xd8, 0x9c, 0x62, 0x2b, 0xb0, 0x42, 0x27, 0xb6, 0x39, 0x45, 0xcf, 0x00, 0x12, 0xc9,
-	0x88, 0x66, 0x74, 0x44, 0x34, 0xb6, 0x8d, 0xee, 0xd5, 0xca, 0x3b, 0x8d, 0xa2, 0x87, 0xf0, 0xb8,
-	0xc0, 0x4e, 0x60, 0x85, 0x7e, 0x7f, 0x3b, 0xaa, 0x9f, 0x12, 0x9d, 0x0b, 0x71, 0x3d, 0xcd, 0x9b,
-	0xfc, 0x61, 0x51, 0xda, 0x4d, 0x73, 0x7a, 0x6f, 0xd7, 0xaa, 0xec, 0x6a, 0xa5, 0xb2, 0xbb, 0x0f,
-	0x8f, 0x0b, 0xdc, 0x5e, 0x62, 0x57, 0xa7, 0x0c, 0x0b, 0x74, 0x00, 0x1e, 0x25, 0x9a, 0x8c, 0x14,
-	0xbf, 0x63, 0x78, 0xdd, 0xb8, 0xb9, 0xa5, 0x70, 0xc9, 0xef, 0x58, 0x59, 0xcb, 0x04, 0x13, 0x31,
-	0xcd, 0x34, 0xde, 0xa8, 0x6a, 0x95, 0xca, 0x69, 0x29, 0x20, 0x04, 0xad, 0x8c, 0x4c, 0x18, 0x76,
-	0x03, 0x2b, 0xf4, 0x62, 0xf3, 0x8d, 0x8e, 0xc0, 0x67, 0xb7, 0x39, 0x97, 0x6c, 0x44, 0x49, 0xa1,
-	0xb0, 0x17, 0x58, 0x61, 0x3b, 0x86, 0x4a, 0x7a, 0x4f, 0x0a, 0x85, 0xf6, 0xc1, 0x9d, 0x90, 0xdb,
-	0xaa, 0x1e, 0x18, 0xc7, 0x8d, 0x09, 0xb9, 0x35, 0xe5, 0x3a, 0xe0, 0xe6, 0x92, 0x0b, 0xc9, 0x75,
-	0x81, 0x7d, 0x73, 0xb1, 0x39, 0xa3, 0x17, 0xd0, 0xd2, 0x45, 0xce, 0xf0, 0xe6, 0xe2, 0x8e, 0x4c,
-	0x10, 0x7d, 0x04, 0xc8, 0xa5, 0xc8, 0x99, 0xd4, 0x9c, 0x29, 0xfc, 0x5f, 0xe0, 0x84, 0x7e, 0xff,
-	0x65, 0x93, 0x3a, 0xcf, 0x29, 0xba, 0x68, 0x32, 0x3f, 0x64, 0x5a, 0x16, 0xf1, 0xcc, 0x55, 0x14,
-	0x80, 0x4f, 0x99, 0x4a, 0x24, 0xcf, 0x4b, 0xd8, 0x78, 0xcb, 0x34, 0x38, 0x2b, 0x95, 0x6f, 0xa5,
-	0x5c, 0x91, 0x71, 0xca, 0x28, 0xde, 0x0e, 0xac, 0xd0, 0x8d, 0x9b, 0xb3, 0x99, 0xa9, 0x98, 0x10,
-	0x9e, 0x8d, 0x38, 0xc5, 0x3b, 0xf5, 0x4c, 0x8d, 0xf0, 0x89, 0x76, 0xde, 0xc2, 0xf6, 0xa3, 0xca,
-	0x68, 0x07, 0x9c, 0x6b, 0x56, 0x98, 0x95, 0xf1, 0xe2, 0xf2, 0x13, 0xed, 0x42, 0xfb, 0x86, 0xa4,
-	0x53, 0x66, 0xd6, 0xc5, 0x8b, 0xab, 0xc3, 0x89, 0xfd, 0xc6, 0xea, 0x62, 0x78, 0x72, 0x2e, 0x12,
-	0x92, 0x3e, 0x34, 0x53, 0x5b, 0x75, 0xf7, 0xe0, 0xff, 0xcb, 0xc1, 0xbf, 0xf2, 0x37, 0x07, 0x0e,
-	0x4e, 0xcd, 0xf6, 0xcc, 0xf7, 0x1f, 0xb3, 0x2f, 0x53, 0xa6, 0x1e, 0x20, 0x5a, 0xcb, 0x21, 0xda,
-	0x2b, 0x21, 0x3a, 0xcb, 0x21, 0xb6, 0x96, 0x40, 0x6c, 0xaf, 0x82, 0xf8, 0x1a, 0xda, 0x69, 0xd9,
-	0xa1, 0xd9, 0x46, 0xbf, 0x7f, 0x34, 0x93, 0xb5, 0xa8, 0xef, 0xb3, 0xb5, 0xb8, 0xca, 0x47, 0x11,
-	0xd8, 0x6a, 0x60, 0xb6, 0xd4, 0xef, 0x1f, 0x36, 0xb7, 0x16, 0xcc, 0xe4, 0x6c, 0x2d, 0xb6, 0xd5,
-	0xe0, 0x31, 0x64, 0x77, 0x35, 0x64, 0x6f, 0x15, 0x64, 0x98, 0x87, 0x3c, 0xdc, 0x9c, 0x5d, 0xc4,
-	0xfe, 0x4f, 0x0b, 0xf6, 0xe6, 0x87, 0x7f, 0xc9, 0xe4, 0x0d, 0x4f, 0x18, 0xfa, 0x0a, 0xbb, 0x8b,
-	0xd8, 0xa0, 0xe3, 0xe6, 0xf9, 0x2b, 0xd0, 0x75, 0x9e, 0x2e, 0x59, 0xed, 0xee, 0xf1, 0xf7, 0x5f,
-	0xbf, 0x7f, 0xd8, 0xcf, 0xbb, 0xfb, 0xbd, 0x3a, 0xa1, 0xf7, 0xe8, 0x8f, 0xa7, 0x4e, 0xac, 0x57,
-	0xe3, 0x75, 0xf3, 0x0b, 0x1b, 0xfc, 0x0d, 0x00, 0x00, 0xff, 0xff, 0x20, 0xd4, 0x35, 0x09, 0x0f,
-	0x05, 0x00, 0x00,
+	// 815 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xd4, 0x56, 0xcd, 0x6e, 0xd3, 0x40,
+	0x10, 0x96, 0xe3, 0x24, 0x8d, 0x27, 0xd0, 0xa2, 0x25, 0x05, 0xd7, 0xa1, 0x25, 0xb8, 0x15, 0x84,
+	0x4a, 0x24, 0x52, 0xca, 0x01, 0x55, 0xe2, 0x40, 0x5b, 0xc4, 0x8f, 0x7a, 0xa8, 0x1c, 0x38, 0x47,
+	0x9b, 0x78, 0x1b, 0x56, 0x4d, 0x6c, 0x63, 0x6f, 0xaa, 0xba, 0xa5, 0x08, 0x71, 0xe3, 0xc4, 0x81,
+	0x3b, 0x3c, 0x13, 0xe2, 0x15, 0x78, 0x10, 0xe4, 0xb5, 0xeb, 0xc6, 0xa9, 0xd7, 0x09, 0xa2, 0x20,
+	0x71, 0xdb, 0x9d, 0x5d, 0x7f, 0x33, 0xf3, 0x7d, 0x33, 0xe3, 0x85, 0xc5, 0x2e, 0xee, 0x1d, 0x10,
+	0xcb, 0xec, 0x38, 0xae, 0xbd, 0x4f, 0x07, 0xa4, 0xe1, 0xb8, 0x36, 0xb3, 0xd1, 0x9c, 0xc7, 0x6c,
+	0x17, 0xf7, 0x89, 0x56, 0xee, 0xd9, 0x96, 0xc7, 0x42, 0xab, 0x76, 0xab, 0x6f, 0xdb, 0xfd, 0x01,
+	0x69, 0x62, 0x87, 0x36, 0xb1, 0x65, 0xd9, 0x0c, 0x33, 0x6a, 0x5b, 0x5e, 0x78, 0xaa, 0xbf, 0x84,
+	0xea, 0x0e, 0x19, 0x10, 0x46, 0xb6, 0x42, 0xc8, 0xbd, 0x10, 0xd1, 0x20, 0x6f, 0x47, 0xc4, 0x63,
+	0x68, 0x1e, 0x72, 0xd4, 0x54, 0xa5, 0x9a, 0x54, 0x97, 0x8d, 0x1c, 0x35, 0x51, 0x15, 0x14, 0xd3,
+	0x1e, 0x62, 0x6a, 0x75, 0xa8, 0xa9, 0xe6, 0xb8, 0xb9, 0x14, 0x1a, 0x5e, 0x98, 0xfa, 0x37, 0x19,
+	0xb4, 0x3d, 0xcc, 0x7a, 0x6f, 0x66, 0xc3, 0x42, 0x90, 0xb7, 0xf0, 0x90, 0x70, 0x18, 0xc5, 0xe0,
+	0x6b, 0x74, 0x1b, 0xca, 0xe4, 0xc8, 0xa1, 0x2e, 0xe9, 0x98, 0xd8, 0xf7, 0x54, 0xb9, 0x26, 0xd5,
+	0x0b, 0x06, 0x84, 0xa6, 0x1d, 0xec, 0x7b, 0x68, 0x09, 0x4a, 0x43, 0x7c, 0xd4, 0xf1, 0xe8, 0x31,
+	0x51, 0xf3, 0x1c, 0x6a, 0x6e, 0x88, 0x8f, 0xda, 0xf4, 0x98, 0x20, 0x0d, 0x4a, 0x8e, 0x4b, 0x6d,
+	0x97, 0x32, 0x5f, 0x2d, 0xf0, 0x0f, 0xe3, 0x3d, 0x6a, 0x03, 0x38, 0xae, 0xed, 0x10, 0x97, 0x51,
+	0xe2, 0xa9, 0xc5, 0x9a, 0x5c, 0x2f, 0xb7, 0x36, 0x1a, 0x11, 0x5f, 0x0d, 0x71, 0xd0, 0x8d, 0xbd,
+	0xf8, 0xab, 0xa7, 0x16, 0x73, 0x7d, 0x63, 0x0c, 0x06, 0xd5, 0xa0, 0x6c, 0x12, 0xaf, 0xe7, 0x52,
+	0x27, 0x60, 0x54, 0x9d, 0xe3, 0x79, 0x8c, 0x9b, 0x82, 0x90, 0x4c, 0xea, 0xe1, 0xee, 0x80, 0x98,
+	0x6a, 0xa9, 0x26, 0xd5, 0x4b, 0x46, 0xbc, 0x47, 0x37, 0xa0, 0xb8, 0x4f, 0xc9, 0xc0, 0xf4, 0x54,
+	0xa5, 0x26, 0xd7, 0x15, 0x23, 0xda, 0x25, 0x29, 0x86, 0x24, 0xc5, 0xda, 0x63, 0x58, 0x98, 0x88,
+	0x08, 0x5d, 0x03, 0xf9, 0x80, 0xf8, 0x9c, 0x57, 0xc5, 0x08, 0x96, 0xa8, 0x02, 0x85, 0x43, 0x3c,
+	0x18, 0x9d, 0x31, 0x1b, 0x6e, 0x36, 0x73, 0x8f, 0x24, 0xfd, 0x93, 0x0c, 0xd5, 0xd7, 0x8e, 0x89,
+	0x67, 0x95, 0xfb, 0x5f, 0x4a, 0xf4, 0x2a, 0x45, 0xa2, 0x87, 0xb1, 0x44, 0x19, 0x51, 0xff, 0x45,
+	0x8d, 0x12, 0x5a, 0x28, 0x97, 0xab, 0xc5, 0x73, 0x58, 0x32, 0x08, 0x36, 0x2f, 0xa1, 0xef, 0xba,
+	0x50, 0x6d, 0x13, 0xec, 0x8a, 0xfa, 0x0e, 0x41, 0xde, 0xc1, 0x7d, 0xc2, 0xd1, 0x0a, 0x06, 0x5f,
+	0x07, 0x36, 0xae, 0x4f, 0x2e, 0xb4, 0x05, 0xeb, 0xa4, 0x0f, 0x79, 0xc2, 0xc7, 0x36, 0xa0, 0x5d,
+	0xea, 0xb1, 0xa4, 0x07, 0xf4, 0x00, 0x0a, 0x94, 0x91, 0xa1, 0xa7, 0x4a, 0x5c, 0xae, 0x9b, 0xb1,
+	0x5c, 0x13, 0x91, 0x84, 0xb7, 0xf4, 0xef, 0x79, 0x98, 0x9f, 0x40, 0x98, 0x4c, 0x74, 0x19, 0xa0,
+	0xe7, 0x12, 0xcc, 0x88, 0xd9, 0xc1, 0x2c, 0xca, 0x54, 0x89, 0x2c, 0x4f, 0x18, 0x6a, 0x9c, 0x1f,
+	0x77, 0x7d, 0x1e, 0x64, 0xb9, 0xb5, 0x10, 0x7b, 0xdd, 0xb5, 0xed, 0x83, 0x91, 0x13, 0xdf, 0xdf,
+	0xf2, 0x03, 0xb8, 0x11, 0xaf, 0x1c, 0x0e, 0x17, 0x56, 0xa3, 0x12, 0x59, 0x42, 0xb8, 0xb3, 0xe3,
+	0x6e, 0x58, 0x91, 0x69, 0x70, 0xd1, 0x95, 0x2d, 0x9f, 0x53, 0x84, 0x19, 0x0e, 0x6b, 0xbb, 0x18,
+	0x51, 0x84, 0x19, 0xe6, 0xc5, 0xbd, 0x0c, 0xc0, 0x0f, 0x7b, 0xf6, 0xc8, 0x62, 0xbc, 0xd2, 0x64,
+	0x83, 0x5f, 0xdf, 0x0e, 0x0c, 0x71, 0x2f, 0x95, 0xc4, 0xbd, 0xa4, 0x64, 0xf6, 0x12, 0x88, 0x7b,
+	0xa9, 0x3c, 0xd1, 0x4b, 0xab, 0x90, 0x67, 0xbe, 0x43, 0xd4, 0x2b, 0xe9, 0x19, 0xf1, 0x43, 0xf4,
+	0x2c, 0xd1, 0x70, 0x57, 0xb9, 0x82, 0xf7, 0x04, 0x0a, 0xfe, 0x4e, 0x8f, 0xcd, 0x67, 0xf7, 0xd8,
+	0x42, 0xb2, 0xc7, 0xfe, 0xb4, 0x8d, 0xbe, 0xca, 0x50, 0xdd, 0xe6, 0x7a, 0x0b, 0xab, 0x9f, 0xd3,
+	0x2e, 0x89, 0x69, 0xcf, 0x65, 0xd2, 0x2e, 0x8b, 0x69, 0xcf, 0x0b, 0x68, 0x2f, 0x64, 0xd1, 0x9e,
+	0x3d, 0xe7, 0x32, 0x52, 0xf9, 0x3f, 0xe7, 0x5c, 0xeb, 0x73, 0x11, 0x16, 0x93, 0xf9, 0xb4, 0x89,
+	0x7b, 0x48, 0x7b, 0x04, 0x9d, 0x40, 0x25, 0x2d, 0x5d, 0xb4, 0x36, 0x0b, 0x1b, 0x9a, 0x68, 0xd8,
+	0xe8, 0x6b, 0x1f, 0x7f, 0xfc, 0xfc, 0x92, 0x5b, 0xd1, 0x97, 0x9a, 0xd1, 0x85, 0xe6, 0xc4, 0x73,
+	0xc9, 0xdb, 0x94, 0xd6, 0xd1, 0x3b, 0xa8, 0xa4, 0x0d, 0xcd, 0x31, 0xe7, 0x19, 0x33, 0x55, 0xab,
+	0x9e, 0x6b, 0x7b, 0x61, 0x2a, 0xea, 0x77, 0x78, 0x00, 0x55, 0x24, 0x0e, 0x00, 0xf9, 0x80, 0x2e,
+	0x0e, 0x7f, 0xa4, 0xc7, 0xa8, 0xc2, 0x3f, 0x83, 0x38, 0xed, 0xbb, 0xdc, 0x6b, 0x0d, 0xad, 0x08,
+	0xbd, 0x36, 0x4f, 0xa8, 0x79, 0x8a, 0x3e, 0x48, 0x50, 0x49, 0xfb, 0x9b, 0x8e, 0x65, 0x9e, 0xf1,
+	0xb3, 0x15, 0xfb, 0xbf, 0xcf, 0xfd, 0xaf, 0x6a, 0x53, 0xfc, 0x07, 0xdc, 0xbf, 0x87, 0xeb, 0x29,
+	0x4f, 0x2e, 0xb4, 0x3a, 0xc3, 0x83, 0x6c, 0xaa, 0xff, 0xd6, 0x0c, 0xfe, 0x4f, 0xa1, 0x92, 0xf6,
+	0xe8, 0x1d, 0x63, 0x20, 0xe3, 0x4d, 0x3c, 0x55, 0x81, 0xf5, 0x29, 0x11, 0x74, 0x8b, 0xfc, 0xe9,
+	0xbd, 0xf1, 0x2b, 0x00, 0x00, 0xff, 0xff, 0xd3, 0x21, 0x96, 0x74, 0xc7, 0x0b, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -455,8 +765,18 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type BackendProfileServiceClient interface {
-	// Create CreateBackendProfile
+	// Create BackendProfile
 	CreateBackendProfile(ctx context.Context, in *CreateBackendProfileRequest, opts ...grpc.CallOption) (*BackendProfile, error)
+	// List of BackendProfile
+	SearchBackendProfile(ctx context.Context, in *SearchBackendProfileRequest, opts ...grpc.CallOption) (*ListBackendProfile, error)
+	// BackendProfile item
+	ReadBackendProfile(ctx context.Context, in *ReadBackendProfileRequest, opts ...grpc.CallOption) (*BackendProfile, error)
+	// Update BackendProfile
+	UpdateBackendProfile(ctx context.Context, in *UpdateBackendProfileRequest, opts ...grpc.CallOption) (*BackendProfile, error)
+	// Patch BackendProfile
+	PatchBackendProfile(ctx context.Context, in *PatchBackendProfileRequest, opts ...grpc.CallOption) (*BackendProfile, error)
+	// Remove BackendProfile
+	DeleteBackendProfile(ctx context.Context, in *DeleteBackendProfileRequest, opts ...grpc.CallOption) (*BackendProfile, error)
 }
 
 type backendProfileServiceClient struct {
@@ -476,10 +796,65 @@ func (c *backendProfileServiceClient) CreateBackendProfile(ctx context.Context, 
 	return out, nil
 }
 
+func (c *backendProfileServiceClient) SearchBackendProfile(ctx context.Context, in *SearchBackendProfileRequest, opts ...grpc.CallOption) (*ListBackendProfile, error) {
+	out := new(ListBackendProfile)
+	err := c.cc.Invoke(ctx, "/storage.BackendProfileService/SearchBackendProfile", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendProfileServiceClient) ReadBackendProfile(ctx context.Context, in *ReadBackendProfileRequest, opts ...grpc.CallOption) (*BackendProfile, error) {
+	out := new(BackendProfile)
+	err := c.cc.Invoke(ctx, "/storage.BackendProfileService/ReadBackendProfile", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendProfileServiceClient) UpdateBackendProfile(ctx context.Context, in *UpdateBackendProfileRequest, opts ...grpc.CallOption) (*BackendProfile, error) {
+	out := new(BackendProfile)
+	err := c.cc.Invoke(ctx, "/storage.BackendProfileService/UpdateBackendProfile", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendProfileServiceClient) PatchBackendProfile(ctx context.Context, in *PatchBackendProfileRequest, opts ...grpc.CallOption) (*BackendProfile, error) {
+	out := new(BackendProfile)
+	err := c.cc.Invoke(ctx, "/storage.BackendProfileService/PatchBackendProfile", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendProfileServiceClient) DeleteBackendProfile(ctx context.Context, in *DeleteBackendProfileRequest, opts ...grpc.CallOption) (*BackendProfile, error) {
+	out := new(BackendProfile)
+	err := c.cc.Invoke(ctx, "/storage.BackendProfileService/DeleteBackendProfile", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendProfileServiceServer is the server API for BackendProfileService service.
 type BackendProfileServiceServer interface {
-	// Create CreateBackendProfile
+	// Create BackendProfile
 	CreateBackendProfile(context.Context, *CreateBackendProfileRequest) (*BackendProfile, error)
+	// List of BackendProfile
+	SearchBackendProfile(context.Context, *SearchBackendProfileRequest) (*ListBackendProfile, error)
+	// BackendProfile item
+	ReadBackendProfile(context.Context, *ReadBackendProfileRequest) (*BackendProfile, error)
+	// Update BackendProfile
+	UpdateBackendProfile(context.Context, *UpdateBackendProfileRequest) (*BackendProfile, error)
+	// Patch BackendProfile
+	PatchBackendProfile(context.Context, *PatchBackendProfileRequest) (*BackendProfile, error)
+	// Remove BackendProfile
+	DeleteBackendProfile(context.Context, *DeleteBackendProfileRequest) (*BackendProfile, error)
 }
 
 // UnimplementedBackendProfileServiceServer can be embedded to have forward compatible implementations.
@@ -488,6 +863,21 @@ type UnimplementedBackendProfileServiceServer struct {
 
 func (*UnimplementedBackendProfileServiceServer) CreateBackendProfile(ctx context.Context, req *CreateBackendProfileRequest) (*BackendProfile, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateBackendProfile not implemented")
+}
+func (*UnimplementedBackendProfileServiceServer) SearchBackendProfile(ctx context.Context, req *SearchBackendProfileRequest) (*ListBackendProfile, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SearchBackendProfile not implemented")
+}
+func (*UnimplementedBackendProfileServiceServer) ReadBackendProfile(ctx context.Context, req *ReadBackendProfileRequest) (*BackendProfile, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReadBackendProfile not implemented")
+}
+func (*UnimplementedBackendProfileServiceServer) UpdateBackendProfile(ctx context.Context, req *UpdateBackendProfileRequest) (*BackendProfile, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateBackendProfile not implemented")
+}
+func (*UnimplementedBackendProfileServiceServer) PatchBackendProfile(ctx context.Context, req *PatchBackendProfileRequest) (*BackendProfile, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PatchBackendProfile not implemented")
+}
+func (*UnimplementedBackendProfileServiceServer) DeleteBackendProfile(ctx context.Context, req *DeleteBackendProfileRequest) (*BackendProfile, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteBackendProfile not implemented")
 }
 
 func RegisterBackendProfileServiceServer(s *grpc.Server, srv BackendProfileServiceServer) {
@@ -512,6 +902,96 @@ func _BackendProfileService_CreateBackendProfile_Handler(srv interface{}, ctx co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendProfileService_SearchBackendProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchBackendProfileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendProfileServiceServer).SearchBackendProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/storage.BackendProfileService/SearchBackendProfile",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendProfileServiceServer).SearchBackendProfile(ctx, req.(*SearchBackendProfileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendProfileService_ReadBackendProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReadBackendProfileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendProfileServiceServer).ReadBackendProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/storage.BackendProfileService/ReadBackendProfile",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendProfileServiceServer).ReadBackendProfile(ctx, req.(*ReadBackendProfileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendProfileService_UpdateBackendProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateBackendProfileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendProfileServiceServer).UpdateBackendProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/storage.BackendProfileService/UpdateBackendProfile",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendProfileServiceServer).UpdateBackendProfile(ctx, req.(*UpdateBackendProfileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendProfileService_PatchBackendProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PatchBackendProfileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendProfileServiceServer).PatchBackendProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/storage.BackendProfileService/PatchBackendProfile",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendProfileServiceServer).PatchBackendProfile(ctx, req.(*PatchBackendProfileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendProfileService_DeleteBackendProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteBackendProfileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendProfileServiceServer).DeleteBackendProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/storage.BackendProfileService/DeleteBackendProfile",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendProfileServiceServer).DeleteBackendProfile(ctx, req.(*DeleteBackendProfileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _BackendProfileService_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "storage.BackendProfileService",
 	HandlerType: (*BackendProfileServiceServer)(nil),
@@ -519,6 +999,26 @@ var _BackendProfileService_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateBackendProfile",
 			Handler:    _BackendProfileService_CreateBackendProfile_Handler,
+		},
+		{
+			MethodName: "SearchBackendProfile",
+			Handler:    _BackendProfileService_SearchBackendProfile_Handler,
+		},
+		{
+			MethodName: "ReadBackendProfile",
+			Handler:    _BackendProfileService_ReadBackendProfile_Handler,
+		},
+		{
+			MethodName: "UpdateBackendProfile",
+			Handler:    _BackendProfileService_UpdateBackendProfile_Handler,
+		},
+		{
+			MethodName: "PatchBackendProfile",
+			Handler:    _BackendProfileService_PatchBackendProfile_Handler,
+		},
+		{
+			MethodName: "DeleteBackendProfile",
+			Handler:    _BackendProfileService_DeleteBackendProfile_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

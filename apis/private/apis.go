@@ -12,7 +12,7 @@ type RoutesInternal struct {
 	Root    *mux.Router // ''
 	ApiRoot *mux.Router // 'sys'
 	Files   *mux.Router // '/records'
-	Test 	*mux.Router // '/test'
+	Test    *mux.Router // '/test'
 }
 
 type API struct {
@@ -37,22 +37,23 @@ func Init(a *app.App, root *mux.Router) *API {
 	return api
 }
 
-func (api *API) InitTest()  {
-	api.Routes.Test.Handle("", api.ApiHandler(getTest)).Methods("GET")
+func (api *API) InitTest() {
+	//api.Routes.Test.Handle("", api.ApiHandler(getTest)).Methods("GET")
 }
 
 func (api *API) Handle404(w http.ResponseWriter, r *http.Request) {
 	web.Handle404(api.App, w, r)
 }
 
-func getTest(c *Context, w http.ResponseWriter, r *http.Request)  {
-	res := <-c.App.Store.FileBackendProfile().Get(1, "10.10.10.144")
-	if res.Err != nil {
-		c.Err = res.Err
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(res.Data.(*model.FileBackendProfile).ToJson()))
-}
+//
+//func getTest(c *Context, w http.ResponseWriter, r *http.Request)  {
+//	res := <-c.App.Store.FileBackendProfile().Get(1, "10.10.10.144")
+//	if res.Err != nil {
+//		c.Err = res.Err
+//		return
+//	}
+//
+//	w.WriteHeader(http.StatusOK)
+//	w.Write([]byte(res.Data.(*model.FileBackendProfile).ToJson()))
+//}
 var ReturnStatusOK = web.ReturnStatusOK

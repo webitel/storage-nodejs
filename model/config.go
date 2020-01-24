@@ -34,7 +34,6 @@ func (s *LocalizationSettings) SetDefaults() {
 type ServiceSettings struct {
 	ListenAddress         *string
 	ListenInternalAddress *string
-	SessionCacheInMinutes *int
 }
 
 type SqlSettings struct {
@@ -61,6 +60,7 @@ type BrokerSettings struct {
 
 type Config struct {
 	NodeName               string
+	IsDev                  bool
 	DiscoverySettings      DiscoverySettings
 	LocalizationSettings   LocalizationSettings
 	ServiceSettings        ServiceSettings

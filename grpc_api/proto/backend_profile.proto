@@ -6,13 +6,95 @@ import "const.proto";
 import "google/api/annotations.proto";
 
 service BackendProfileService {
-    // Create CreateBackendProfile
+    // Create BackendProfile
     rpc CreateBackendProfile (CreateBackendProfileRequest) returns (BackendProfile) {
         option (google.api.http) = {
             post: "/storage/backend_profiles"
             body: "*"
         };
     }
+
+    // List of BackendProfile
+    rpc SearchBackendProfile(SearchBackendProfileRequest) returns (ListBackendProfile) {
+        option (google.api.http) = {
+            get: "/storage/backend_profiles"
+        };
+    }
+
+    // BackendProfile item
+    rpc ReadBackendProfile(ReadBackendProfileRequest) returns (BackendProfile) {
+        option (google.api.http) = {
+            get: "/storage/backend_profiles/{id}"
+        };
+    }
+
+    // Update BackendProfile
+    rpc UpdateBackendProfile(UpdateBackendProfileRequest) returns (BackendProfile) {
+        option (google.api.http) = {
+            put: "/storage/backend_profiles/{id}"
+            body: "*"
+        };
+    }
+
+    // Patch BackendProfile
+    rpc PatchBackendProfile(PatchBackendProfileRequest) returns (BackendProfile) {
+        option (google.api.http) = {
+            patch: "/storage/backend_profiles/{id}"
+            body: "*"
+        };
+    }
+
+    // Remove BackendProfile
+    rpc DeleteBackendProfile(DeleteBackendProfileRequest) returns (BackendProfile) {
+        option (google.api.http) = {
+            delete: "/storage/backend_profiles/{id}"
+        };
+    }
+}
+
+message DeleteBackendProfileRequest {
+    int64 id = 1;
+    int64 domain_id = 2;
+}
+
+message PatchBackendProfileRequest {
+    int64 id = 1;
+    string name = 2;
+    int32 expire_days = 3;
+    int64 max_size = 4;
+    int32 priority = 5;
+    map<string,string> properties = 6;
+    string description = 7;
+    bool disabled = 8;
+    repeated string fields = 9;
+    int64 domain_id = 10;
+}
+
+message UpdateBackendProfileRequest {
+    int64 id = 1;
+    string name = 2;
+    int32 expire_days = 3;
+    int64 max_size = 4;
+    int32 priority = 5;
+    map<string,string> properties = 6;
+    string description = 7;
+    bool disabled = 8;
+    int64 domain_id = 9;
+}
+
+message ReadBackendProfileRequest {
+    int64 id = 1;
+    int64 domain_id = 2;
+}
+
+message SearchBackendProfileRequest {
+    int32 page = 1;
+    int32 size = 2;
+    int64 domain_id = 3;
+}
+
+message ListBackendProfile {
+    repeated BackendProfile items = 1;
 }
 
 message BackendProfile {
@@ -32,7 +114,6 @@ message BackendProfile {
     map<string,string> properties = 13;
     string description = 14;
     bool disabled = 15;
-    int64 domain_id = 16;
 }
 
 message CreateBackendProfileRequest {

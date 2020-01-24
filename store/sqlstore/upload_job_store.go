@@ -78,7 +78,7 @@ from (
          t.id,
          t.name,
          t.uuid,
-         t.domain,
+         t.domain_id,
          t.mime_type,
          t.size,
          t.email_msg,
@@ -87,26 +87,26 @@ from (
          profile.updated_at
        FROM upload_file_jobs as t
          inner join lateral (              select
-                                             tmp.domain,
+                                             tmp.domain_id,
                                              tmp.id,
                                              tmp.updated_at
                                            from (select
-                                                   p1.domain,
+                                                   p1.domain_id,
                                                    p1.id,
                                                    p1.updated_at,
                                                    p1.priority
                                                  from file_backend_profiles p1
-                                                 where p1.domain = t.domain and NOT p1.disabled is TRUE
+                                                 where p1.domain_id = t.domain_id and NOT p1.disabled is TRUE
                                                  union all select
-                                                             t.domain,
+                                                             t.domain_id,
                                                              p2.id,
                                                              p2.updated_at,
                                                              p2.priority
                                                            from file_backend_profiles p2
-                                                           where p2.domain = $3 and
+                                                           where p2.domain_id = $3 and
                                                                  NOT p2.disabled is TRUE) as tmp
                                            order by tmp.priority asc
-                                           FETCH FIRST 1 ROW ONLY              ) profile ON profile.domain = t.domain
+                                           FETCH FIRST 1 ROW ONLY              ) profile ON profile.domain_id = t.domain_id
        WHERE state = 0 AND instance = $2 AND (t.updated_at < $4 OR attempts = 0)
        ORDER BY created_at ASC
        LIMIT $1) tmp

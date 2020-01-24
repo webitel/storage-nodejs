@@ -1,6 +1,7 @@
 package store
 
 import (
+	"github.com/webitel/engine/auth_manager"
 	"time"
 
 	"github.com/webitel/storage/model"
@@ -63,12 +64,16 @@ type UploadJobStore interface {
 }
 
 type FileBackendProfileStore interface {
+	CheckAccess(domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError)
 	Create(profile *model.FileBackendProfile) (*model.FileBackendProfile, *model.AppError)
-	Get(id int, domain string) StoreChannel
+	GetAllPage(domainId int64, offset, limit int) ([]*model.FileBackendProfile, *model.AppError)
+	GetAllPageByGroups(domainId int64, groups []int, offset, limit int) ([]*model.FileBackendProfile, *model.AppError)
+	Get(id, domainId int64) (*model.FileBackendProfile, *model.AppError)
+	Update(profile *model.FileBackendProfile) (*model.FileBackendProfile, *model.AppError)
+	Delete(domainId, id int64) *model.AppError
+
 	GetById(id int) StoreChannel
 	GetAllPageByDomain(domain string, limit, offset int) StoreChannel
-	Delete(id int, domain string) StoreChannel
-	Update(profile *model.FileBackendProfile) StoreChannel
 }
 
 type FileStore interface {

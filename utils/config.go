@@ -22,7 +22,6 @@ func LoadConfig(fileName string) (*model.Config, string, map[string]interface{},
 	maxIdleConns := 5
 	maxOpenConns := 5
 	connMaxLifetimeMilliseconds := 3600000
-	sessionCacheInMinutes := 1
 
 	return &model.Config{
 		LocalizationSettings: model.LocalizationSettings{
@@ -33,7 +32,6 @@ func LoadConfig(fileName string) (*model.Config, string, map[string]interface{},
 		ServiceSettings: model.ServiceSettings{
 			ListenAddress:         model.NewString(":10023"),
 			ListenInternalAddress: model.NewString(":10021"),
-			SessionCacheInMinutes: &sessionCacheInMinutes,
 		},
 		MediaFileStoreSettings: model.MediaFileStoreSettings{
 			MaxSizeByte: model.NewInt(50 * 1000000),

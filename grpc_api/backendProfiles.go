@@ -28,13 +28,125 @@ func (api *backendProfiles) CreateBackendProfile(ctx context.Context, in *storag
 		Priority:    int(in.GetPriority()),
 		Disabled:    in.GetDisabled(),
 		MaxSizeMb:   int(in.GetMaxSize()),
-		Properties:  nil,
+		Properties:  toStorageBackendProperties(in.GetProperties()),
 		Type: model.Lookup{
 			Id: int(in.GetType().GetId()),
 		},
 	}
 
 	profile, err = api.ctrl.CreateBackendProfile(session, profile)
+	if err != nil {
+		return nil, err
+	}
+
+	return toGrpcProfile(profile), nil
+}
+
+func (api *backendProfiles) SearchBackendProfile(ctx context.Context, in *storage.SearchBackendProfileRequest) (*storage.ListBackendProfile, error) {
+	session, err := api.ctrl.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var list []*model.FileBackendProfile
+	list, err = api.ctrl.SearchBackendProfile(session, in.GetDomainId(), int(in.GetPage()), int(in.GetSize()))
+
+	if err != nil {
+		return nil, err
+	}
+
+	items := make([]*storage.BackendProfile, 0, len(list))
+	for _, v := range list {
+		items = append(items, toGrpcProfile(v))
+	}
+	return &storage.ListBackendProfile{
+		Items: items,
+	}, nil
+}
+
+func (api *backendProfiles) ReadBackendProfile(ctx context.Context, in *storage.ReadBackendProfileRequest) (*storage.BackendProfile, error) {
+	session, err := api.ctrl.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	var profile *model.FileBackendProfile
+
+	profile, err = api.ctrl.GetBackendProfile(session, in.GetId(), in.GetDomainId())
+	if err != nil {
+		return nil, err
+	}
+
+	return toGrpcProfile(profile), nil
+}
+
+func (api *backendProfiles) UpdateBackendProfile(ctx context.Context, in *storage.UpdateBackendProfileRequest) (*storage.BackendProfile, error) {
+	session, err := api.ctrl.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	profile := &model.FileBackendProfile{
+		DomainRecord: model.DomainRecord{
+			Id:       in.GetId(),
+			DomainId: session.Domain(in.GetDomainId()),
+		},
+		Name:        in.GetName(),
+		Description: in.GetDescription(),
+		ExpireDay:   int(in.GetExpireDays()),
+		Priority:    int(in.GetPriority()),
+		Disabled:    in.GetDisabled(),
+		MaxSizeMb:   int(in.GetMaxSize()),
+		Properties:  toStorageBackendProperties(in.GetProperties()),
+	}
+
+	profile, err = api.ctrl.UpdateBackendProfile(session, profile)
+	if err != nil {
+		return nil, err
+	}
+
+	return toGrpcProfile(profile), nil
+}
+
+func (api *backendProfiles) PatchBackendProfile(ctx context.Context, in *storage.PatchBackendProfileRequest) (*storage.BackendProfile, error) {
+	session, err := api.ctrl.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var profile *model.FileBackendProfile
+	patch := &model.FileBackendProfilePath{}
+
+	for _, v := range in.Fields {
+		switch v {
+		case "name":
+			patch.Name = model.NewString(in.GetName())
+		case "description":
+			patch.Description = model.NewString(in.GetDescription())
+		case "max_size":
+			patch.MaxSizeMb = model.NewInt(int(in.GetMaxSize()))
+		case "priority":
+			patch.Priority = model.NewInt(int(in.GetPriority()))
+		case "disabled":
+			patch.Disabled = model.NewBool(in.GetDisabled())
+		}
+	}
+
+	profile, err = api.ctrl.PatchBackendProfile(session, in.GetDomainId(), in.GetId(), patch)
+	if err != nil {
+		return nil, err
+	}
+
+	return toGrpcProfile(profile), nil
+}
+
+func (api *backendProfiles) DeleteBackendProfile(ctx context.Context, in *storage.DeleteBackendProfileRequest) (*storage.BackendProfile, error) {
+	session, err := api.ctrl.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var profile *model.FileBackendProfile
+	profile, err = api.ctrl.DeleteBackendProfile(session, in.GetDomainId(), in.GetId())
 	if err != nil {
 		return nil, err
 	}
@@ -65,8 +177,17 @@ func toGrpcProfile(src *model.FileBackendProfile) *storage.BackendProfile {
 			Id:   int64(src.Type.Id),
 			Name: src.Type.Name,
 		},
-		Properties:  nil,
+		Properties:  nil, //FIXME allow proto json
 		Description: src.Description,
 		Disabled:    src.Disabled,
 	}
+}
+
+//FIXME
+func toStorageBackendProperties(src map[string]string) model.StringInterface {
+	out := make(map[string]interface{})
+	for k, v := range src {
+		out[k] = v
+	}
+	return out
 }

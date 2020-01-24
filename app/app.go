@@ -49,7 +49,6 @@ func New(options ...string) (outApp *App, outErr error) {
 	internalRootRouter := mux.NewRouter()
 
 	app := &App{
-		id:     model.NewString(fmt.Sprintf("%s-%s", model.APP_SERVICE_NAME, model.NewId())),
 		upTime: time.Now(),
 		Srv: &Server{
 			RootRouter: rootRouter,

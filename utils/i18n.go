@@ -2,14 +2,13 @@ package utils
 
 import (
 	"fmt"
+	"github.com/nicksnyder/go-i18n/i18n"
+	"github.com/webitel/storage/model"
+	"github.com/webitel/wlog"
 	"io/ioutil"
 	"net/http"
 	"path/filepath"
 	"strings"
-
-	"github.com/nicksnyder/go-i18n/i18n"
-	"github.com/webitel/storage/model"
-	"github.com/webitel/wlog"
 )
 
 var T i18n.TranslateFunc
@@ -64,7 +63,7 @@ func InitTranslationsWithDir(dir string) error {
 func GetTranslationsBySystemLocale() (i18n.TranslateFunc, error) {
 	locale := *settings.DefaultServerLocale
 	if _, ok := locales[locale]; !ok {
-		wlog.Error(fmt.Sprintf("Failed to load system translations for '%v' attempting to fall back to '%v'", locale, model.DEFAULT_LOCALE))
+		wlog.Error(fmt.Sprintf("failed to load system translations for '%v' attempting to fall back to '%v'", locale, model.DEFAULT_LOCALE))
 		locale = model.DEFAULT_LOCALE
 	}
 
@@ -77,7 +76,7 @@ func GetTranslationsBySystemLocale() (i18n.TranslateFunc, error) {
 		return nil, fmt.Errorf("Failed to load system translations")
 	}
 
-	wlog.Info(fmt.Sprintf("Loaded system translations for '%v' from '%v'", locale, locales[locale]))
+	wlog.Info(fmt.Sprintf("loaded system translations for '%v' from '%v'", locale, locales[locale]))
 	return translations, nil
 }
 

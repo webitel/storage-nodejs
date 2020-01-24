@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	ROOT_FILE_BACKEND_DOMAIN  = "root_domain"
+	ROOT_FILE_BACKEND_DOMAIN  = 0
 	ACTIVE_BACKEND_CACHE_SIZE = 1000
 	LOCAL_BACKEND             = 1
 	CACHE_DIR                 = "./cache"
@@ -29,20 +29,20 @@ type FileBackendProfile struct {
 	MaxSizeMb   int             `db:"max_size_mb" json:"max_size_mb"`
 	Properties  StringInterface `db:"properties" json:"properties"`
 	Type        Lookup          `db:"type" json:"type"`
-	CreatedAt   int64           `db:"created_at" json:"created_at"`
-	UpdatedAt   int64           `db:"updated_at" json:"updated_at"`
 	DataSize    float64         `db:"data_size" json:"data_size"`
 	DataCount   int64           `db:"data_count" json:"data_count"`
 }
 
 type FileBackendProfilePath struct {
-	Name       *string          `json:"name"`
-	ExpireDay  *int             `json:"expire_day"`
-	Priority   *int             `json:"priority"`
-	Disabled   *bool            `json:"disabled"`
-	MaxSizeMb  *int             `json:"max_size_mb"`
-	Properties *StringInterface `json:"properties"`
-	TypeId     *int             `json:"type_id"`
+	Name        *string          `json:"name"`
+	ExpireDay   *int             `json:"expire_day"`
+	Priority    *int             `json:"priority"`
+	Disabled    *bool            `json:"disabled"`
+	MaxSizeMb   *int             `json:"max_size_mb"`
+	Properties  *StringInterface `json:"properties"`
+	Description *string          `json:"description"`
+	UpdatedBy   Lookup
+	UpdatedAt   int64
 }
 
 func (p *FileBackendProfile) GetJsonProperties() string {
@@ -73,6 +73,9 @@ func (f *FileBackendProfile) ToJson() string {
 }
 
 func (f *FileBackendProfile) Path(path *FileBackendProfilePath) {
+	f.UpdatedBy = path.UpdatedBy
+	f.UpdatedAt = path.UpdatedAt
+
 	if path.Name != nil {
 		f.Name = *path.Name
 	}
@@ -93,15 +96,12 @@ func (f *FileBackendProfile) Path(path *FileBackendProfilePath) {
 		f.MaxSizeMb = *path.MaxSizeMb
 	}
 
-	if path.TypeId != nil {
-		//f.TypeId = *path.TypeId
+	if path.Properties != nil {
+		f.Properties = *path.Properties
 	}
 
-	if path.Properties != nil {
-		f.Properties = StringInterface{}
-		for k, v := range *path.Properties {
-			f.Properties[k] = v
-		}
+	if path.Description != nil {
+		f.Description = *path.Description
 	}
 }
 

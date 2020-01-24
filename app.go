@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/webitel/storage/apis"
 	"github.com/webitel/storage/app"
 	"github.com/webitel/storage/grpc_api"
@@ -23,6 +24,7 @@ func main() {
 	if err != nil {
 		panic(err.Error())
 	}
+	wlog.Info(fmt.Sprintf("server version: %s", a.Version()))
 
 	serverErr := a.StartServer()
 	if serverErr != nil {
@@ -63,7 +65,7 @@ func main() {
 	a.Jobs.StopSchedulers()
 	a.Jobs.StopWorkers()
 
-	a.Broker.Close()
+	//a.Broker.Close()
 
 	wlog.Info("Stopping uploader server")
 	a.Uploader.Stop()
