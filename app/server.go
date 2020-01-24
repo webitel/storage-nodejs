@@ -5,9 +5,9 @@ import (
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
-	"github.com/webitel/storage/mlog"
 	"github.com/webitel/storage/store"
 	"github.com/webitel/storage/utils"
+	"github.com/webitel/wlog"
 	"net"
 	"net/http"
 	"strings"
@@ -63,18 +63,18 @@ func (cw *CorsWrapper) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (rl *RecoveryLogger) Println(i ...interface{}) {
-	mlog.Error("Please check the std error output for the stack trace")
-	mlog.Error(fmt.Sprint(i))
+	wlog.Error("Please check the std error output for the stack trace")
+	wlog.Error(fmt.Sprint(i))
 }
 
 func (a *App) StartServer() error {
-	mlog.Info("Starting Server...")
+	wlog.Info("Starting Server...")
 
 	var handler http.Handler = &CorsWrapper{a.Srv.RootRouter}
 
 	a.Srv.Server = &http.Server{
 		Handler:  handlers.RecoveryHandler(handlers.RecoveryLogger(&RecoveryLogger{}), handlers.PrintRecoveryStack(true))(handler),
-		ErrorLog: a.Log.StdLog(mlog.String("source", "httpserver")),
+		ErrorLog: a.Log.StdLog(wlog.String("source", "httpserver")),
 	}
 
 	addr := *a.Config().ServiceSettings.ListenAddress
@@ -85,7 +85,7 @@ func (a *App) StartServer() error {
 	}
 
 	a.Srv.ListenAddr = listener.Addr().(*net.TCPAddr)
-	mlog.Info(fmt.Sprintf("Server is listening on %v", listener.Addr().String()))
+	wlog.Info(fmt.Sprintf("Server is listening on %v", listener.Addr().String()))
 	a.Srv.didFinishListen = make(chan struct{})
 
 	go func() {
@@ -93,7 +93,7 @@ func (a *App) StartServer() error {
 
 		err = a.Srv.Server.Serve(listener)
 		if err != nil && err != http.ErrServerClosed {
-			mlog.Critical(fmt.Sprintf("Error starting server, err:%v", err))
+			wlog.Critical(fmt.Sprintf("Error starting server, err:%v", err))
 			time.Sleep(time.Second)
 		}
 		close(a.Srv.didFinishListen)
@@ -103,13 +103,13 @@ func (a *App) StartServer() error {
 }
 
 func (a *App) StartInternalServer() error {
-	mlog.Info("Starting Internal Server...")
+	wlog.Info("Starting Internal Server...")
 
 	var handler http.Handler = &CorsWrapper{a.InternalSrv.RootRouter}
 
 	a.InternalSrv.Server = &http.Server{
 		Handler:  handlers.RecoveryHandler(handlers.RecoveryLogger(&RecoveryLogger{}), handlers.PrintRecoveryStack(true))(handler),
-		ErrorLog: a.Log.StdLog(mlog.String("source", "httpserver")),
+		ErrorLog: a.Log.StdLog(wlog.String("source", "httpserver")),
 	}
 
 	addr := *a.Config().ServiceSettings.ListenInternalAddress
@@ -120,7 +120,7 @@ func (a *App) StartInternalServer() error {
 	}
 
 	a.InternalSrv.ListenAddr = listener.Addr().(*net.TCPAddr)
-	mlog.Info(fmt.Sprintf("Server internal is listening on %v", listener.Addr().String()))
+	wlog.Info(fmt.Sprintf("Server internal is listening on %v", listener.Addr().String()))
 	a.InternalSrv.didFinishListen = make(chan struct{})
 
 	go func() {
@@ -128,7 +128,7 @@ func (a *App) StartInternalServer() error {
 
 		err = a.InternalSrv.Server.Serve(listener)
 		if err != nil && err != http.ErrServerClosed {
-			mlog.Critical(fmt.Sprintf("Error starting server, err:%v", err))
+			wlog.Critical(fmt.Sprintf("Error starting server, err:%v", err))
 			time.Sleep(time.Second)
 		}
 		close(a.InternalSrv.didFinishListen)

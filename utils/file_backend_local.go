@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"github.com/webitel/storage/model"
 	"io"
 	"net/http"
@@ -54,6 +55,7 @@ func (self *LocalFileBackend) Write(src io.Reader, file File) (int64, *model.App
 	}
 	self.setWriteSize(written)
 	file.SetPropertyString("directory", directory)
+	fmt.Println(allPath)
 	return written, nil
 }
 

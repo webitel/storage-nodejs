@@ -15,24 +15,6 @@ type SqlFileBackendProfileStore struct {
 func NewSqlFileBackendProfileStore(sqlStore SqlStore) store.FileBackendProfileStore {
 	us := &SqlFileBackendProfileStore{sqlStore}
 
-	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.FileBackendProfile{}, "file_backend_profiles").SetKeys(true, "id")
-		table.ColMap("Name").SetNotNull(true).SetMaxSize(100)
-		table.ColMap("Domain").SetNotNull(true).SetMaxSize(100)
-		table.ColMap("ExpireDay").SetNotNull(true)
-		table.ColMap("Priority")
-		table.ColMap("Disabled")
-		table.ColMap("MaxSizeMb").SetNotNull(true)
-		table.ColMap("Properties").SetNotNull(true)
-		table.ColMap("TypeId").SetNotNull(true)
-		table.ColMap("CreatedAt").SetNotNull(true)
-		table.ColMap("UpdatedAt").SetNotNull(true)
-
-		table = db.AddTableWithName(model.FileBackendProfileType{}, "file_backend_profile_type").SetKeys(true, "id")
-		table.ColMap("Name").SetMaxSize(50)
-		table.ColMap("Code").SetMaxSize(10)
-	}
-
 	return us
 }
 
@@ -40,34 +22,43 @@ func (self SqlFileBackendProfileStore) CreateIndexesIfNotExists() {
 
 }
 
-func (self SqlFileBackendProfileStore) AfterPrepare() {
-	return
-	_, err := self.GetReplica().Exec(`
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'file_backend_profiles_file_backend_profile_type_id_fk') THEN
-        ALTER TABLE file_backend_profiles
-            ADD CONSTRAINT file_backend_profiles_file_backend_profile_type_id_fk
-            FOREIGN KEY (type_id) REFERENCES file_backend_profile_type (id);
-    END IF;
-END;
-$$;`)
+func (s SqlFileBackendProfileStore) Create(profile *model.FileBackendProfile) (*model.FileBackendProfile, *model.AppError) {
+	err := s.GetMaster().SelectOne(&profile, `with p as (
+    insert into file_backend_profiles (name, expire_day, priority, disabled, max_size_mb, properties, type_id,
+                                           created_at, updated_at, created_by, updated_by,
+                                           domain_id, description)
+    values (:Name, :ExpireDay, :Priority, :Disabled, :MaxSize, :Properties, :TypeId, :CreatedAt, :UpdatedAt, :CreatedBy, :UpdatedBy,
+            :DomainId, :Description)
+    returning *
+)
+select p.id, call_center.cc_get_lookup(c.id, c.name) as created_by, p.created_at, call_center.cc_get_lookup(u.id, u.name) as updated_by,
+       p.updated_at, p.name, p.description, p.expire_day, p.priority, p.disabled, p.max_size_mb, p.properties,
+       call_center.cc_get_lookup(t.id, t.name) as type, p.data_size, p.data_count
+from p
+    inner join file_backend_profile_type t on t.id = p.type_id
+    left join directory.wbt_user c on c.id = p.created_by
+    left join directory.wbt_user u on u.id = p.updated_by`, map[string]interface{}{
+		"Name":        profile.Name,
+		"ExpireDay":   profile.ExpireDay,
+		"Priority":    profile.Priority,
+		"Disabled":    profile.Disabled,
+		"MaxSize":     profile.MaxSizeMb,
+		"Properties":  model.StringInterfaceToJson(profile.Properties),
+		"TypeId":      profile.Type.Id,
+		"CreatedAt":   profile.CreatedAt,
+		"UpdatedAt":   profile.UpdatedAt,
+		"CreatedBy":   profile.CreatedBy.Id,
+		"UpdatedBy":   profile.UpdatedBy.Id,
+		"DomainId":    profile.DomainId,
+		"Description": profile.Description,
+	})
 
 	if err != nil {
-		panic(err)
+		return nil, model.NewAppError("SqlFileBackendProfileStore.Create", "store.sql_file_backend_profile.get.create.app_error", nil,
+			fmt.Sprintf("name=%v, %v", profile.Name, err.Error()), extractCodeFromErr(err))
 	}
-}
 
-func (s SqlFileBackendProfileStore) Save(profile *model.FileBackendProfile) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		profile.PreSave()
-		if err := s.GetMaster().Insert(profile); err != nil {
-			result.Err = model.NewAppError("SqlBackendProfileStore.Save", "store.sql_file_backend_profile.save.saving.app_error", nil,
-				fmt.Sprintf("name=%s, %s", profile.Name, err.Error()), http.StatusInternalServerError)
-		} else {
-			result.Data = profile
-		}
-	})
+	return profile, nil
 }
 
 func (s SqlFileBackendProfileStore) Get(id int, domain string) store.StoreChannel {
@@ -155,11 +146,10 @@ func (s SqlFileBackendProfileStore) Update(profile *model.FileBackendProfile) st
 			,properties = :Properties
 		WHERE id = :Id AND domain = :Domain`,
 			map[string]interface{}{
-				"Id":     profile.Id,
-				"Domain": profile.Domain,
+				"Id": profile.Id,
 
 				"Name":       profile.Name,
-				"TypeId":     profile.TypeId,
+				"TypeId":     profile.Type.Id,
 				"ExpireDay":  profile.ExpireDay,
 				"Disabled":   profile.Disabled,
 				"MaxSizeMb":  profile.MaxSizeMb,

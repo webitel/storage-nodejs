@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/olivere/elastic"
-	"github.com/webitel/storage/mlog"
 	"github.com/webitel/storage/model"
+	"github.com/webitel/wlog"
 	"log"
 	"os"
 	"time"
@@ -33,7 +33,7 @@ func NewElasticSupplier(settings model.NoSqlSettings) *ElasticSupplier {
 	var err error
 
 	if settings.Host == nil {
-		mlog.Critical("Failed to open NoSQL connection to err: bad settings host")
+		wlog.Critical("Failed to open NoSQL connection to err: bad settings host")
 		time.Sleep(time.Second)
 		os.Exit(EXIT_DB_OPEN)
 	}
@@ -52,13 +52,14 @@ func NewElasticSupplier(settings model.NoSqlSettings) *ElasticSupplier {
 	supplier.client, err = elastic.NewClient(options...)
 
 	if err != nil {
-		mlog.Critical(fmt.Sprintf("Failed to open NoSQL connection to err:%v", err.Error()))
+		return nil
+		wlog.Critical(fmt.Sprintf("Failed to open NoSQL connection to err:%v", err.Error()))
 		time.Sleep(time.Second)
 		os.Exit(EXIT_DB_OPEN)
 	}
 
 	for i := 0; i < DB_PING_ATTEMPTS; i++ {
-		mlog.Info(fmt.Sprintf("Pinging NoSQL %v database", supplier.Name()))
+		wlog.Info(fmt.Sprintf("Pinging NoSQL %v database", supplier.Name()))
 		ctx, cancel := context.WithTimeout(context.Background(), DB_PING_TIMEOUT_SECS*time.Second)
 		defer cancel()
 
@@ -68,11 +69,11 @@ func NewElasticSupplier(settings model.NoSqlSettings) *ElasticSupplier {
 			break
 		} else {
 			if i == DB_PING_ATTEMPTS-1 {
-				mlog.Critical(fmt.Sprintf("Failed to ping DB, server will exit err=%v", err))
+				wlog.Critical(fmt.Sprintf("Failed to ping DB, server will exit err=%v", err))
 				time.Sleep(time.Second)
 				os.Exit(EXIT_PING)
 			} else {
-				mlog.Error(fmt.Sprintf("Failed to ping DB retrying in %v seconds err=%v", DB_PING_TIMEOUT_SECS, err))
+				wlog.Error(fmt.Sprintf("Failed to ping DB retrying in %v seconds err=%v", DB_PING_TIMEOUT_SECS, err))
 				time.Sleep(DB_PING_TIMEOUT_SECS * time.Second)
 			}
 		}

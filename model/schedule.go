@@ -2,7 +2,7 @@ package model
 
 import (
 	"github.com/robfig/cron"
-	"github.com/webitel/storage/mlog"
+	"github.com/webitel/wlog"
 	"time"
 )
 
@@ -26,7 +26,7 @@ func (s *Schedule) NextTime(t time.Time) int64 {
 
 	res, err := cron.Parse(s.CronExpression)
 	if err != nil {
-		mlog.Critical(err.Error())
+		wlog.Critical(err.Error())
 		return 0
 	}
 

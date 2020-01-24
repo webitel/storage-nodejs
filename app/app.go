@@ -4,39 +4,44 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
+	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/storage/broker"
-	"github.com/webitel/storage/broker/amqp"
 	"github.com/webitel/storage/interfaces"
 	"github.com/webitel/storage/jobs"
-	"github.com/webitel/storage/mlog"
 	"github.com/webitel/storage/model"
 	"github.com/webitel/storage/store"
 	"github.com/webitel/storage/store/sqlstore"
 	"github.com/webitel/storage/utils"
+	"github.com/webitel/wlog"
 	"net/http"
 	"sync/atomic"
+	"time"
 )
 
 type App struct {
 	id          *string
 	Srv         *Server
 	InternalSrv *Server
+	cluster     *cluster
+	GrpcServer  *GrpcServer
 
 	MediaFileStore   utils.FileBackend
-	FileBackendLocal utils.FileBackend
+	FileCache        utils.FileBackend
 	fileBackendCache *utils.Cache
 
 	Store  store.Store
 	Broker broker.Broker
 
-	Log          *mlog.Logger
-	configFile   string
-	config       atomic.Value
-	sessionCache *utils.Cache
-	newStore     func() store.Store
-	Jobs         *jobs.JobServer
+	Log        *wlog.Logger
+	configFile string
+	config     atomic.Value
+	newStore   func() store.Store
+	Jobs       *jobs.JobServer
 
-	Uploader interfaces.UploadRecordingsFilesInterface
+	sessionManager auth_manager.AuthManager
+	Uploader       interfaces.UploadRecordingsFilesInterface
+
+	upTime time.Time
 }
 
 func New(options ...string) (outApp *App, outErr error) {
@@ -44,14 +49,14 @@ func New(options ...string) (outApp *App, outErr error) {
 	internalRootRouter := mux.NewRouter()
 
 	app := &App{
-		id: model.NewString("todo-pid"),
+		id:     model.NewString(fmt.Sprintf("%s-%s", model.APP_SERVICE_NAME, model.NewId())),
+		upTime: time.Now(),
 		Srv: &Server{
 			RootRouter: rootRouter,
 		},
 		InternalSrv: &Server{
 			RootRouter: internalRootRouter,
 		},
-		sessionCache:     utils.NewLru(model.SESSION_CACHE_SIZE),
 		fileBackendCache: utils.NewLru(model.ACTIVE_BACKEND_CACHE_SIZE),
 	}
 	app.Srv.Router = app.Srv.RootRouter.PathPrefix("/").Subrouter()
@@ -74,13 +79,13 @@ func New(options ...string) (outApp *App, outErr error) {
 	if err := app.LoadConfig(app.configFile); err != nil {
 		return nil, err
 	}
-	app.Log = mlog.NewLogger(&mlog.LoggerConfiguration{
+	app.Log = wlog.NewLogger(&wlog.LoggerConfiguration{
 		EnableConsole: true,
-		ConsoleLevel:  mlog.LevelDebug,
+		ConsoleLevel:  wlog.LevelDebug,
 	})
 
-	mlog.RedirectStdLog(app.Log)
-	mlog.InitGlobalLogger(app.Log)
+	wlog.RedirectStdLog(app.Log)
+	wlog.InitGlobalLogger(app.Log)
 
 	if err := utils.InitTranslations(app.Config().LocalizationSettings); err != nil {
 		return nil, errors.Wrapf(err, "unable to load translation files")
@@ -88,9 +93,11 @@ func New(options ...string) (outApp *App, outErr error) {
 
 	app.initLocalFileStores()
 
-	mlog.Info("Server is initializing...")
+	wlog.Info("Server is initializing...")
 
-	app.Broker = broker.NewLayeredBroker(amqp.NewBrokerSupplier(app.Config().BrokerSettings))
+	app.cluster = NewCluster(app)
+
+	//app.Broker = broker.NewLayeredBroker(amqp.NewBrokerSupplier(app.Config().BrokerSettings), app)
 
 	if app.newStore == nil {
 		app.newStore = func() store.Store {
@@ -100,6 +107,17 @@ func New(options ...string) (outApp *App, outErr error) {
 
 	app.Srv.Store = app.newStore()
 	app.Store = app.Srv.Store
+
+	app.GrpcServer = NewGrpcServer(app.Config().ServerSettings)
+
+	if outErr = app.cluster.Start(); outErr != nil {
+		return nil, outErr
+	}
+
+	app.sessionManager = auth_manager.NewAuthManager(model.SESSION_CACHE_SIZE, model.SESSION_CACHE_TIME, app.cluster.discovery)
+	if err := app.sessionManager.Start(); err != nil {
+		return nil, err
+	}
 
 	app.Srv.Router.NotFoundHandler = http.HandlerFunc(app.Handle404)
 	app.InternalSrv.Router.NotFoundHandler = http.HandlerFunc(app.Handle404)
@@ -113,17 +131,21 @@ func (app *App) initLocalFileStores() *model.AppError {
 	var appErr *model.AppError
 	settings := app.Config().MediaFileStoreSettings
 
-	if app.FileBackendLocal, appErr = utils.NewBackendStore(&model.FileBackendProfile{
-		Name:       "Internal",
-		TypeId:     model.LOCAL_BACKEND,
+	if app.FileCache, appErr = utils.NewBackendStore(&model.FileBackendProfile{
+		Name: "Internal file cache",
+		Type: model.Lookup{
+			Id: model.LOCAL_BACKEND,
+		},
 		Properties: model.StringInterface{"directory": model.CACHE_DIR, "path_pattern": ""},
 	}); appErr != nil {
 		return appErr
 	}
 
 	if app.MediaFileStore, appErr = utils.NewBackendStore(&model.FileBackendProfile{
-		Name:       "Media store",
-		TypeId:     model.LOCAL_BACKEND,
+		Name: "Media store",
+		Type: model.Lookup{
+			Id: model.LOCAL_BACKEND,
+		},
 		Properties: model.StringInterface{"directory": *settings.Directory, "path_pattern": *settings.PathPattern},
 	}); appErr != nil {
 		return appErr
@@ -133,7 +155,7 @@ func (app *App) initLocalFileStores() *model.AppError {
 }
 
 func (app *App) Shutdown() {
-	mlog.Info("Stopping Server...")
+	wlog.Info("Stopping Server...")
 
 	if app.Srv.Server != nil {
 		app.Srv.Server.Close()
@@ -142,11 +164,15 @@ func (app *App) Shutdown() {
 	if app.InternalSrv.Server != nil {
 		app.InternalSrv.Server.Close()
 	}
+
+	if app.cluster != nil {
+		app.cluster.Stop()
+	}
 }
 
 func (a *App) Handle404(w http.ResponseWriter, r *http.Request) {
 	err := model.NewAppError("Handle404", "api.context.404.app_error", nil, r.URL.String(), http.StatusNotFound)
-	mlog.Debug(fmt.Sprintf("%v: code=404 ip=%v", r.URL.Path, utils.GetIpAddress(r)))
+	wlog.Debug(fmt.Sprintf("%v: code=404 ip=%v", r.URL.Path, utils.GetIpAddress(r)))
 	utils.RenderWebAppError(a.Config(), w, r, err)
 }
 

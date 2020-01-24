@@ -5,8 +5,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/webitel/storage/mlog"
 	"github.com/webitel/storage/model"
+	"github.com/webitel/wlog"
 )
 
 type Schedulers struct {
@@ -21,7 +21,7 @@ type Schedulers struct {
 }
 
 func (srv *JobServer) InitSchedulers() *Schedulers {
-	mlog.Debug("Initialising schedulers.")
+	wlog.Debug("Initialising schedulers.")
 
 	schedulers := &Schedulers{
 		stop:          make(chan bool),
@@ -41,10 +41,10 @@ func (schedulers *Schedulers) Start() *Schedulers {
 
 	go func() {
 		schedulers.startOnce.Do(func() {
-			mlog.Info("Starting schedulers.")
+			wlog.Info("Starting schedulers.")
 
 			defer func() {
-				mlog.Info("Schedulers stopped.")
+				wlog.Info("Schedulers stopped.")
 				close(schedulers.stopped)
 			}()
 
@@ -55,7 +55,7 @@ func (schedulers *Schedulers) Start() *Schedulers {
 			for {
 				select {
 				case <-schedulers.stop:
-					mlog.Debug("Schedulers received stop signal.")
+					wlog.Debug("Schedulers received stop signal.")
 					return
 
 				case now = <-time.After(time.Minute):
@@ -75,7 +75,7 @@ func (schedulers *Schedulers) scheduleJobs(now *time.Time) {
 	res := <-schedulers.jobs.Store.Schedule().GetAllWithNoJobs(1000, 0)
 
 	if res.Err != nil {
-		mlog.Critical(res.Err.Error())
+		wlog.Critical(res.Err.Error())
 		return
 	}
 
@@ -85,16 +85,16 @@ func (schedulers *Schedulers) scheduleJobs(now *time.Time) {
 
 		_, appErr = schedulers.jobs.CreateJob(item.Type, &item.Id, nextTime, data)
 		if appErr != nil {
-			mlog.Warn(fmt.Sprintf("Failed to schedule job with scheduler: %s", item.Name))
-			mlog.Error(fmt.Sprint(appErr))
+			wlog.Warn(fmt.Sprintf("Failed to schedule job with scheduler: %s", item.Name))
+			wlog.Error(fmt.Sprint(appErr))
 		} else {
-			mlog.Debug(fmt.Sprintf("Next run time for scheduler %v: %v", item.Name, time.Unix(nextTime, 0).String()))
+			wlog.Debug(fmt.Sprintf("Next run time for scheduler %v: %v", item.Name, time.Unix(nextTime, 0).String()))
 		}
 	}
 }
 
 func (schedulers *Schedulers) Stop() *Schedulers {
-	mlog.Info("Stopping schedulers.")
+	wlog.Info("Stopping schedulers.")
 	close(schedulers.stop)
 	<-schedulers.stopped
 	return schedulers

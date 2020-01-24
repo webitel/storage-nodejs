@@ -3,8 +3,8 @@ package uploader
 import (
 	"fmt"
 	"github.com/webitel/storage/app"
-	"github.com/webitel/storage/mlog"
 	"github.com/webitel/storage/model"
+	"github.com/webitel/wlog"
 )
 
 type UploadTask struct {
@@ -22,16 +22,16 @@ func (u *UploadTask) Execute() {
 	store, err := u.app.GetFileBackendStore(u.job.ProfileId, u.job.ProfileUpdatedAt)
 
 	if err != nil {
-		mlog.Critical(err.Error())
+		wlog.Critical(err.Error())
 		u.app.Store.UploadJob().SetStateError(int(u.job.Id), err.Error())
 		return
 	}
 
-	mlog.Debug(fmt.Sprintf("Execute upload task %s to store %s", u.Name(), store.Name()))
+	wlog.Debug(fmt.Sprintf("Execute upload task %s to store %s", u.Name(), store.Name()))
 
-	r, err := u.app.FileBackendLocal.Reader(u.job, 0)
+	r, err := u.app.FileCache.Reader(u.job, 0)
 	if err != nil {
-		mlog.Critical(err.Error())
+		wlog.Critical(err.Error())
 		u.app.Store.UploadJob().SetStateError(int(u.job.Id), err.Error())
 		return
 	}
@@ -52,24 +52,25 @@ func (u *UploadTask) Execute() {
 	}
 
 	if _, err = store.Write(r, f); err != nil {
-		mlog.Critical(err.Error())
+		wlog.Critical(err.Error())
 		u.app.Store.UploadJob().SetStateError(int(u.job.Id), err.Error())
 		return
 	}
 
-	mlog.Debug(fmt.Sprintf("Store %s to %s %d bytes", u.job.GetStoreName(), store.Name(), u.job.Size))
+	wlog.Debug(fmt.Sprintf("Store %s to %s %d bytes", u.job.GetStoreName(), store.Name(), u.job.Size))
 
 	result := <-u.app.Store.File().MoveFromJob(int(u.job.Id), u.job.ProfileId, f.Properties)
 	if result.Err != nil {
-		mlog.Critical(result.Err.Error())
+		wlog.Critical(result.Err.Error())
+		store.Remove(f)
 		u.app.Store.UploadJob().SetStateError(int(u.job.Id), result.Err.Error())
 		return
 	}
 
-	err = u.app.FileBackendLocal.Remove(u.job)
+	err = u.app.FileCache.Remove(u.job)
 	if err != nil {
-		mlog.Critical(err.Error())
+		wlog.Critical(err.Error())
 	}
 
-	mlog.Debug(fmt.Sprintf("End execute upload task %s", u.Name()))
+	wlog.Debug(fmt.Sprintf("End execute upload task %s", u.Name()))
 }

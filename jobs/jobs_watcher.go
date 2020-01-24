@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/webitel/storage/mlog"
 	"github.com/webitel/storage/model"
+	"github.com/webitel/wlog"
 )
 
 // Default polling interval for jobs termination.
@@ -32,7 +32,7 @@ func (srv *JobServer) MakeWatcher(workers *Workers, pollingInterval int) *Watche
 }
 
 func (watcher *Watcher) Start() {
-	mlog.Debug("Watcher Started")
+	wlog.Debug("Watcher Started")
 
 	// Delay for some random number of milliseconds before starting to ensure that multiple
 	// instances of the jobserver  don't poll at a time too close to each other.
@@ -40,14 +40,14 @@ func (watcher *Watcher) Start() {
 	//<-time.After(time.Duration(rand.Intn(watcher.pollingInterval)) * time.Millisecond)
 	watcher.PollAndNotify()
 	defer func() {
-		mlog.Debug("Watcher Finished")
+		wlog.Debug("Watcher Finished")
 		watcher.stopped <- true
 	}()
 
 	for {
 		select {
 		case <-watcher.stop:
-			mlog.Debug("Watcher: Received stop signal")
+			wlog.Debug("Watcher: Received stop signal")
 			return
 		case <-time.After(time.Duration(watcher.pollingInterval) * time.Millisecond):
 			watcher.PollAndNotify()
@@ -56,14 +56,14 @@ func (watcher *Watcher) Start() {
 }
 
 func (watcher *Watcher) Stop() {
-	mlog.Debug("Watcher Stopping")
+	wlog.Debug("Watcher Stopping")
 	watcher.stop <- true
 	<-watcher.stopped
 }
 
 func (watcher *Watcher) PollAndNotify() {
 	if result := <-watcher.srv.Store.Job().GetAllByStatusAndLessScheduleTime(model.JOB_STATUS_PENDING, model.GetMillis()); result.Err != nil {
-		mlog.Error(fmt.Sprintf("Error occurred getting all pending statuses: %v", result.Err.Error()))
+		wlog.Error(fmt.Sprintf("Error occurred getting all pending statuses: %v", result.Err.Error()))
 	} else {
 		jobs := result.Data.([]*model.Job)
 
@@ -71,7 +71,7 @@ func (watcher *Watcher) PollAndNotify() {
 			if w, ok := watcher.workers.middleware[job.Type]; ok {
 				w.JobChannel() <- *job
 			} else {
-				mlog.Warn(fmt.Sprintf("Not found middleware %s", job.Type))
+				wlog.Warn(fmt.Sprintf("Not found middleware %s", job.Type))
 			}
 		}
 	}

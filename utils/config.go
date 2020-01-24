@@ -17,10 +17,10 @@ var (
 
 func LoadConfig(fileName string) (*model.Config, string, map[string]interface{}, *model.AppError) {
 	var envConfig = make(map[string]interface{})
-	dbDatasource := "postgres://webitel:webitel@10.10.10.200:5432/webitel?sslmode=disable&connect_timeout=10"
+	dbDatasource := "postgres://webitel:webitel@localhost:5432/webitel?fallback_application_name=storage&sslmode=disable&connect_timeout=10&search_path=storage"
 	dbDriverName := "postgres"
-	maxIdleConns := 100
-	maxOpenConns := 100
+	maxIdleConns := 5
+	maxOpenConns := 5
 	connMaxLifetimeMilliseconds := 3600000
 	sessionCacheInMinutes := 1
 
@@ -42,19 +42,28 @@ func LoadConfig(fileName string) (*model.Config, string, map[string]interface{},
 			AllowMime:   []string{"video/mp4", "audio/mp3", "audio/wav"},
 		},
 		SqlSettings: model.SqlSettings{
-			DriverName:                  &dbDriverName,
-			DataSource:                  &dbDatasource,
+			DriverName: &dbDriverName,
+			DataSource: &dbDatasource,
+			//DataSourceReplicas:          []string{"postgres://webitel:webitel@10.10.10.25:5432/webitel?sslmode=disable&connect_timeout=10&search_path=storage"},
 			MaxIdleConns:                &maxIdleConns,
 			MaxOpenConns:                &maxOpenConns,
 			ConnMaxLifetimeMilliseconds: &connMaxLifetimeMilliseconds,
-			Trace: false,
+			Trace:                       false,
 		},
 		NoSqlSettings: model.NoSqlSettings{
 			Host:  model.NewString("http://10.10.10.200:9200"),
 			Trace: true,
 		},
 		BrokerSettings: model.BrokerSettings{
-			ConnectionString: model.NewString("amqp://webitel:secret@10.10.10.200:5672?heartbeat=0"),
+			ConnectionString: model.NewString("amqp://webitel:webitel@cloud-ua2.webitel.com:5672?heartbeat=0"),
+		},
+		DiscoverySettings: model.DiscoverySettings{
+			Url: "192.168.177.199:8500",
+		},
+		ServerSettings: model.ServerSettings{
+			Address: "",
+			Port:    8041,
+			Network: "tcp",
 		},
 	}, "", envConfig, nil
 }

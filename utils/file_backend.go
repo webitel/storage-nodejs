@@ -51,7 +51,7 @@ type FileBackend interface {
 }
 
 func NewBackendStore(profile *model.FileBackendProfile) (FileBackend, *model.AppError) {
-	switch profile.TypeId {
+	switch profile.Type.Id {
 	case model.LOCAL_BACKEND:
 		return &LocalFileBackend{
 			BaseFileBackend: BaseFileBackend{profile.UpdatedAt, 0},

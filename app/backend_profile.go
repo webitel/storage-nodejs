@@ -1,21 +1,13 @@
 package app
 
 import (
-	"github.com/webitel/storage/mlog"
 	"github.com/webitel/storage/model"
 	"github.com/webitel/storage/utils"
+	"github.com/webitel/wlog"
 )
 
-func (app *App) SaveFileBackendProfile(profile *model.FileBackendProfile) (*model.FileBackendProfile, *model.AppError) {
-	if err := profile.IsValid(); err != nil {
-		return nil, err
-	}
-
-	if result := <-app.Store.FileBackendProfile().Save(profile); result.Err != nil {
-		return nil, result.Err
-	} else {
-		return result.Data.(*model.FileBackendProfile), nil
-	}
+func (app *App) CreateFileBackendProfile(profile *model.FileBackendProfile) (*model.FileBackendProfile, *model.AppError) {
+	return app.Store.FileBackendProfile().Create(profile)
 }
 
 func (app *App) GetFileBackendProfile(id int, domain string) (*model.FileBackendProfile, *model.AppError) {
@@ -95,6 +87,6 @@ func (app *App) GetFileBackendStore(id int, syncTime int64) (store utils.FileBac
 	}
 
 	app.fileBackendCache.Add(id, store)
-	mlog.Info("Added to cache", mlog.String("name", store.Name()))
+	wlog.Info("Added to cache", wlog.String("name", store.Name()))
 	return store, nil
 }

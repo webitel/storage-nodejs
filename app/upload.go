@@ -2,14 +2,14 @@ package app
 
 import (
 	"fmt"
-	"github.com/webitel/storage/mlog"
 	"github.com/webitel/storage/model"
+	"github.com/webitel/wlog"
 	"io"
 )
 
 func (app *App) AddUploadJobFile(src io.ReadCloser, file *model.JobUploadFile) *model.AppError {
 
-	size, err := app.FileBackendLocal.Write(src, file)
+	size, err := app.FileCache.Write(src, file)
 	if err != nil {
 		return err
 	}
@@ -19,8 +19,8 @@ func (app *App) AddUploadJobFile(src io.ReadCloser, file *model.JobUploadFile) *
 
 	res := <-app.Store.UploadJob().Save(file)
 	if res.Err != nil {
-		if err = app.FileBackendLocal.Remove(file); err != nil {
-			mlog.Error(fmt.Sprintf("Failed to remove cache file %v", err))
+		if err = app.FileCache.Remove(file); err != nil {
+			wlog.Error(fmt.Sprintf("Failed to remove cache file %v", err))
 		}
 	}
 

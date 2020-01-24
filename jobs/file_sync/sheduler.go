@@ -2,8 +2,8 @@ package file_sync
 
 import (
 	"github.com/webitel/storage/app"
-	"github.com/webitel/storage/mlog"
 	"github.com/webitel/storage/model"
+	"github.com/webitel/wlog"
 )
 
 type Scheduler struct {
@@ -27,7 +27,7 @@ func (scheduler *Scheduler) Enabled(cfg *model.Config) bool {
 }
 
 func (scheduler *Scheduler) ScheduleJob(cfg *model.Config, pendingJobs bool, lastSuccessfulJob *model.Job) (*model.Job, *model.AppError) {
-	mlog.Debug("Scheduling Job", mlog.String("scheduler", scheduler.Name()))
+	wlog.Debug("Scheduling Job", wlog.String("scheduler", scheduler.Name()))
 
 	data := map[string]string{}
 

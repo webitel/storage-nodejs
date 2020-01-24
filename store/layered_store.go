@@ -47,10 +47,6 @@ func (s *LayeredStore) RunQuery(queryFunction QueryFunction) StoreChannel {
 	return storeChannel
 }
 
-func (s *LayeredStore) Session() SessionStore {
-	return s.DatabaseLayer.Session()
-}
-
 func (s *LayeredStore) UploadJob() UploadJobStore {
 	return s.DatabaseLayer.UploadJob()
 }

@@ -60,12 +60,25 @@ type BrokerSettings struct {
 }
 
 type Config struct {
+	NodeName               string
+	DiscoverySettings      DiscoverySettings
 	LocalizationSettings   LocalizationSettings
 	ServiceSettings        ServiceSettings
 	SqlSettings            SqlSettings
 	NoSqlSettings          NoSqlSettings
 	BrokerSettings         BrokerSettings
 	MediaFileStoreSettings MediaFileStoreSettings
+	ServerSettings         ServerSettings
+}
+
+type DiscoverySettings struct {
+	Url string
+}
+
+type ServerSettings struct {
+	Address string `json:"address"`
+	Port    int    `json:"port"`
+	Network string `json:"network"`
 }
 
 type MediaFileStoreSettings struct {

@@ -7,7 +7,7 @@ const (
 	API_URL_SUFFIX             = API_URL_SUFFIX_V2
 
 	HEADER_REQUEST_ID         = "X-Request-ID"
-	HEADER_TOKEN              = "X-Access-Token"
+	HEADER_TOKEN              = "X-Webitel-Access"
 	HEADER_BEARER             = "BEARER"
 	HEADER_AUTH               = "Authorization"
 	HEADER_FORWARDED          = "X-Forwarded-For"

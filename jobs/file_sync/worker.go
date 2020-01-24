@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"github.com/webitel/storage/app"
 	"github.com/webitel/storage/jobs"
-	"github.com/webitel/storage/mlog"
 	"github.com/webitel/storage/model"
 	"github.com/webitel/storage/store"
 	"github.com/webitel/storage/utils"
+	"github.com/webitel/wlog"
 	"time"
 )
 
@@ -36,27 +36,27 @@ func (m *SyncFilesJobInterfaceImpl) MakeWorker() model.Worker {
 }
 
 func (worker *Worker) Run() {
-	mlog.Debug("Worker started", mlog.String("worker", worker.name))
+	wlog.Debug("Worker started", wlog.String("worker", worker.name))
 
 	defer func() {
-		mlog.Debug("Worker finished", mlog.String("worker", worker.name))
+		wlog.Debug("Worker finished", wlog.String("worker", worker.name))
 		worker.stopped <- true
 	}()
 
 	for {
 		select {
 		case <-worker.stop:
-			mlog.Debug("Worker received stop signal", mlog.String("worker", worker.name))
+			wlog.Debug("Worker received stop signal", wlog.String("worker", worker.name))
 			return
 		case job := <-worker.jobs:
-			mlog.Debug("Worker received a new candidate job.", mlog.String("worker", worker.name))
+			wlog.Debug("Worker received a new candidate job.", wlog.String("worker", worker.name))
 			worker.DoJob(&job)
 		}
 	}
 }
 
 func (worker *Worker) Stop() {
-	mlog.Debug("Worker stopping", mlog.String("worker", worker.name))
+	wlog.Debug("Worker stopping", wlog.String("worker", worker.name))
 	worker.stop <- true
 	<-worker.stopped
 }
@@ -67,10 +67,10 @@ func (worker *Worker) JobChannel() chan<- model.Job {
 
 func (worker *Worker) DoJob(job *model.Job) {
 	if claimed, err := worker.jobServer.ClaimJob(job); err != nil {
-		mlog.Info("Worker experienced an error while trying to claim job",
-			mlog.String("worker", worker.name),
-			mlog.String("job_id", job.Id),
-			mlog.String("error", err.Error()))
+		wlog.Info("Worker experienced an error while trying to claim job",
+			wlog.String("worker", worker.name),
+			wlog.String("job_id", job.Id),
+			wlog.String("error", err.Error()))
 		return
 	} else if !claimed {
 		return
@@ -84,15 +84,15 @@ func (worker *Worker) DoJob(job *model.Job) {
 			err, done := worker.removeFiles(job)
 			job.Progress = model.GetMillis() - start
 			if err != nil {
-				mlog.Error("Worker: Failed to run remove files", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
+				wlog.Error("Worker: Failed to run remove files", wlog.String("worker", worker.name), wlog.String("job_id", job.Id), wlog.String("error", err.Error()))
 				worker.setJobError(job, err)
 				return
 			} else if done {
-				mlog.Info("Worker: Job is complete", mlog.String("worker", worker.name), mlog.String("job_id", job.Id))
+				wlog.Info("Worker: Job is complete", wlog.String("worker", worker.name), wlog.String("job_id", job.Id))
 				worker.setJobSuccess(job)
 			} else {
 				if err := worker.app.Jobs.UpdateInProgressJobData(job); err != nil {
-					mlog.Error("Worker: Failed to update remove files status data for job", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
+					wlog.Error("Worker: Failed to update remove files status data for job", wlog.String("worker", worker.name), wlog.String("job_id", job.Id), wlog.String("error", err.Error()))
 					worker.setJobError(job, err)
 					return
 				}
@@ -101,7 +101,7 @@ func (worker *Worker) DoJob(job *model.Job) {
 			return
 
 		case <-worker.stop:
-			mlog.Debug("Worker: Job has been canceled via Worker Stop", mlog.String("worker", worker.name), mlog.String("job_id", job.Id))
+			wlog.Debug("Worker: Job has been canceled via Worker Stop", wlog.String("worker", worker.name), wlog.String("job_id", job.Id))
 			worker.setJobCanceled(job)
 			return
 		}
@@ -110,20 +110,20 @@ func (worker *Worker) DoJob(job *model.Job) {
 
 func (worker *Worker) setJobSuccess(job *model.Job) {
 	if err := worker.app.Jobs.SetJobSuccess(job); err != nil {
-		mlog.Error("Worker: Failed to set success for job", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
+		wlog.Error("Worker: Failed to set success for job", wlog.String("worker", worker.name), wlog.String("job_id", job.Id), wlog.String("error", err.Error()))
 		worker.setJobError(job, err)
 	}
 }
 
 func (worker *Worker) setJobError(job *model.Job, appError *model.AppError) {
 	if err := worker.app.Jobs.SetJobError(job, appError); err != nil {
-		mlog.Error("Worker: Failed to set job error", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
+		wlog.Error("Worker: Failed to set job error", wlog.String("worker", worker.name), wlog.String("job_id", job.Id), wlog.String("error", err.Error()))
 	}
 }
 
 func (worker *Worker) setJobCanceled(job *model.Job) {
 	if err := worker.app.Jobs.SetJobCanceled(job); err != nil {
-		mlog.Error("Worker: Failed to mark job as canceled", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
+		wlog.Error("Worker: Failed to mark job as canceled", wlog.String("worker", worker.name), wlog.String("job_id", job.Id), wlog.String("error", err.Error()))
 	}
 }
 
@@ -146,18 +146,24 @@ func (worker *Worker) removeFiles(job *model.Job) (*model.AppError, bool) {
 	for _, f := range data {
 		backend, err = worker.app.GetFileBackendStore(f.ProfileId, f.ProfileUpdatedAt)
 		if err != nil {
+			//TODO
 			panic(err)
 		}
+
 		err = backend.Remove(f)
 		if err != nil {
-			panic(err.Error())
+			wlog.Warn(fmt.Sprintf("Failed to remove file %s from store, err: %s", f.GetStoreName(), err.Error()))
+			///TODO check error NOT_EXISTS and set true, and set not return error;
+			//<-worker.app.Store.File().SetNoExistsById(f.Id, true)
+			return err, false
 		}
 
 		resultDel = <-worker.app.Store.File().DeleteById(f.Id)
-		if res.Err != nil {
-			panic(resultDel.Err)
+		if resultDel.Err != nil {
+			wlog.Warn(fmt.Sprintf("Failed to remove store file %s from DB, err: %s", f.GetStoreName(), resultDel.Err.Error()))
+			return err, false
 		}
-		mlog.Debug(fmt.Sprintf("File %s[%d] removed", f.GetStoreName(), f.Id))
+		wlog.Debug(fmt.Sprintf("File %s[%d] removed", f.GetStoreName(), f.Id))
 		removed++
 	}
 	return nil, len(data) == 0

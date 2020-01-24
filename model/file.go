@@ -21,6 +21,7 @@ type File struct {
 	ProfileId int    `db:"profile_id" json:"profile_id"`
 	CreatedAt int64  `db:"created_at" json:"created_at"`
 	Removed   *bool  `db:"removed" json:"-"`
+	NotExists *bool  `db:"not_exists" json:"-"`
 }
 
 type RemoveFile struct {

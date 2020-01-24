@@ -15,6 +15,11 @@ type StringMap map[string]string
 type StringArray []string
 type JSON string
 
+type Lookup struct {
+	Id   int    `json:"id"`
+	Name string `json:"name"`
+}
+
 func (s *StringInterface) ToJson() string {
 	b, _ := json.Marshal(s)
 	return string(b)

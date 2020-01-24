@@ -3,8 +3,8 @@ package jobs
 import (
 	"sync"
 
-	"github.com/webitel/storage/mlog"
 	"github.com/webitel/storage/model"
+	"github.com/webitel/wlog"
 )
 
 type Workers struct {
@@ -30,7 +30,7 @@ func (srv *JobServer) InitWorkers() *Workers {
 }
 
 func (workers *Workers) Start() *Workers {
-	mlog.Info("Starting workers")
+	wlog.Info("Starting workers")
 
 	workers.startOnce.Do(func() {
 
@@ -52,7 +52,7 @@ func (workers *Workers) Stop() *Workers {
 		w.Stop()
 	}
 
-	mlog.Info("Stopped workers")
+	wlog.Info("Stopped workers")
 
 	return workers
 }

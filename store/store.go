@@ -41,7 +41,6 @@ type Store interface {
 }
 
 type StoreData interface {
-	Session() SessionStore
 	UploadJob() UploadJobStore
 	FileBackendProfile() FileBackendProfileStore
 	File() FileStore
@@ -56,10 +55,6 @@ type StoreSearchEngine interface {
 	Scroll(scroll *model.SearchEngineScroll) StoreChannel
 }
 
-type SessionStore interface {
-	Get(sessionIdOrToken string) StoreChannel
-}
-
 type UploadJobStore interface {
 	Save(job *model.JobUploadFile) StoreChannel
 	GetAllPageByInstance(limit int, instance string) StoreChannel
@@ -68,7 +63,7 @@ type UploadJobStore interface {
 }
 
 type FileBackendProfileStore interface {
-	Save(profile *model.FileBackendProfile) StoreChannel
+	Create(profile *model.FileBackendProfile) (*model.FileBackendProfile, *model.AppError)
 	Get(id int, domain string) StoreChannel
 	GetById(id int) StoreChannel
 	GetAllPageByDomain(domain string, limit, offset int) StoreChannel
@@ -82,6 +77,7 @@ type FileStore interface {
 	MoveFromJob(jobId, profileId int, properties model.StringInterface) StoreChannel
 	FetchDeleted(limit int) StoreChannel
 	DeleteById(id int64) StoreChannel
+	SetNoExistsById(id int64, notExists bool) StoreChannel
 }
 
 type MediaFileStore interface {

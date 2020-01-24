@@ -11,10 +11,10 @@ import (
 
 	"encoding/json"
 	"github.com/go-gorp/gorp"
-	"github.com/webitel/storage/mlog"
 	"github.com/webitel/storage/model"
 	"github.com/webitel/storage/store"
 	"github.com/webitel/storage/utils"
+	"github.com/webitel/wlog"
 	"sync/atomic"
 )
 
@@ -31,7 +31,6 @@ const (
 )
 
 type SqlSupplierOldStores struct {
-	session            store.SessionStore
 	uploadJob          store.UploadJobStore
 	fileBackendProfile store.FileBackendProfileStore
 	file               store.FileStore
@@ -62,7 +61,6 @@ func NewSqlSupplier(settings model.SqlSettings) *SqlSupplier {
 
 	supplier.initConnection()
 
-	supplier.oldStores.session = NewSqlSessionStore(supplier)
 	supplier.oldStores.uploadJob = NewSqlUploadJobStore(supplier)
 	supplier.oldStores.fileBackendProfile = NewSqlFileBackendProfileStore(supplier)
 	supplier.oldStores.file = NewSqlFileStore(supplier)
@@ -73,16 +71,14 @@ func NewSqlSupplier(settings model.SqlSettings) *SqlSupplier {
 
 	err := supplier.GetMaster().CreateTablesIfNotExists()
 	if err != nil {
-		mlog.Critical(fmt.Sprintf("Error creating database tables: %v", err))
+		wlog.Critical(fmt.Sprintf("Error creating database tables: %v", err))
 		time.Sleep(time.Second)
 		os.Exit(EXIT_CREATE_TABLE)
 	}
 
-	supplier.oldStores.session.(*SqlSessionStore).CreateIndexesIfNotExists()
 	supplier.oldStores.uploadJob.(*SqlUploadJobStore).CreateIndexesIfNotExists()
 
 	supplier.oldStores.fileBackendProfile.(*SqlFileBackendProfileStore).CreateIndexesIfNotExists()
-	supplier.oldStores.fileBackendProfile.(*SqlFileBackendProfileStore).AfterPrepare()
 
 	supplier.oldStores.file.(*SqlFileStore).CreateIndexesIfNotExists()
 	supplier.oldStores.scheduler.(*SqlScheduleStore).CreateIndexesIfNotExists()
@@ -108,13 +104,13 @@ func (ss *SqlSupplier) GetAllConns() []*gorp.DbMap {
 func setupConnection(con_type string, dataSource string, settings *model.SqlSettings) *gorp.DbMap {
 	db, err := dbsql.Open(*settings.DriverName, dataSource)
 	if err != nil {
-		mlog.Critical(fmt.Sprintf("Failed to open SQL connection to err:%v", err.Error()))
+		wlog.Critical(fmt.Sprintf("Failed to open SQL connection to err:%v", err.Error()))
 		time.Sleep(time.Second)
 		os.Exit(EXIT_DB_OPEN)
 	}
 
 	for i := 0; i < DB_PING_ATTEMPTS; i++ {
-		mlog.Info(fmt.Sprintf("Pinging SQL %v database", con_type))
+		wlog.Info(fmt.Sprintf("Pinging SQL %v database", con_type))
 		ctx, cancel := context.WithTimeout(context.Background(), DB_PING_TIMEOUT_SECS*time.Second)
 		defer cancel()
 		err = db.PingContext(ctx)
@@ -122,11 +118,11 @@ func setupConnection(con_type string, dataSource string, settings *model.SqlSett
 			break
 		} else {
 			if i == DB_PING_ATTEMPTS-1 {
-				mlog.Critical(fmt.Sprintf("Failed to ping DB, server will exit err=%v", err))
+				wlog.Critical(fmt.Sprintf("Failed to ping DB, server will exit err=%v", err))
 				time.Sleep(time.Second)
 				os.Exit(EXIT_PING)
 			} else {
-				mlog.Error(fmt.Sprintf("Failed to ping DB retrying in %v seconds err=%v", DB_PING_TIMEOUT_SECS, err))
+				wlog.Error(fmt.Sprintf("Failed to ping DB retrying in %v seconds err=%v", DB_PING_TIMEOUT_SECS, err))
 				time.Sleep(DB_PING_TIMEOUT_SECS * time.Second)
 			}
 		}
@@ -141,7 +137,7 @@ func setupConnection(con_type string, dataSource string, settings *model.SqlSett
 	if *settings.DriverName == model.DATABASE_DRIVER_POSTGRES {
 		dbmap = &gorp.DbMap{Db: db, TypeConverter: typeConverter{}, Dialect: PostgresJSONDialect{}}
 	} else {
-		mlog.Critical("Failed to create dialect specific driver")
+		wlog.Critical("Failed to create dialect specific driver")
 		time.Sleep(time.Second)
 		os.Exit(EXIT_NO_DRIVER)
 	}
@@ -299,10 +295,6 @@ func (ss *SqlSupplier) GetReplica() *gorp.DbMap {
 
 func (ss *SqlSupplier) DriverName() string {
 	return *ss.settings.DriverName
-}
-
-func (ss *SqlSupplier) Session() store.SessionStore {
-	return ss.oldStores.session
 }
 
 func (ss *SqlSupplier) UploadJob() store.UploadJobStore {

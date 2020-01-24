@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+package storage;
+
+import "const.proto";
+import "google/api/annotations.proto";
+
+service BackendProfileService {
+    // Create CreateBackendProfile
+    rpc CreateBackendProfile (CreateBackendProfileRequest) returns (BackendProfile) {
+        option (google.api.http) = {
+            post: "/storage/backend_profiles"
+            body: "*"
+        };
+    }
+}
+
+message BackendProfile {
+    int64 id = 1;
+    int64 created_at = 2;
+    Lookup created_by = 3;
+    int64 updated_at = 4;
+    Lookup updated_by = 5;
+    int64 data_size = 6;
+    int64 data_count = 7;
+
+    string name = 8;
+    int32 expire_days = 9;
+    int64 max_size = 10;
+    int32 priority = 11;
+    Lookup type = 12;
+    map<string,string> properties = 13;
+    string description = 14;
+    bool disabled = 15;
+    int64 domain_id = 16;
+}
+
+message CreateBackendProfileRequest {
+    string name = 1;
+    int32 expire_days = 2;
+    int64 max_size = 3;
+    int32 priority = 4;
+    Lookup type = 5;
+    map<string,string> properties = 6;
+    string description = 7;
+    bool disabled = 8;
+    int64 domain_id = 9;
+}

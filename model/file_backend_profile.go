@@ -20,17 +20,19 @@ type FileBackendProfileType struct {
 }
 
 type FileBackendProfile struct {
-	Id         int64           `db:"id" json:"id"`
-	Name       string          `db:"name" json:"name"`
-	Domain     string          `db:"domain" json:"domain"`
-	ExpireDay  int             `db:"expire_day" json:"expire_day"`
-	Priority   int             `db:"priority" json:"priority"`
-	Disabled   bool            `db:"disabled" json:"disabled"`
-	MaxSizeMb  int             `db:"max_size_mb" json:"max_size_mb"`
-	Properties StringInterface `db:"properties" json:"properties"`
-	TypeId     int             `db:"type_id" json:"type_id"`
-	CreatedAt  int64           `db:"created_at" json:"created_at"`
-	UpdatedAt  int64           `db:"updated_at" json:"updated_at"`
+	DomainRecord
+	Name        string          `db:"name" json:"name"`
+	Description string          `json:"description" db:"description"`
+	ExpireDay   int             `db:"expire_day" json:"expire_day"`
+	Priority    int             `db:"priority" json:"priority"`
+	Disabled    bool            `db:"disabled" json:"disabled"`
+	MaxSizeMb   int             `db:"max_size_mb" json:"max_size_mb"`
+	Properties  StringInterface `db:"properties" json:"properties"`
+	Type        Lookup          `db:"type" json:"type"`
+	CreatedAt   int64           `db:"created_at" json:"created_at"`
+	UpdatedAt   int64           `db:"updated_at" json:"updated_at"`
+	DataSize    float64         `db:"data_size" json:"data_size"`
+	DataCount   int64           `db:"data_count" json:"data_count"`
 }
 
 type FileBackendProfilePath struct {
@@ -43,6 +45,11 @@ type FileBackendProfilePath struct {
 	TypeId     *int             `json:"type_id"`
 }
 
+func (p *FileBackendProfile) GetJsonProperties() string {
+	d, _ := json.Marshal(p.Properties)
+	return string(d)
+}
+
 func (f *FileBackendProfile) PreSave() {
 	f.CreatedAt = GetMillis()
 	f.UpdatedAt = f.CreatedAt
@@ -52,13 +59,11 @@ func (f *FileBackendProfile) IsValid() *AppError {
 	if len(f.Name) == 0 {
 		return NewAppError("FileBackendProfile.IsValid", "model.file_backend_profile.name.app_error", nil, "", http.StatusBadRequest)
 	}
-	if len(f.Domain) == 0 {
-		return NewAppError("FileBackendProfile.IsValid", "model.file_backend_profile.domain.app_error", nil, "", http.StatusBadRequest)
-	}
 
-	if f.TypeId != 1 {
-		return NewAppError("FileBackendProfile.IsValid", "model.file_backend_profile.type_id.app_error", nil, "", http.StatusBadRequest)
-	}
+	//FIXME
+	//if f.TypeId != 1 {
+	//	return NewAppError("FileBackendProfile.IsValid", "model.file_backend_profile.type_id.app_error", nil, "", http.StatusBadRequest)
+	//}
 	return nil
 }
 
@@ -89,7 +94,7 @@ func (f *FileBackendProfile) Path(path *FileBackendProfilePath) {
 	}
 
 	if path.TypeId != nil {
-		f.TypeId = *path.TypeId
+		//f.TypeId = *path.TypeId
 	}
 
 	if path.Properties != nil {

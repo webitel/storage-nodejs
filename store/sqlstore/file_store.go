@@ -25,7 +25,8 @@ func NewSqlFileStore(sqlStore SqlStore) store.FileStore {
 		table.ColMap("MimeType").SetNotNull(false).SetMaxSize(20)
 		table.ColMap("Instance").SetNotNull(true).SetMaxSize(20)
 		table.ColMap("Properties").SetNotNull(true)
-		table.ColMap("Removed")
+		table.ColMap("Removed").DefaultValue = "false"
+		table.ColMap("NotExists").SetNotNull(false).DefaultValue = "false"
 
 		table = db.AddTableWithName(model.RemoveFile{}, "remove_file_jobs").SetKeys(true, "id")
 		table.ColMap("FileId").SetNotNull(true)
@@ -116,13 +117,27 @@ func (self *SqlFileStore) FetchDeleted(limit int) store.StoreChannel {
 		var recordings []*model.FileWithProfile
 
 		query := `SELECT files.*,  p.updated_at as profile_updated_at FROM files JOIN file_backend_profiles p on p.id = files.profile_id 
-			WHERE removed is TRUE
+			WHERE removed is TRUE AND NOT not_exists is TRUE 
 			LIMIT :Limit `
 
 		if _, err := self.GetReplica().Select(&recordings, query, map[string]interface{}{"Limit": limit}); err != nil {
 			result.Err = model.NewAppError("SqlFileStore.FetchDeleted", "store.sql_file.get_deleted.finding.app_error", nil, err.Error(), http.StatusInternalServerError)
 		} else {
 			result.Data = recordings
+		}
+	})
+}
+
+func (self *SqlFileStore) SetNoExistsById(id int64, notExists bool) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		if _, err := self.GetMaster().Exec(
+			`update files
+				set not_exists = :NotExists 
+				where where id = :Id`, map[string]interface{}{"Id": id, "NotExists": notExists}); err != nil {
+			result.Err = model.NewAppError("SqlFileStore.SetNoExistsById", "store.sql_file.update_exists.app_error", nil,
+				fmt.Sprintf("id=%d, err: %s", err.Error()), http.StatusInternalServerError)
+		} else {
+			result.Data = id
 		}
 	})
 }

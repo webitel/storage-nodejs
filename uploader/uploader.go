@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"github.com/webitel/storage/app"
 	"github.com/webitel/storage/interfaces"
-	"github.com/webitel/storage/mlog"
 	"github.com/webitel/storage/model"
 	"github.com/webitel/storage/pool"
 	"github.com/webitel/storage/store"
+	"github.com/webitel/wlog"
 	"sync"
 	"time"
 )
@@ -26,7 +26,7 @@ type UploaderInterfaceImpl struct {
 
 func init() {
 	app.RegisterUploader(func(a *app.App) interfaces.UploadRecordingsFilesInterface {
-		mlog.Debug("Initialize uploader")
+		wlog.Debug("Initialize uploader")
 		return &UploaderInterfaceImpl{
 			App:               a,
 			limit:             10,
@@ -40,7 +40,7 @@ func init() {
 }
 
 func (u *UploaderInterfaceImpl) Start() {
-	mlog.Debug("Run uploader")
+	wlog.Debug("Run uploader")
 	go u.run()
 }
 
@@ -55,14 +55,14 @@ func (u *UploaderInterfaceImpl) run() {
 		case <-time.After(u.pollingInterval):
 		start:
 			if result = <-u.App.Store.UploadJob().UpdateWithProfile(u.limit, u.App.GetInstanceId(), u.betweenAttemptSec); result.Err != nil {
-				mlog.Critical(fmt.Sprint(result.Err))
+				wlog.Critical(fmt.Sprint(result.Err))
 				continue
 			}
 			jobs = result.Data.([]*model.JobUploadFileWithProfile)
 
 			count = len(jobs)
 			if count > 0 {
-				mlog.Debug(fmt.Sprintf("Found uploading files %d", count))
+				wlog.Debug(fmt.Sprintf("Found uploading files %d", count))
 				for i = 0; i < count; i++ {
 					u.pool.Exec(&UploadTask{
 						app: u.App,
@@ -75,7 +75,7 @@ func (u *UploaderInterfaceImpl) run() {
 				}
 			}
 		case <-u.stopSignal:
-			mlog.Debug("Uploader received stop signal.")
+			wlog.Debug("Uploader received stop signal.")
 			return
 		}
 	}
@@ -95,5 +95,5 @@ func (u *UploaderInterfaceImpl) Stop() {
 	u.stopSignal <- struct{}{}
 	u.pool.Close()
 	u.pool.Wait()
-	mlog.Debug("Uploader stopped.")
+	wlog.Debug("Uploader stopped.")
 }

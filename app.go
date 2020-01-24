@@ -3,7 +3,8 @@ package main
 import (
 	"github.com/webitel/storage/apis"
 	"github.com/webitel/storage/app"
-	"github.com/webitel/storage/mlog"
+	"github.com/webitel/storage/grpc_api"
+	"github.com/webitel/wlog"
 
 	_ "github.com/webitel/storage/jobs/file_sync"
 	_ "github.com/webitel/storage/uploader"
@@ -25,14 +26,14 @@ func main() {
 
 	serverErr := a.StartServer()
 	if serverErr != nil {
-		mlog.Critical(serverErr.Error())
+		wlog.Critical(serverErr.Error())
 		return
 	}
 	apis.Init(a, a.Srv.Router)
 
 	serverErr = a.StartInternalServer()
 	if serverErr != nil {
-		mlog.Critical(serverErr.Error())
+		wlog.Critical(serverErr.Error())
 		return
 	}
 	private.Init(a, a.InternalSrv.Router)
@@ -41,6 +42,12 @@ func main() {
 	a.Jobs.StartWorkers()
 
 	a.Uploader.Start()
+
+	grpc_api.Init(a, a.GrpcServer.Server())
+
+	if err = a.StartGrpcServer(); err != nil {
+		panic(err.Error())
+	}
 
 	setDebug()
 	// wait for kill signal before attempting to gracefully shutdown
@@ -51,14 +58,14 @@ func main() {
 	a.Shutdown()
 
 	// Cleanup anything that isn't handled by a defer statement
-	mlog.Info("Stopping job server")
+	wlog.Info("Stopping job server")
 
 	a.Jobs.StopSchedulers()
 	a.Jobs.StopWorkers()
 
 	a.Broker.Close()
 
-	mlog.Info("Stopping uploader server")
+	wlog.Info("Stopping uploader server")
 	a.Uploader.Stop()
 
 }
@@ -67,10 +74,10 @@ func setDebug() {
 	//debug.SetGCPercent(-1)
 
 	go func() {
-		mlog.Info("Start debug server on :8090")
+		wlog.Info("Start debug server on :8090")
 		err := http.ListenAndServe(":8090", nil)
 		if err != nil {
-			mlog.Critical(err.Error())
+			wlog.Critical(err.Error())
 		}
 	}()
 

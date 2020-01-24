@@ -2,17 +2,18 @@ package web
 
 import (
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
+	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/storage/app"
-	"github.com/webitel/storage/mlog"
 	"github.com/webitel/storage/model"
 	"github.com/webitel/storage/utils"
+	"github.com/webitel/wlog"
 	"net/http"
 )
 
 type Context struct {
 	App           *app.App
-	Log           *mlog.Logger
-	Session       model.Session
+	Log           *wlog.Logger
+	Session       auth_manager.Session
 	Err           *model.AppError
 	T             goi18n.TranslateFunc
 	Params        *Params
@@ -29,9 +30,9 @@ func (c *Context) LogError(err *model.AppError) {
 	} else {
 		c.Log.Error(
 			err.SystemMessage(utils.TDefault),
-			mlog.String("err_where", err.Where),
-			mlog.Int("http_code", err.StatusCode),
-			mlog.String("err_details", err.DetailedError),
+			wlog.String("err_where", err.Where),
+			wlog.Int("http_code", err.StatusCode),
+			wlog.String("err_details", err.DetailedError),
 		)
 	}
 }
@@ -43,9 +44,9 @@ func (c *Context) LogInfo(err *model.AppError) {
 	} else {
 		c.Log.Info(
 			err.SystemMessage(utils.TDefault),
-			mlog.String("err_where", err.Where),
-			mlog.Int("http_code", err.StatusCode),
-			mlog.String("err_details", err.DetailedError),
+			wlog.String("err_where", err.Where),
+			wlog.Int("http_code", err.StatusCode),
+			wlog.String("err_details", err.DetailedError),
 		)
 	}
 }
@@ -53,19 +54,18 @@ func (c *Context) LogInfo(err *model.AppError) {
 func (c *Context) LogDebug(err *model.AppError) {
 	c.Log.Debug(
 		err.SystemMessage(utils.TDefault),
-		mlog.String("err_where", err.Where),
-		mlog.Int("http_code", err.StatusCode),
-		mlog.String("err_details", err.DetailedError),
+		wlog.String("err_where", err.Where),
+		wlog.Int("http_code", err.StatusCode),
+		wlog.String("err_details", err.DetailedError),
 	)
 }
 
 func (c *Context) SessionRequired() {
-	if len(c.Session.UserId) == 0 {
+	if c.Session.UserId == 0 {
 		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "UserRequired", http.StatusUnauthorized)
 		return
 	}
 }
-
 
 func (c *Context) SetInvalidParam(parameter string) {
 	c.Err = NewInvalidParamError(parameter)
@@ -74,7 +74,6 @@ func (c *Context) SetInvalidParam(parameter string) {
 func (c *Context) SetInvalidUrlParam(parameter string) {
 	c.Err = NewInvalidUrlParamError(parameter)
 }
-
 
 func NewInvalidParamError(parameter string) *model.AppError {
 	err := model.NewAppError("Context", "api.context.invalid_body_param.app_error", map[string]interface{}{"Name": parameter}, "", http.StatusBadRequest)

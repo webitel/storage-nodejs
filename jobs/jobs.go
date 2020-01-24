@@ -7,8 +7,8 @@ import (
 
 	"net/http"
 
-	"github.com/webitel/storage/mlog"
 	"github.com/webitel/storage/model"
+	"github.com/webitel/wlog"
 )
 
 const (
@@ -132,10 +132,10 @@ func (srv *JobServer) CancellationWatcher(ctx context.Context, jobId string, can
 	for {
 		select {
 		case <-ctx.Done():
-			mlog.Debug(fmt.Sprintf("CancellationWatcher for Job: %v Aborting as job has finished.", jobId))
+			wlog.Debug(fmt.Sprintf("CancellationWatcher for Job: %v Aborting as job has finished.", jobId))
 			return
 		case <-time.After(CANCEL_WATCHER_POLLING_INTERVAL * time.Millisecond):
-			mlog.Debug(fmt.Sprintf("CancellationWatcher for Job: %v polling.", jobId))
+			wlog.Debug(fmt.Sprintf("CancellationWatcher for Job: %v polling.", jobId))
 			if result := <-srv.Store.Job().Get(jobId); result.Err == nil {
 				jobStatus := result.Data.(*model.Job)
 				if jobStatus.Status == model.JOB_STATUS_CANCEL_REQUESTED {
