@@ -13,7 +13,7 @@ FROM scratch
 
 LABEL maintainer="Vitaly Kovalyshyn"
 
-ENV WEBITEL_MAJOR 19.12
+ENV WEBITEL_MAJOR 20.02
 ENV WEBITEL_REPO_BASE https://github.com/webitel
 
 WORKDIR /
