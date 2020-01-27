@@ -4,6 +4,7 @@ FROM golang:1.12
 COPY . /go/src/github.com/webitel/storage
 WORKDIR /go/src/github.com/webitel/storage/
 
+RUN GOOS=linux go get -u github.com/webitel/engine@to_go
 RUN GOOS=linux go get -d ./...
 RUN GOOS=linux go install
 RUN GIT_COMMIT=$(git rev-list -1 HEAD) && \
@@ -13,7 +14,7 @@ FROM scratch
 
 LABEL maintainer="Vitaly Kovalyshyn"
 
-ENV WEBITEL_MAJOR 19.12
+ENV WEBITEL_MAJOR 20.02
 ENV WEBITEL_REPO_BASE https://github.com/webitel
 
 WORKDIR /
