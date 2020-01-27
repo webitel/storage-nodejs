@@ -4,11 +4,11 @@ FROM golang:1.12
 COPY . /go/src/github.com/webitel/storage
 WORKDIR /go/src/github.com/webitel/storage/
 
-RUN GOOS=linux go get -u github.com/webitel/engine@to_go
-RUN GOOS=linux go get -d ./...
-RUN GOOS=linux go install
+ENV GO111MODULE=on
+RUN go mod download
+
 RUN GIT_COMMIT=$(git rev-list -1 HEAD) && \
-    CGO_ENABLED=0 GOOS=linux go build -ldflags "-X github.com/webitel/storage/model.BuildNumber=$GIT_COMMIT" -a -o engine .
+    CGO_ENABLED=0 GOOS=linux go build -ldflags "-X github.com/webitel/storage/model.BuildNumber=$GIT_COMMIT" -a -o storage .
 
 FROM scratch
 
