@@ -7,8 +7,8 @@ import (
 )
 
 var (
-	consulHost     = flag.String("consul", "172.0.0.1:8500", "Host to consul")
-	dataSource     = flag.String("data_source", "postgres://opensips:webitel@postgres:5432/webitel?fallback_application_name=engine&sslmode=disable&connect_timeout=10&search_path=call_center", "WebSocket server address")
+	consulHost     = flag.String("consul", "consul:8500", "Host to consul")
+	dataSource     = flag.String("data_source", "postgres://opensips:webitel@postgres:5432/webitel?fallback_application_name=storage&sslmode=disable&connect_timeout=10&search_path=storage", "Data source")
 	amqpSource     = flag.String("amqp", "amqp://webitel:webitel@rabbit:5672?heartbeat=10", "AMQP connection")
 	elasticSource  = flag.String("elastic", "http://10.10.10.200:9200", "Elastic endpoint")
 	grpcServerPort = flag.Int("grpc_port", 0, "GRPC port")
