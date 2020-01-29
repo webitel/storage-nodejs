@@ -34,7 +34,7 @@ func (b *BaseFileBackend) setWriteSize(writtenBytes int64) {
 }
 
 type File interface {
-	DomainName() string
+	Domain() int64
 	GetStoreName() string
 	GetPropertyString(name string) string
 	SetPropertyString(name, value string)
@@ -66,12 +66,12 @@ func NewBackendStore(profile *model.FileBackendProfile) (FileBackend, *model.App
 		http.StatusInternalServerError)
 }
 
-func parseStorePattern(pattern, domain string) string {
+func parseStorePattern(pattern string, domain int64) string {
 	now := time.Now()
 	return regCompileMask.ReplaceAllStringFunc(pattern, func(s string) string {
 		switch s {
 		case "$DOMAIN":
-			return domain
+			return fmt.Sprintf("%d", domain)
 		case "$Y":
 			return fmt.Sprintf("%d", now.Year())
 		case "$M":

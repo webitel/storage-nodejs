@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/webitel/storage/model"
 	"net/http"
+	"strconv"
 )
 
 func (api *API) InitFile() {
@@ -21,8 +22,15 @@ func (api *API) InitFile() {
 // &email_msg=none
 func putFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	var fileRequest model.JobUploadFile
+	var domainId int
+	var err error
 
-	fileRequest.Domain = r.URL.Query().Get("domain")
+	if domainId, err = strconv.Atoi(r.URL.Query().Get("domain")); err != nil {
+		c.SetInvalidUrlParam("domain")
+		return
+	}
+
+	fileRequest.DomainId = int64(domainId)
 	fileRequest.Uuid = r.URL.Query().Get("id")
 	fileRequest.Name = fmt.Sprintf("%s.%s", r.URL.Query().Get("name"), r.URL.Query().Get("type"))
 	fileRequest.MimeType = r.Header.Get("Content-Type")
@@ -34,8 +42,7 @@ func putFile(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	defer r.Body.Close()
 
-	err := c.App.AddUploadJobFile(r.Body, &fileRequest)
-	if err != nil {
+	if err := c.App.AddUploadJobFile(r.Body, &fileRequest); err != nil {
 		c.Err = err
 		return
 	}

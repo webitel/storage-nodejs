@@ -15,24 +15,6 @@ type SqlFileStore struct {
 func NewSqlFileStore(sqlStore SqlStore) store.FileStore {
 	us := &SqlFileStore{sqlStore}
 
-	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.File{}, "files").SetKeys(true, "id")
-		table.ColMap("Name").SetNotNull(true).SetMaxSize(100)
-		table.ColMap("Uuid").SetNotNull(true).SetMaxSize(36)
-		table.ColMap("ProfileId").SetNotNull(false)
-		table.ColMap("Size").SetNotNull(true)
-		table.ColMap("Domain").SetNotNull(true).SetMaxSize(100)
-		table.ColMap("MimeType").SetNotNull(false).SetMaxSize(20)
-		table.ColMap("Instance").SetNotNull(true).SetMaxSize(20)
-		table.ColMap("Properties").SetNotNull(true)
-		table.ColMap("Removed").DefaultValue = "false"
-		table.ColMap("NotExists").SetNotNull(false).DefaultValue = "false"
-
-		table = db.AddTableWithName(model.RemoveFile{}, "remove_file_jobs").SetKeys(true, "id")
-		table.ColMap("FileId").SetNotNull(true)
-		table.ColMap("CreatedBy").SetMaxSize(50)
-	}
-
 	return us
 }
 

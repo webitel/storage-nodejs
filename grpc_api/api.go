@@ -11,6 +11,7 @@ type API struct {
 	app             *app.App
 	ctrl            *controller.Controller
 	backendProfiles *backendProfiles
+	media           *media
 }
 
 func Init(a *app.App, server *grpc.Server) {
@@ -20,6 +21,8 @@ func Init(a *app.App, server *grpc.Server) {
 
 	ctrl := controller.NewController(a)
 	api.backendProfiles = NewBackendProfileApi(ctrl)
+	api.media = NewMediaApi(ctrl)
 
 	storage.RegisterBackendProfileServiceServer(server, api.backendProfiles)
+	storage.RegisterMediaFileServiceServer(server, api.media)
 }

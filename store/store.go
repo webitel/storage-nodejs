@@ -86,10 +86,14 @@ type FileStore interface {
 }
 
 type MediaFileStore interface {
+	Create(file *model.MediaFile) (*model.MediaFile, *model.AppError)
+	GetAllPage(domainId int64, req *model.ListRequest) ([]*model.MediaFile, *model.AppError)
+	Get(domainId int64, id int) (*model.MediaFile, *model.AppError)
+	Delete(domainId, id int64) *model.AppError
+
 	Save(file *model.MediaFile) StoreChannel
 	GetAllByDomain(domain string, offset, limit int) StoreChannel
 	GetCountByDomain(domain string) StoreChannel
-	Get(id int64, domain string) StoreChannel
 	GetByName(name, domain string) StoreChannel
 	DeleteByName(name, domain string) StoreChannel
 	DeleteById(id int64) StoreChannel

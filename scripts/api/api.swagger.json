@@ -207,9 +207,131 @@
           "BackendProfileService"
         ]
       }
+    },
+    "/storage/media": {
+      "get": {
+        "summary": "Search MediaFile",
+        "operationId": "SearchMediaFile",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/storageListMedia"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "domain_id",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "MediaFileService"
+        ]
+      }
+    },
+    "/storage/media/{id}": {
+      "get": {
+        "summary": "MediaFile item",
+        "operationId": "ReadMediaFile",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/storageMediaFile"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "domain_id",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "MediaFileService"
+        ]
+      },
+      "delete": {
+        "summary": "Remove MediaFile",
+        "operationId": "DeleteMediaFile",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/storageMediaFile"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "domain_id",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "MediaFileService"
+        ]
+      }
     }
   },
   "definitions": {
+    "engineLookup": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
     "storageBackendProfile": {
       "type": "object",
       "properties": {
@@ -222,14 +344,14 @@
           "format": "int64"
         },
         "created_by": {
-          "$ref": "#/definitions/storageLookup"
+          "$ref": "#/definitions/engineLookup"
         },
         "updated_at": {
           "type": "string",
           "format": "int64"
         },
         "updated_by": {
-          "$ref": "#/definitions/storageLookup"
+          "$ref": "#/definitions/engineLookup"
         },
         "data_size": {
           "type": "string",
@@ -255,7 +377,7 @@
           "format": "int32"
         },
         "type": {
-          "$ref": "#/definitions/storageLookup"
+          "$ref": "#/definitions/engineLookup"
         },
         "properties": {
           "type": "object",
@@ -291,7 +413,7 @@
           "format": "int32"
         },
         "type": {
-          "$ref": "#/definitions/storageLookup"
+          "$ref": "#/definitions/engineLookup"
         },
         "properties": {
           "type": "object",
@@ -323,14 +445,50 @@
         }
       }
     },
-    "storageLookup": {
+    "storageListMedia": {
+      "type": "object",
+      "properties": {
+        "next": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/storageMediaFile"
+          }
+        }
+      }
+    },
+    "storageMediaFile": {
       "type": "object",
       "properties": {
         "id": {
           "type": "string",
           "format": "int64"
         },
+        "created_at": {
+          "type": "string",
+          "format": "int64"
+        },
+        "created_by": {
+          "$ref": "#/definitions/engineLookup"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "int64"
+        },
+        "updated_by": {
+          "$ref": "#/definitions/engineLookup"
+        },
         "name": {
+          "type": "string"
+        },
+        "size": {
+          "type": "string",
+          "format": "int64"
+        },
+        "mime_type": {
           "type": "string"
         }
       }

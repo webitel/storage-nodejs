@@ -3,6 +3,7 @@ package apis
 import (
 	"github.com/gorilla/mux"
 	"github.com/webitel/storage/app"
+	"github.com/webitel/storage/controller"
 	"github.com/webitel/storage/model"
 	"github.com/webitel/storage/web"
 	"net/http"
@@ -21,15 +22,21 @@ type RoutesPublic struct {
 type API struct {
 	App          *app.App
 	PublicRoutes *RoutesPublic
+	ctrl         *controller.Controller
 }
 
 func Init(a *app.App, root *mux.Router) *API {
 	api := &API{
 		App:          a,
 		PublicRoutes: &RoutesPublic{},
+		ctrl:         controller.NewController(a),
 	}
 	api.PublicRoutes.Root = root
 	api.PublicRoutes.ApiRoot = root.PathPrefix(model.API_URL_SUFFIX).Subrouter()
+
+	api.PublicRoutes.MediaFiles = api.PublicRoutes.ApiRoot.PathPrefix("/media").Subrouter()
+
+	api.InitMediaFile()
 
 	return api
 }

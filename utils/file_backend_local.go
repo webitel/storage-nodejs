@@ -21,7 +21,7 @@ func (self *LocalFileBackend) Name() string {
 	return self.name
 }
 
-func (self *LocalFileBackend) GetStoreDirectory(domain string) string {
+func (self *LocalFileBackend) GetStoreDirectory(domain int64) string {
 	return path.Join(parseStorePattern(self.pathPattern, domain))
 }
 
@@ -30,14 +30,14 @@ func (self *LocalFileBackend) TestConnection() *model.AppError {
 }
 
 func (self *LocalFileBackend) Write(src io.Reader, file File) (int64, *model.AppError) {
-	directory := self.GetStoreDirectory(file.DomainName())
+	directory := self.GetStoreDirectory(file.Domain())
 	root := path.Join(self.directory, directory)
 	allPath := path.Join(root, file.GetStoreName())
 	var err error
 
 	_, err = os.Stat(allPath)
 	if !os.IsNotExist(err) {
-		return 0, model.NewAppError("WriteFile", "utils.file.locally.exists.app_error", nil, "root="+root+" name="+file.GetStoreName(), http.StatusInternalServerError)
+		return 0, model.NewAppError("WriteFile", "utils.file.locally.exists.app_error", nil, "root="+root+" name="+file.GetStoreName(), http.StatusBadRequest)
 	}
 
 	if err = os.MkdirAll(root, 0774); err != nil {

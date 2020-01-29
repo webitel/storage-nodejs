@@ -2,6 +2,7 @@ package grpc_api
 
 import (
 	"context"
+	"github.com/webitel/engine/grpc_api/engine"
 	"github.com/webitel/storage/controller"
 	"github.com/webitel/storage/grpc_api/storage"
 	"github.com/webitel/storage/model"
@@ -158,12 +159,12 @@ func toGrpcProfile(src *model.FileBackendProfile) *storage.BackendProfile {
 	return &storage.BackendProfile{
 		Id:        src.Id,
 		CreatedAt: src.CreatedAt,
-		CreatedBy: &storage.Lookup{
+		CreatedBy: &engine.Lookup{
 			Id:   int64(src.CreatedBy.Id),
 			Name: src.CreatedBy.Name,
 		},
 		UpdatedAt: src.UpdatedAt,
-		UpdatedBy: &storage.Lookup{
+		UpdatedBy: &engine.Lookup{
 			Id:   int64(src.UpdatedBy.Id),
 			Name: src.UpdatedBy.Name,
 		},
@@ -173,7 +174,7 @@ func toGrpcProfile(src *model.FileBackendProfile) *storage.BackendProfile {
 		ExpireDays: int32(src.ExpireDay),
 		MaxSize:    int64(src.MaxSizeMb),
 		Priority:   int32(src.Priority),
-		Type: &storage.Lookup{
+		Type: &engine.Lookup{
 			Id:   int64(src.Type.Id),
 			Name: src.Type.Name,
 		},

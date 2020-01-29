@@ -11,23 +11,8 @@ type SqlUploadJobStore struct {
 	SqlStore
 }
 
-const uploadJobTableName = "upload_file_jobs"
-
 func NewSqlUploadJobStore(sqlStore SqlStore) store.UploadJobStore {
 	us := &SqlUploadJobStore{sqlStore}
-	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.JobUploadFile{}, uploadJobTableName).SetKeys(true, "id")
-		table.ColMap("Name").SetNotNull(true).SetMaxSize(100)
-		table.ColMap("Uuid").SetNotNull(true).SetMaxSize(36)
-		table.ColMap("Domain").SetNotNull(true).SetMaxSize(100)
-		table.ColMap("MimeType").SetNotNull(false).SetMaxSize(36)
-		table.ColMap("Size").SetNotNull(true)
-		table.ColMap("EmailMsg").SetNotNull(false).SetMaxSize(500)
-		table.ColMap("EmailSub").SetNotNull(false).SetMaxSize(150)
-		table.ColMap("Instance").SetNotNull(false).SetMaxSize(10)
-		table.ColMap("CreatedAt").SetNotNull(true)
-		table.ColMap("Attempts").SetNotNull(true)
-	}
 	return us
 }
 
@@ -48,7 +33,7 @@ func (self *SqlUploadJobStore) GetAllPageByInstance(limit int, instance string) 
 	return store.Do(func(result *store.StoreResult) {
 		var jobs []*model.JobUploadFile
 
-		res, err := self.GetReplica().Query("SELECT id, name, uuid, domain, mime_type, size, email_msg, email_sub, instance, attempts FROM upload_file_jobs LIMIT $1", limit)
+		res, err := self.GetReplica().Query("SELECT id, name, uuid, domain_id, mime_type, size, email_msg, email_sub, instance, attempts FROM upload_file_jobs LIMIT $1", limit)
 		if err != nil {
 			result.Err = model.NewAppError("SqlUploadJobStore.List", "store.sql_upload_job.list.app_error", nil, err.Error(), http.StatusInternalServerError)
 			return
@@ -57,7 +42,7 @@ func (self *SqlUploadJobStore) GetAllPageByInstance(limit int, instance string) 
 
 		for res.Next() {
 			job := new(model.JobUploadFile)
-			err = res.Scan(&job.Id, &job.Name, &job.Uuid, &job.Domain, &job.MimeType, &job.Size, &job.EmailMsg, &job.EmailSub, &job.Instance, &job.Attempts)
+			err = res.Scan(&job.Id, &job.Name, &job.Uuid, &job.DomainId, &job.MimeType, &job.Size, &job.EmailMsg, &job.EmailSub, &job.Instance, &job.Attempts)
 			if err != nil {
 				result.Err = model.NewAppError("SqlUploadJobStore.List", "store.sql_upload_job.list.app_error", nil, err.Error(), http.StatusInternalServerError)
 				return
@@ -131,7 +116,7 @@ func (self *SqlUploadJobStore) UpdateWithProfile(limit int, instance string, bet
 
 		for rows.Next() {
 			job := &model.JobUploadFileWithProfile{}
-			err = rows.Scan(&job.Id, &job.Name, &job.Uuid, &job.Domain, &job.MimeType, &job.Size, &job.EmailMsg, &job.EmailSub, &job.ProfileId, &job.ProfileUpdatedAt)
+			err = rows.Scan(&job.Id, &job.Name, &job.Uuid, &job.DomainId, &job.MimeType, &job.Size, &job.EmailMsg, &job.EmailSub, &job.ProfileId, &job.ProfileUpdatedAt)
 			if err != nil {
 				result.Err = model.NewAppError("SqlUploadJobStore.UpdateWithProfile", "store.sql_upload_job.update_with_profile.scan.app_error", nil, err.Error(), http.StatusInternalServerError)
 				return

@@ -51,8 +51,7 @@ func (cw *CorsWrapper) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			strings.Join([]string{"GET", "POST", "PUT", "DELETE"}, ", "))
 
 		w.Header().Set(
-			"Access-Control-Allow-Headers",
-			r.Header.Get("Access-Control-Request-Headers"))
+			"Access-Control-Allow-Headers", "X-Webitel-Access, Accept, Content-Type, Content-Length, Accept-Encoding, Authorization")
 	}
 
 	if r.Method == "OPTIONS" {

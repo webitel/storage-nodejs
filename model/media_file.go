@@ -6,10 +6,8 @@ import (
 
 type MediaFile struct {
 	BaseFile
-	CreatedBy string `db:"created_by" json:"created_by"`
-	CreatedAt int64  `db:"created_at" json:"created_at"`
-	UpdatedBy string `db:"updated_by" json:"updated_by"`
-	UpdatedAt int64  `db:"updated_at" json:"updated_at"`
+	DomainRecord
+	DomainName string `json:"-" db:"domain_name"`
 }
 
 func (self *MediaFile) PreSave() *AppError {
@@ -30,4 +28,8 @@ func (self MediaFile) GetStoreName() string {
 func (self *MediaFile) ToJson() string {
 	b, _ := json.Marshal(self)
 	return string(b)
+}
+
+func (self *MediaFile) Domain() int64 {
+	return self.DomainId
 }

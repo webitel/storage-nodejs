@@ -24,6 +24,8 @@ func ParseAuthTokenFromRequest(r *http.Request) (string, TokenLocation) {
 	} else if len(authHeader) > 5 && strings.ToLower(authHeader[0:5]) == model.HEADER_TOKEN {
 		// OAuth token
 		return authHeader[6:], TokenLocationHeader
+	} else if authHeader = r.Header.Get(model.HEADER_TOKEN); authHeader != "" {
+		return authHeader, TokenLocationHeader
 	}
 
 	// Attempt to parse token out of the query string

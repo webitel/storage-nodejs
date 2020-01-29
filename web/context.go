@@ -4,6 +4,7 @@ import (
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/storage/app"
+	"github.com/webitel/storage/controller"
 	"github.com/webitel/storage/model"
 	"github.com/webitel/storage/utils"
 	"github.com/webitel/wlog"
@@ -17,6 +18,7 @@ type Context struct {
 	Err           *model.AppError
 	T             goi18n.TranslateFunc
 	Params        *Params
+	Ctrl          *controller.Controller
 	RequestId     string
 	IpAddress     string
 	Path          string
@@ -95,13 +97,11 @@ func (c *Context) RequireId() *Context {
 	}
 	return c
 }
+
 func (c *Context) RequireDomain() *Context {
 	if c.Err != nil {
 		return c
 	}
 
-	if len(c.Params.Domain) == 0 {
-		c.SetInvalidUrlParam("domain")
-	}
 	return c
 }

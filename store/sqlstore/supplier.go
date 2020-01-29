@@ -77,9 +77,7 @@ func NewSqlSupplier(settings model.SqlSettings) *SqlSupplier {
 	}
 
 	supplier.oldStores.uploadJob.(*SqlUploadJobStore).CreateIndexesIfNotExists()
-
 	supplier.oldStores.fileBackendProfile.(*SqlFileBackendProfileStore).CreateIndexesIfNotExists()
-
 	supplier.oldStores.file.(*SqlFileStore).CreateIndexesIfNotExists()
 	supplier.oldStores.scheduler.(*SqlScheduleStore).CreateIndexesIfNotExists()
 

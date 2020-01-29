@@ -42,8 +42,8 @@ func (u *UploadTask) Execute() {
 		ProfileId: u.job.ProfileId,
 		CreatedAt: u.job.CreatedAt,
 		BaseFile: model.BaseFile{
-			Size:       u.job.Size,
-			Domain:     u.job.Domain,
+			Size: u.job.Size,
+			//Domain:     u.job.Domain, //FIXME
 			Name:       u.job.Name,
 			MimeType:   u.job.MimeType,
 			Properties: model.StringInterface{},

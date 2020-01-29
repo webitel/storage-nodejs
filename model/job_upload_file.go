@@ -9,7 +9,7 @@ type JobUploadFile struct {
 	State     int    `db:"state"`
 	Name      string `db:"name"`
 	Uuid      string `db:"uuid"`
-	Domain    string `db:"domain"`
+	DomainId  int64  `db:"domain_id"`
 	MimeType  string `db:"mime_type"`
 	Size      int64  `db:"size"`
 	EmailMsg  string `db:"email_msg"`
@@ -44,6 +44,6 @@ func (self *JobUploadFile) GetPropertyString(name string) string {
 func (self *JobUploadFile) SetPropertyString(name, value string) {
 
 }
-func (self *JobUploadFile) DomainName() string {
-	return ""
+func (self *JobUploadFile) Domain() int64 {
+	return self.DomainId
 }

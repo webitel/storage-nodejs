@@ -6,8 +6,6 @@ import (
 )
 
 type BaseFile struct {
-	Id         int64           `db:"id" json:"id"`
-	Domain     string          `db:"domain" json:"domain"`
 	Name       string          `db:"name" json:"name"`
 	Size       int64           `db:"size" json:"size"`
 	MimeType   string          `db:"mime_type" json:"mime_type"`
@@ -17,11 +15,17 @@ type BaseFile struct {
 
 type File struct {
 	BaseFile
+	Id        int64  `db:"id" json:"id"`
+	DomainId  int64  `db:"domain_id" json:"domain_id"`
 	Uuid      string `db:"uuid" json:"uuid"`
 	ProfileId int    `db:"profile_id" json:"profile_id"`
 	CreatedAt int64  `db:"created_at" json:"created_at"`
 	Removed   *bool  `db:"removed" json:"-"`
 	NotExists *bool  `db:"not_exists" json:"-"`
+}
+
+func (f *File) Domain() int64 {
+	return f.DomainId
 }
 
 type RemoveFile struct {
@@ -61,10 +65,6 @@ func (self BaseFile) GetPropertyString(name string) string {
 
 func (self BaseFile) SetPropertyString(name, value string) {
 	self.Properties[name] = value
-}
-
-func (self BaseFile) DomainName() string {
-	return self.Domain
 }
 
 func (self File) GetStoreName() string {

@@ -31,10 +31,10 @@ func loadConfig(fileName string) (*model.Config, *model.AppError) {
 			ListenInternalAddress: model.NewString(":10021"),
 		},
 		MediaFileStoreSettings: model.MediaFileStoreSettings{
-			MaxSizeByte: model.NewInt(50 * 1000000),
+			MaxSizeByte: model.NewInt(100 * 1000000),
 			Directory:   model.NewString("/tmp/media_storage"),
-			PathPattern: model.NewString("$DOMAIN"),
-			AllowMime:   []string{"video/mp4", "audio/mp3", "audio/wav"},
+			PathPattern: model.NewString("$DOMAIN/$Y"),
+			AllowMime:   []string{"video/mp4", "audio/mp3", "audio/wav", "audio/mpeg", "video/x-matroska", "video/mpeg"},
 		},
 		SqlSettings: model.SqlSettings{
 			DriverName:                  model.NewString("postgres"),

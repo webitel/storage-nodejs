@@ -3,6 +3,7 @@ package web
 import (
 	"fmt"
 	"github.com/webitel/storage/app"
+	"github.com/webitel/storage/controller"
 	"github.com/webitel/storage/model"
 	"github.com/webitel/storage/utils"
 	"github.com/webitel/wlog"
@@ -11,6 +12,7 @@ import (
 
 type Handler struct {
 	App            *app.App
+	Ctrl           *controller.Controller
 	HandleFunc     func(*Context, http.ResponseWriter, *http.Request)
 	RequireSession bool
 	TrustRequester bool
@@ -23,6 +25,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	c := &Context{}
 	c.App = h.App
+	c.Ctrl = h.Ctrl
 	c.T, _ = utils.GetTranslationsAndLocale(w, r)
 	c.Params = ParamsFromRequest(r)
 	c.RequestId = model.NewId()

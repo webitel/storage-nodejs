@@ -15,21 +15,109 @@ type SqlMediaFileStore struct {
 
 func NewSqlMediaFileStore(sqlStore SqlStore) store.MediaFileStore {
 	us := &SqlMediaFileStore{sqlStore}
-
-	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.MediaFile{}, "media_files").SetKeys(true, "id")
-		table.ColMap("Name").SetNotNull(true).SetMaxSize(100)
-		table.ColMap("Size").SetNotNull(true)
-		table.ColMap("Domain").SetNotNull(true).SetMaxSize(100)
-		table.ColMap("MimeType").SetNotNull(false).SetMaxSize(40)
-		table.ColMap("Instance").SetNotNull(false).SetMaxSize(20)
-	}
-
 	return us
 }
 
 func (self SqlMediaFileStore) CreateIndexesIfNotExists() {
 
+}
+
+func (s *SqlMediaFileStore) Create(file *model.MediaFile) (*model.MediaFile, *model.AppError) {
+	err := s.GetMaster().SelectOne(&file, `with f as (
+    insert into storage.media_files (name,
+                                     size,
+                                     mime_type,
+                                     properties,
+                                     instance,
+                                     created_by,
+                                     created_at, updated_by, updated_at, domain_id)
+    values (:Name, :Size, :Mime, :Properties, :Instance, :CreatedBy, :CreatedAt, :UpdatedBy, :UpdatedAt, :DomainId)
+    returning *
+)
+select f.id, f.name, f.created_at, call_center.cc_get_lookup(c.id, c.name) created_by,
+       f.updated_at, call_center.cc_get_lookup(u.id, u.name) updated_by, f.mime_type, f.size, properties, d.name as domain_name
+from f
+    left join directory.wbt_user c on f.created_by = c.id
+    left join directory.wbt_user u on f.updated_by = u.id
+    inner join directory.wbt_domain d on d.dc = f.domain_id`, map[string]interface{}{
+		"Name":       file.Name,
+		"Size":       file.Size,
+		"Mime":       file.MimeType,
+		"Properties": model.StringInterfaceToJson(file.Properties),
+		"Instance":   file.Instance,
+		"CreatedBy":  file.CreatedBy.Id,
+		"CreatedAt":  file.CreatedAt,
+		"UpdatedBy":  file.UpdatedBy.Id,
+		"UpdatedAt":  file.UpdatedAt,
+		"DomainId":   file.DomainId,
+	})
+
+	if err != nil {
+		if strings.Index(err.Error(), "duplicate") > -1 {
+			return nil, model.NewAppError("SqlMediaFileStore.Save", "store.sql_media_file.save.saving.duplicate", nil,
+				fmt.Sprintf("name=%s, %s", file.Name, err.Error()), http.StatusInternalServerError)
+		} else {
+			return nil, model.NewAppError("SqlMediaFileStore.Save", "store.sql_media_file.save.saving.app_error", nil,
+				fmt.Sprintf("name=%s, %s", file.Name, err.Error()), http.StatusInternalServerError)
+		}
+	}
+
+	return file, nil
+}
+
+func (s *SqlMediaFileStore) GetAllPage(domainId int64, req *model.ListRequest) ([]*model.MediaFile, *model.AppError) {
+	var files []*model.MediaFile
+
+	_, err := s.GetMaster().Select(&files, `select f.id, f.name, f.created_at, call_center.cc_get_lookup(c.id, c.name) created_by,
+		   f.updated_at, call_center.cc_get_lookup(u.id, u.name) updated_by, f.mime_type, f.size, properties
+	from  storage.media_files f
+		left join directory.wbt_user c on f.created_by = c.id
+		left join directory.wbt_user u on f.updated_by = u.id
+    where f.domain_id = :DomainId and ( (:Q::varchar isnull or f.name like :Q::varchar) or (:Q::varchar isnull or f.mime_type like :Q::varchar))
+    order by f.created_at desc
+	limit :Limit
+	offset :Offset`, map[string]interface{}{
+		"DomainId": domainId,
+		"Limit":    req.GetLimit(),
+		"Offset":   req.GetOffset(),
+		"Q":        req.Q,
+	})
+	if err != nil {
+		return nil, model.NewAppError("SqlMediaFileStore.GetAllPage", "store.sql_media_file.get_all.finding.app_error",
+			nil, err.Error(), extractCodeFromErr(err))
+	}
+
+	return files, nil
+}
+
+func (s *SqlMediaFileStore) Get(domainId int64, id int) (*model.MediaFile, *model.AppError) {
+	var file *model.MediaFile
+
+	err := s.GetMaster().SelectOne(&file, `select f.id, f.name, f.created_at, call_center.cc_get_lookup(c.id, c.name) created_by,
+       f.updated_at, call_center.cc_get_lookup(u.id, u.name) updated_by, f.mime_type, f.size, properties, d.name as domain_name
+	from  storage.media_files f
+		left join directory.wbt_user c on f.created_by = c.id
+		left join directory.wbt_user u on f.updated_by = u.id
+		inner join directory.wbt_domain d on d.dc = f.domain_id
+    where f.domain_id = :DomainId and f.id = :Id`, map[string]interface{}{
+		"DomainId": domainId,
+		"Id":       id,
+	})
+	if err != nil {
+		return nil, model.NewAppError("SqlMediaFileStore.Get", "store.sql_media_file.get.finding.app_error",
+			nil, err.Error(), extractCodeFromErr(err))
+	}
+
+	return file, nil
+}
+
+func (s SqlMediaFileStore) Delete(domainId, id int64) *model.AppError {
+	if _, err := s.GetMaster().Exec(`delete from storage.media_files p where id = :Id and domain_id = :DomainId`,
+		map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
+		return model.NewAppError("SqlMediaFileStore.Delete", "store.sql_media_file.delete.app_error", nil,
+			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
+	}
+	return nil
 }
 
 func (self *SqlMediaFileStore) Save(file *model.MediaFile) store.StoreChannel {
@@ -79,7 +167,7 @@ func (self *SqlMediaFileStore) GetCountByDomain(domain string) store.StoreChanne
 	})
 }
 
-func (self *SqlMediaFileStore) Get(id int64, domain string) store.StoreChannel {
+func (self *SqlMediaFileStore) Get1(id int64, domain string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		query := `SELECT * FROM media_files WHERE id = :Id AND domain = :Domain`
 
