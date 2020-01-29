@@ -7,12 +7,14 @@ import (
 )
 
 var (
-	consulHost     = flag.String("consul", "consul:8500", "Host to consul")
-	dataSource     = flag.String("data_source", "postgres://opensips:webitel@postgres:5432/webitel?fallback_application_name=storage&sslmode=disable&connect_timeout=10&search_path=storage", "Data source")
-	amqpSource     = flag.String("amqp", "amqp://webitel:webitel@rabbit:5672?heartbeat=10", "AMQP connection")
-	elasticSource  = flag.String("elastic", "http://10.10.10.200:9200", "Elastic endpoint")
-	grpcServerPort = flag.Int("grpc_port", 0, "GRPC port")
-	dev            = flag.Bool("dev", false, "enable dev mode")
+	consulHost            = flag.String("consul", "consul:8500", "Host to consul")
+	dataSource            = flag.String("data_source", "postgres://opensips:webitel@postgres:5432/webitel?fallback_application_name=storage&sslmode=disable&connect_timeout=10&search_path=storage", "Data source")
+	amqpSource            = flag.String("amqp", "amqp://webitel:webitel@rabbit:5672?heartbeat=10", "AMQP connection")
+	elasticSource         = flag.String("elastic", "http://10.10.10.200:9200", "Elastic endpoint")
+	grpcServerPort        = flag.Int("grpc_port", 0, "GRPC port")
+	dev                   = flag.Bool("dev", false, "enable dev mode")
+	internalServerAddress = flag.String("internal_address", ":10021", "Internal server address")
+	publicServerAddress   = flag.String("public_address", ":10023", "Public server address")
 )
 
 func loadConfig(fileName string) (*model.Config, *model.AppError) {
@@ -27,8 +29,8 @@ func loadConfig(fileName string) (*model.Config, *model.AppError) {
 			AvailableLocales:    model.NewString(model.DEFAULT_LOCALE),
 		},
 		ServiceSettings: model.ServiceSettings{
-			ListenAddress:         model.NewString(":10023"),
-			ListenInternalAddress: model.NewString(":10021"),
+			ListenAddress:         publicServerAddress,
+			ListenInternalAddress: internalServerAddress,
 		},
 		MediaFileStoreSettings: model.MediaFileStoreSettings{
 			MaxSizeByte: model.NewInt(100 * 1000000),
