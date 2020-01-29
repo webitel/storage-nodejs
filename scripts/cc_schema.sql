@@ -17,9 +17,9 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 ALTER TABLE IF EXISTS ONLY storage.file_backend_profiles DROP CONSTRAINT IF EXISTS file_backend_profiles_file_backend_profile_type_id_fk;
+DROP INDEX IF EXISTS storage.media_files_domain_id_name_uindex;
 DROP INDEX IF EXISTS storage.file_backend_profiles_acl_id_uindex;
 ALTER TABLE IF EXISTS ONLY storage.upload_file_jobs DROP CONSTRAINT IF EXISTS upload_file_jobs_pkey;
-ALTER TABLE IF EXISTS ONLY storage.session DROP CONSTRAINT IF EXISTS session_pkey;
 ALTER TABLE IF EXISTS ONLY storage.schedulers DROP CONSTRAINT IF EXISTS schedulers_pkey;
 ALTER TABLE IF EXISTS ONLY storage.remove_file_jobs DROP CONSTRAINT IF EXISTS remove_file_jobs_pkey;
 ALTER TABLE IF EXISTS ONLY storage.media_files DROP CONSTRAINT IF EXISTS media_files_pkey;
@@ -38,7 +38,6 @@ ALTER TABLE IF EXISTS storage.file_backend_profiles ALTER COLUMN id DROP DEFAULT
 ALTER TABLE IF EXISTS storage.file_backend_profile_type ALTER COLUMN id DROP DEFAULT;
 DROP SEQUENCE IF EXISTS storage.upload_file_jobs_id_seq;
 DROP TABLE IF EXISTS storage.upload_file_jobs;
-DROP TABLE IF EXISTS storage.session;
 DROP SEQUENCE IF EXISTS storage.schedulers_id_seq;
 DROP TABLE IF EXISTS storage.schedulers;
 DROP SEQUENCE IF EXISTS storage.remove_file_jobs_id_seq;
@@ -179,7 +178,6 @@ ALTER SEQUENCE storage.file_backend_profiles_id_seq OWNED BY storage.file_backen
 
 CREATE TABLE storage.files (
     id bigint NOT NULL,
-    domain character varying(100) NOT NULL,
     name character varying(100) NOT NULL,
     size bigint NOT NULL,
     mime_type character varying(20),
@@ -189,7 +187,8 @@ CREATE TABLE storage.files (
     profile_id integer,
     created_at bigint,
     removed boolean,
-    not_exists boolean
+    not_exists boolean,
+    domain_id bigint NOT NULL
 );
 
 
@@ -237,16 +236,16 @@ CREATE TABLE storage.jobs (
 
 CREATE TABLE storage.media_files (
     id bigint NOT NULL,
-    domain character varying(100) NOT NULL,
     name character varying(100) NOT NULL,
     size bigint NOT NULL,
     mime_type character varying(40),
     properties jsonb,
-    instance character varying(20),
-    created_by text,
+    instance character varying(50),
     created_at bigint,
-    updated_by text,
-    updated_at bigint
+    updated_at bigint,
+    domain_id bigint NOT NULL,
+    created_by bigint NOT NULL,
+    updated_by bigint NOT NULL
 );
 
 
@@ -337,34 +336,22 @@ ALTER SEQUENCE storage.schedulers_id_seq OWNED BY storage.schedulers.id;
 
 
 --
--- Name: session; Type: TABLE; Schema: storage; Owner: -
---
-
-CREATE TABLE storage.session (
-    key text NOT NULL,
-    token character varying(500),
-    user_id character varying(26),
-    domain character varying(100)
-);
-
-
---
 -- Name: upload_file_jobs; Type: TABLE; Schema: storage; Owner: -
 --
 
 CREATE TABLE storage.upload_file_jobs (
     id bigint NOT NULL,
-    state integer,
+    state integer DEFAULT 0 NOT NULL,
     name character varying(100) NOT NULL,
     uuid character varying(36) NOT NULL,
     mime_type character varying(36),
     size bigint NOT NULL,
-    email_msg character varying(500),
-    email_sub character varying(150),
-    instance character varying(10),
+    email_msg character varying(500) DEFAULT ''::character varying NOT NULL,
+    email_sub character varying(150) DEFAULT ''::character varying NOT NULL,
+    instance character varying(50),
     created_at bigint NOT NULL,
     updated_at bigint,
-    attempts integer NOT NULL,
+    attempts integer DEFAULT 0 NOT NULL,
     domain_id bigint NOT NULL
 );
 
@@ -509,14 +496,6 @@ ALTER TABLE ONLY storage.schedulers
 
 
 --
--- Name: session session_pkey; Type: CONSTRAINT; Schema: storage; Owner: -
---
-
-ALTER TABLE ONLY storage.session
-    ADD CONSTRAINT session_pkey PRIMARY KEY (key);
-
-
---
 -- Name: upload_file_jobs upload_file_jobs_pkey; Type: CONSTRAINT; Schema: storage; Owner: -
 --
 
@@ -529,6 +508,13 @@ ALTER TABLE ONLY storage.upload_file_jobs
 --
 
 CREATE UNIQUE INDEX file_backend_profiles_acl_id_uindex ON storage.file_backend_profiles_acl USING btree (id);
+
+
+--
+-- Name: media_files_domain_id_name_uindex; Type: INDEX; Schema: storage; Owner: -
+--
+
+CREATE UNIQUE INDEX media_files_domain_id_name_uindex ON storage.media_files USING btree (domain_id, name);
 
 
 --

@@ -15,6 +15,8 @@ var (
 	dev                   = flag.Bool("dev", false, "enable dev mode")
 	internalServerAddress = flag.String("internal_address", ":10021", "Internal server address")
 	publicServerAddress   = flag.String("public_address", ":10023", "Public server address")
+	mediaDirectory        = flag.String("media_directory", "/data", "Media file directory")
+	mediaStorePattern     = flag.String("media_store_pattern", "$DOMAIN", "Media store pattern")
 )
 
 func loadConfig(fileName string) (*model.Config, *model.AppError) {
@@ -34,9 +36,9 @@ func loadConfig(fileName string) (*model.Config, *model.AppError) {
 		},
 		MediaFileStoreSettings: model.MediaFileStoreSettings{
 			MaxSizeByte: model.NewInt(100 * 1000000),
-			Directory:   model.NewString("/tmp/media_storage"),
-			PathPattern: model.NewString("$DOMAIN/$Y"),
-			AllowMime:   []string{"video/mp4", "audio/mp3", "audio/wav", "audio/mpeg", "video/x-matroska", "video/mpeg"},
+			Directory:   mediaDirectory,
+			PathPattern: mediaStorePattern,
+			AllowMime:   []string{"video/mp4", "audio/mp3", "audio/wav", "audio/mpeg"},
 		},
 		SqlSettings: model.SqlSettings{
 			DriverName:                  model.NewString("postgres"),
