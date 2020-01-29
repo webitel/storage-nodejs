@@ -16,14 +16,6 @@ type SqlJobStore struct {
 func NewSqlJobStore(sqlStore SqlStore) store.JobStore {
 	s := &SqlJobStore{sqlStore}
 
-	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.Job{}, "jobs").SetKeys(false, "Id")
-		table.ColMap("Id").SetMaxSize(26)
-		table.ColMap("Type").SetMaxSize(32)
-		table.ColMap("Status").SetMaxSize(32)
-		table.ColMap("Data").SetMaxSize(1024)
-	}
-
 	return s
 }
 

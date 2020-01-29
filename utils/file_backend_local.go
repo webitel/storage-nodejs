@@ -3,6 +3,7 @@ package utils
 import (
 	"fmt"
 	"github.com/webitel/storage/model"
+	"github.com/webitel/wlog"
 	"io"
 	"net/http"
 	"os"
@@ -48,14 +49,17 @@ func (self *LocalFileBackend) Write(src io.Reader, file File) (int64, *model.App
 	if err != nil {
 		return 0, model.NewAppError("WriteFile", "utils.file.locally.writing.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
+
 	defer fw.Close()
 	written, err := io.Copy(fw, src)
 	if err != nil {
 		return written, model.NewAppError("WriteFile", "utils.file.locally.writing.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
+
 	self.setWriteSize(written)
 	file.SetPropertyString("directory", directory)
-	fmt.Println(allPath)
+	wlog.Debug(fmt.Sprintf("create new file %s", allPath))
+
 	return written, nil
 }
 

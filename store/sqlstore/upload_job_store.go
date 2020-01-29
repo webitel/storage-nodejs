@@ -20,13 +20,25 @@ func (self *SqlUploadJobStore) CreateIndexesIfNotExists() {
 
 }
 
-func (self *SqlUploadJobStore) Save(job *model.JobUploadFile) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		job.PreSave()
-		if err := self.GetMaster().Insert(job); err != nil {
-			result.Err = model.NewAppError("SqlUploadJobStore.Save", "store.sql_upload_job.save.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
+func (self *SqlUploadJobStore) Create(job *model.JobUploadFile) *model.AppError {
+	job.PreSave()
+	_, err := self.GetMaster().Exec(`insert into upload_file_jobs (name, uuid, mime_type, size, instance,
+                                      created_at, updated_at, domain_id)
+values (:Name, :Uuid, :Mime, :Size, :Instance, :CreatedAt, :UpdatedAt, :DomainId)`, map[string]interface{}{
+		"Name":      job.Name,
+		"Uuid":      job.Uuid,
+		"Mime":      job.MimeType,
+		"Size":      job.Size,
+		"Instance":  job.Instance,
+		"CreatedAt": job.CreatedAt,
+		"UpdatedAt": job.UpdatedAt,
+		"DomainId":  job.DomainId,
 	})
+
+	if err != nil {
+		return model.NewAppError("SqlUploadJobStore.Save", "store.sql_upload_job.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return nil
 }
 
 func (self *SqlUploadJobStore) GetAllPageByInstance(limit int, instance string) store.StoreChannel {

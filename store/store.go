@@ -57,7 +57,8 @@ type StoreSearchEngine interface {
 }
 
 type UploadJobStore interface {
-	Save(job *model.JobUploadFile) StoreChannel
+	Create(job *model.JobUploadFile) *model.AppError
+	//Save(job *model.JobUploadFile) StoreChannel
 	GetAllPageByInstance(limit int, instance string) StoreChannel
 	UpdateWithProfile(limit int, instance string, betweenAttemptSec int64) StoreChannel
 	SetStateError(id int, errMsg string) StoreChannel
