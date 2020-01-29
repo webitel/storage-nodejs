@@ -2,6 +2,7 @@ package grpc_api
 
 import (
 	"context"
+	"fmt"
 	"github.com/webitel/engine/grpc_api/engine"
 	"github.com/webitel/storage/controller"
 	"github.com/webitel/storage/grpc_api/storage"
@@ -178,7 +179,7 @@ func toGrpcProfile(src *model.FileBackendProfile) *storage.BackendProfile {
 			Id:   int64(src.Type.Id),
 			Name: src.Type.Name,
 		},
-		Properties:  nil, //FIXME allow proto json
+		Properties:  toFrpcBackendProperties(src.Properties), //FIXME allow proto json
 		Description: src.Description,
 		Disabled:    src.Disabled,
 	}
@@ -189,6 +190,14 @@ func toStorageBackendProperties(src map[string]string) model.StringInterface {
 	out := make(map[string]interface{})
 	for k, v := range src {
 		out[k] = v
+	}
+	return out
+}
+
+func toFrpcBackendProperties(src model.StringInterface) map[string]string {
+	out := make(map[string]string)
+	for k, v := range src {
+		out[k] = fmt.Sprintf("%v", v)
 	}
 	return out
 }
