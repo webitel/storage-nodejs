@@ -62,7 +62,7 @@ func (u *UploaderInterfaceImpl) run() {
 
 			count = len(jobs)
 			if count > 0 {
-				wlog.Debug(fmt.Sprintf("Found uploading files %d", count))
+				wlog.Debug(fmt.Sprintf("fetch %d jobs upload files", count))
 				for i = 0; i < count; i++ {
 					u.pool.Exec(&UploadTask{
 						app: u.App,

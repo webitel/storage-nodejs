@@ -31,9 +31,7 @@ func (api *backendProfiles) CreateBackendProfile(ctx context.Context, in *storag
 		Disabled:    in.GetDisabled(),
 		MaxSizeMb:   int(in.GetMaxSize()),
 		Properties:  toStorageBackendProperties(in.GetProperties()),
-		Type: model.Lookup{
-			Id: int(in.GetType().GetId()),
-		},
+		Type:        toStorageBackendType(in.GetType()),
 	}
 
 	profile, err = api.ctrl.CreateBackendProfile(session, profile)
@@ -169,16 +167,13 @@ func toGrpcProfile(src *model.FileBackendProfile) *storage.BackendProfile {
 			Id:   int64(src.UpdatedBy.Id),
 			Name: src.UpdatedBy.Name,
 		},
-		DataSize:   int64(src.DataSize),
-		DataCount:  src.DataCount,
-		Name:       src.Name,
-		ExpireDays: int32(src.ExpireDay),
-		MaxSize:    int64(src.MaxSizeMb),
-		Priority:   int32(src.Priority),
-		Type: &engine.Lookup{
-			Id:   int64(src.Type.Id),
-			Name: src.Type.Name,
-		},
+		DataSize:    int64(src.DataSize),
+		DataCount:   src.DataCount,
+		Name:        src.Name,
+		ExpireDays:  int32(src.ExpireDay),
+		MaxSize:     int64(src.MaxSizeMb),
+		Priority:    int32(src.Priority),
+		Type:        src.Type.String(),
 		Properties:  toFrpcBackendProperties(src.Properties), //FIXME allow proto json
 		Description: src.Description,
 		Disabled:    src.Disabled,
@@ -200,4 +195,26 @@ func toFrpcBackendProperties(src model.StringInterface) map[string]string {
 		out[k] = fmt.Sprintf("%v", v)
 	}
 	return out
+}
+
+func toStorageBackendType(t string) model.BackendProfileType {
+	switch t {
+	case model.FileDriverLocal.String():
+		return model.FileDriverLocal
+
+	case model.FileDriverS3.String():
+		return model.FileDriverS3
+
+	case model.FileDriverDO.String():
+		return model.FileDriverDO
+
+	case model.FileDriverGDrive.String():
+		return model.FileDriverGDrive
+
+	case model.FileDriverDropBox.String():
+		return model.FileDriverDropBox
+	default:
+		return model.FileDriverUnknown
+
+	}
 }

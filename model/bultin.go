@@ -9,5 +9,5 @@ func NewString(s string) *string { return &s }
 
 // GetMillis is a convience method to get milliseconds since epoch.
 func GetMillis() int64 {
-	return time.Now().UnixNano() / int64(time.Millisecond*1000)
+	return time.Now().UnixNano() / int64(time.Millisecond)
 }

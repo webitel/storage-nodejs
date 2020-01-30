@@ -16,7 +16,6 @@ SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
 
-ALTER TABLE IF EXISTS ONLY storage.file_backend_profiles DROP CONSTRAINT IF EXISTS file_backend_profiles_file_backend_profile_type_id_fk;
 DROP INDEX IF EXISTS storage.media_files_domain_id_name_uindex;
 DROP INDEX IF EXISTS storage.file_backend_profiles_acl_id_uindex;
 ALTER TABLE IF EXISTS ONLY storage.upload_file_jobs DROP CONSTRAINT IF EXISTS upload_file_jobs_pkey;
@@ -108,7 +107,6 @@ CREATE TABLE storage.file_backend_profiles (
     disabled boolean,
     max_size_mb integer DEFAULT 0 NOT NULL,
     properties jsonb NOT NULL,
-    type_id integer NOT NULL,
     created_at bigint NOT NULL,
     updated_at bigint NOT NULL,
     data_size double precision DEFAULT 0 NOT NULL,
@@ -116,7 +114,8 @@ CREATE TABLE storage.file_backend_profiles (
     created_by bigint,
     updated_by bigint,
     domain_id bigint,
-    description character varying DEFAULT ''::character varying
+    description character varying DEFAULT ''::character varying,
+    type character varying(10) NOT NULL
 );
 
 
@@ -182,7 +181,7 @@ CREATE TABLE storage.files (
     size bigint NOT NULL,
     mime_type character varying(20),
     properties jsonb NOT NULL,
-    instance character varying(20) NOT NULL,
+    instance character varying(50) NOT NULL,
     uuid character varying(36) NOT NULL,
     profile_id integer,
     created_at bigint,
@@ -515,14 +514,6 @@ CREATE UNIQUE INDEX file_backend_profiles_acl_id_uindex ON storage.file_backend_
 --
 
 CREATE UNIQUE INDEX media_files_domain_id_name_uindex ON storage.media_files USING btree (domain_id, name);
-
-
---
--- Name: file_backend_profiles file_backend_profiles_file_backend_profile_type_id_fk; Type: FK CONSTRAINT; Schema: storage; Owner: -
---
-
-ALTER TABLE ONLY storage.file_backend_profiles
-    ADD CONSTRAINT file_backend_profiles_file_backend_profile_type_id_fk FOREIGN KEY (type_id) REFERENCES storage.file_backend_profile_type(id);
 
 
 --

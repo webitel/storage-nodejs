@@ -110,7 +110,7 @@ message BackendProfile {
     int32 expire_days = 9;
     int64 max_size = 10;
     int32 priority = 11;
-    engine.Lookup type = 12;
+    string type = 12;
     map<string,string> properties = 13;
     string description = 14;
     bool disabled = 15;
@@ -121,7 +121,7 @@ message CreateBackendProfileRequest {
     int32 expire_days = 2;
     int64 max_size = 3;
     int32 priority = 4;
-    engine.Lookup type = 5;
+    string type = 5;
     map<string,string> properties = 6;
     string description = 7;
     bool disabled = 8;

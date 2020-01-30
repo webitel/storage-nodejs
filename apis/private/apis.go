@@ -28,17 +28,10 @@ func Init(a *app.App, root *mux.Router) *API {
 
 	api.Routes.Root = root
 	api.Routes.ApiRoot = root.PathPrefix(model.API_INTERNAL_URL_SUFFIX_V1).Subrouter()
-	api.Routes.Files = api.Routes.ApiRoot.PathPrefix("/formLoadFile").Subrouter()
-	api.Routes.Test = api.Routes.ApiRoot.PathPrefix("/test").Subrouter()
-
-	api.InitTest()
+	api.Routes.Files = api.Routes.ApiRoot.PathPrefix("/recordings").Subrouter()
 
 	api.InitFile()
 	return api
-}
-
-func (api *API) InitTest() {
-	//api.Routes.Test.Handle("", api.ApiHandler(getTest)).Methods("GET")
 }
 
 func (api *API) Handle404(w http.ResponseWriter, r *http.Request) {

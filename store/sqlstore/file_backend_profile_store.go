@@ -1,7 +1,6 @@
 package sqlstore
 
 import (
-	"database/sql"
 	"fmt"
 	"github.com/lib/pq"
 	"github.com/webitel/engine/auth_manager"
@@ -45,18 +44,17 @@ func (s SqlFileBackendProfileStore) CheckAccess(domainId, id int64, groups []int
 
 func (s SqlFileBackendProfileStore) Create(profile *model.FileBackendProfile) (*model.FileBackendProfile, *model.AppError) {
 	err := s.GetMaster().SelectOne(&profile, `with p as (
-    insert into file_backend_profiles (name, expire_day, priority, disabled, max_size_mb, properties, type_id,
+    insert into file_backend_profiles (name, expire_day, priority, disabled, max_size_mb, properties, type,
                                            created_at, updated_at, created_by, updated_by,
                                            domain_id, description)
-    values (:Name, :ExpireDay, :Priority, :Disabled, :MaxSize, :Properties, :TypeId, :CreatedAt, :UpdatedAt, :CreatedBy, :UpdatedBy,
+    values (:Name, :ExpireDay, :Priority, :Disabled, :MaxSize, :Properties, :Type, :CreatedAt, :UpdatedAt, :CreatedBy, :UpdatedBy,
             :DomainId, :Description)
     returning *
 )
 select p.id, call_center.cc_get_lookup(c.id, c.name) as created_by, p.created_at, call_center.cc_get_lookup(u.id, u.name) as updated_by,
        p.updated_at, p.name, p.description, p.expire_day, p.priority, p.disabled, p.max_size_mb, p.properties,
-       call_center.cc_get_lookup(t.id, t.name) as type, p.data_size, p.data_count
+       p.type, p.data_size, p.data_count
 from p
-    inner join file_backend_profile_type t on t.id = p.type_id
     left join directory.wbt_user c on c.id = p.created_by
     left join directory.wbt_user u on u.id = p.updated_by`, map[string]interface{}{
 		"Name":        profile.Name,
@@ -65,7 +63,7 @@ from p
 		"Disabled":    profile.Disabled,
 		"MaxSize":     profile.MaxSizeMb,
 		"Properties":  model.StringInterfaceToJson(profile.Properties),
-		"TypeId":      profile.Type.Id,
+		"Type":        profile.Type,
 		"CreatedAt":   profile.CreatedAt,
 		"UpdatedAt":   profile.UpdatedAt,
 		"CreatedBy":   profile.CreatedBy.Id,
@@ -86,9 +84,8 @@ func (s SqlFileBackendProfileStore) GetAllPage(domainId int64, offset, limit int
 	var profiles []*model.FileBackendProfile
 	_, err := s.GetMaster().Select(&profiles, `select p.id, call_center.cc_get_lookup(c.id, c.name) as created_by, p.created_at, call_center.cc_get_lookup(u.id, u.name) as updated_by,
        p.updated_at, p.name, p.description, p.expire_day, p.priority, p.disabled, p.max_size_mb, p.properties,
-       call_center.cc_get_lookup(t.id, t.name) as type, p.data_size, p.data_count
+       p.type, p.data_size, p.data_count
 from file_backend_profiles p
-    inner join file_backend_profile_type t on t.id = p.type_id
     left join directory.wbt_user c on c.id = p.created_by
     left join directory.wbt_user u on u.id = p.updated_by
     where p.domain_id = :DomainId
@@ -111,9 +108,8 @@ func (s SqlFileBackendProfileStore) GetAllPageByGroups(domainId int64, groups []
 	var profiles []*model.FileBackendProfile
 	_, err := s.GetMaster().Select(&profiles, `select p.id, call_center.cc_get_lookup(c.id, c.name) as created_by, p.created_at, call_center.cc_get_lookup(u.id, u.name) as updated_by,
        p.updated_at, p.name, p.description, p.expire_day, p.priority, p.disabled, p.max_size_mb, p.properties,
-       call_center.cc_get_lookup(t.id, t.name) as type, p.data_size, p.data_count
+       p.type, p.data_size, p.data_count
 from file_backend_profiles p
-    inner join file_backend_profile_type t on t.id = p.type_id
     left join directory.wbt_user c on c.id = p.created_by
     left join directory.wbt_user u on u.id = p.updated_by
     where p.domain_id = :DomainId and (
@@ -143,9 +139,8 @@ func (s SqlFileBackendProfileStore) Get(id, domainId int64) (*model.FileBackendP
 	var profile *model.FileBackendProfile
 	err := s.GetMaster().SelectOne(&profile, `select p.id, call_center.cc_get_lookup(c.id, c.name) as created_by, p.created_at, call_center.cc_get_lookup(u.id, u.name) as updated_by,
        p.updated_at, p.name, p.description, p.expire_day, p.priority, p.disabled, p.max_size_mb, p.properties,
-       call_center.cc_get_lookup(t.id, t.name) as type, p.data_size, p.data_count, p.domain_id
+       p.type, p.data_size, p.data_count, p.domain_id
 from file_backend_profiles p
-    inner join file_backend_profile_type t on t.id = p.type_id
     left join directory.wbt_user c on c.id = p.created_by
     left join directory.wbt_user u on u.id = p.updated_by
     where p.id = :Id and p.domain_id = :DomainId`, map[string]interface{}{
@@ -178,9 +173,8 @@ func (s SqlFileBackendProfileStore) Update(profile *model.FileBackendProfile) (*
 )
 select p.id, call_center.cc_get_lookup(c.id, c.name) as created_by, p.created_at, call_center.cc_get_lookup(u.id, u.name) as updated_by,
        p.updated_at, p.name, p.description, p.expire_day, p.priority, p.disabled, p.max_size_mb, p.properties,
-       call_center.cc_get_lookup(t.id, t.name) as type, p.data_size, p.data_count
+       p.type, p.data_size, p.data_count
 from p
-    inner join file_backend_profile_type t on t.id = p.type_id
     left join directory.wbt_user c on c.id = p.created_by
     left join directory.wbt_user u on u.id = p.updated_by`, map[string]interface{}{
 		"Name":        profile.Name,
@@ -189,7 +183,7 @@ from p
 		"Disabled":    profile.Disabled,
 		"MaxSize":     profile.MaxSizeMb,
 		"Properties":  model.StringInterfaceToJson(profile.Properties),
-		"TypeId":      profile.Type.Id,
+		"Type":        profile.Type,
 		"UpdatedAt":   profile.UpdatedAt,
 		"UpdatedBy":   profile.UpdatedBy.Id,
 		"DomainId":    profile.DomainId,
@@ -214,24 +208,24 @@ func (s SqlFileBackendProfileStore) Delete(domainId, id int64) *model.AppError {
 	return nil
 }
 
-func (s SqlFileBackendProfileStore) GetById(id int) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-
-		query := `SELECT * FROM file_backend_profiles WHERE id = :Id`
-
-		profile := &model.FileBackendProfile{}
-
-		if err := s.GetReplica().SelectOne(profile, query, map[string]interface{}{"Id": id}); err != nil {
-			result.Err = model.NewAppError("SqlBackendProfileStore.GetById", "store.sql_file_backend_profile.get.finding.app_error", nil,
-				fmt.Sprintf("id=%d, %s", id, err.Error()), http.StatusInternalServerError)
-
-			if err == sql.ErrNoRows {
-				result.Err.StatusCode = http.StatusNotFound
-			}
-		} else {
-			result.Data = profile
-		}
+func (s SqlFileBackendProfileStore) GetById(id int) (*model.FileBackendProfile, *model.AppError) {
+	var profile *model.FileBackendProfile
+	err := s.GetMaster().SelectOne(&profile, `select p.id, call_center.cc_get_lookup(c.id, c.name) as created_by, p.created_at, call_center.cc_get_lookup(u.id, u.name) as updated_by,
+       p.updated_at, p.name, p.description, p.expire_day, p.priority, p.disabled, p.max_size_mb, p.properties,
+       p.type, p.data_size, p.data_count, p.domain_id
+from file_backend_profiles p
+    left join directory.wbt_user c on c.id = p.created_by
+    left join directory.wbt_user u on u.id = p.updated_by
+    where p.id = :Id `, map[string]interface{}{
+		"Id": id,
 	})
+
+	if err != nil {
+		return nil, model.NewAppError("SqlBackendProfileStore.Get", "store.sql_file_backend_profile.get.app_error", nil,
+			fmt.Sprintf("id=%d, %s", id, err.Error()), extractCodeFromErr(err))
+	}
+
+	return profile, nil
 }
 
 func (s SqlFileBackendProfileStore) GetAllPageByDomain(domain string, offset, limit int) store.StoreChannel {

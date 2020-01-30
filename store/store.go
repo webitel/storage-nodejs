@@ -57,7 +57,7 @@ type StoreSearchEngine interface {
 }
 
 type UploadJobStore interface {
-	Create(job *model.JobUploadFile) *model.AppError
+	Create(job *model.JobUploadFile) (*model.JobUploadFile, *model.AppError)
 	//Save(job *model.JobUploadFile) StoreChannel
 	GetAllPageByInstance(limit int, instance string) StoreChannel
 	UpdateWithProfile(limit int, instance string, betweenAttemptSec int64) StoreChannel
@@ -70,10 +70,10 @@ type FileBackendProfileStore interface {
 	GetAllPage(domainId int64, offset, limit int) ([]*model.FileBackendProfile, *model.AppError)
 	GetAllPageByGroups(domainId int64, groups []int, offset, limit int) ([]*model.FileBackendProfile, *model.AppError)
 	Get(id, domainId int64) (*model.FileBackendProfile, *model.AppError)
+	GetById(id int) (*model.FileBackendProfile, *model.AppError)
 	Update(profile *model.FileBackendProfile) (*model.FileBackendProfile, *model.AppError)
 	Delete(domainId, id int64) *model.AppError
 
-	GetById(id int) StoreChannel
 	GetAllPageByDomain(domain string, limit, offset int) StoreChannel
 }
 

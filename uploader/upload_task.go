@@ -27,7 +27,7 @@ func (u *UploadTask) Execute() {
 		return
 	}
 
-	wlog.Debug(fmt.Sprintf("Execute upload task %s to store %s", u.Name(), store.Name()))
+	wlog.Debug(fmt.Sprintf("start upload task %d [%s] to store %s", u.job.Id, u.Name(), store.Name()))
 
 	r, err := u.app.FileCache.Reader(u.job, 0)
 	if err != nil {
@@ -38,12 +38,12 @@ func (u *UploadTask) Execute() {
 	defer r.Close()
 
 	f := &model.File{
+		DomainId:  u.job.DomainId,
 		Uuid:      u.job.Uuid,
 		ProfileId: u.job.ProfileId,
 		CreatedAt: u.job.CreatedAt,
 		BaseFile: model.BaseFile{
-			Size: u.job.Size,
-			//Domain:     u.job.Domain, //FIXME
+			Size:       u.job.Size,
 			Name:       u.job.Name,
 			MimeType:   u.job.MimeType,
 			Properties: model.StringInterface{},
@@ -57,7 +57,7 @@ func (u *UploadTask) Execute() {
 		return
 	}
 
-	wlog.Debug(fmt.Sprintf("Store %s to %s %d bytes", u.job.GetStoreName(), store.Name(), u.job.Size))
+	wlog.Debug(fmt.Sprintf("store %s to %s %d bytes", u.job.GetStoreName(), store.Name(), u.job.Size))
 
 	result := <-u.app.Store.File().MoveFromJob(int(u.job.Id), u.job.ProfileId, f.Properties)
 	if result.Err != nil {
@@ -72,5 +72,5 @@ func (u *UploadTask) Execute() {
 		wlog.Critical(err.Error())
 	}
 
-	wlog.Debug(fmt.Sprintf("End execute upload task %s", u.Name()))
+	wlog.Debug(fmt.Sprintf("finish upload task %d [%s]", u.job.Id, u.Name()))
 }

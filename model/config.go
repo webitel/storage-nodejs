@@ -5,9 +5,6 @@ import "net/http"
 const (
 	DEFAULT_LOCALE = "en"
 
-	FILE_DRIVER_S3    = "s3"
-	FILE_DRIVER_LOCAL = "local"
-
 	DATABASE_DRIVER_POSTGRES = "postgres"
 )
 

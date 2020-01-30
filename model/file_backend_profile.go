@@ -9,8 +9,18 @@ import (
 const (
 	ROOT_FILE_BACKEND_DOMAIN  = 0
 	ACTIVE_BACKEND_CACHE_SIZE = 1000
-	LOCAL_BACKEND             = 1
 	CACHE_DIR                 = "./cache"
+)
+
+type BackendProfileType string
+
+const (
+	FileDriverUnknown BackendProfileType = "unknown"
+	FileDriverLocal   BackendProfileType = "local"
+	FileDriverS3      BackendProfileType = "s3"
+	FileDriverDO      BackendProfileType = "do"
+	FileDriverGDrive  BackendProfileType = "g_drive"
+	FileDriverDropBox BackendProfileType = "drop_box"
 )
 
 type FileBackendProfileType struct {
@@ -21,17 +31,61 @@ type FileBackendProfileType struct {
 
 type FileBackendProfile struct {
 	DomainRecord
-	Name        string          `db:"name" json:"name"`
-	Description string          `json:"description" db:"description"`
-	ExpireDay   int             `db:"expire_day" json:"expire_day"`
-	Priority    int             `db:"priority" json:"priority"`
-	Disabled    bool            `db:"disabled" json:"disabled"`
-	MaxSizeMb   int             `db:"max_size_mb" json:"max_size_mb"`
-	Properties  StringInterface `db:"properties" json:"properties"`
-	Type        Lookup          `db:"type" json:"type"`
-	DataSize    float64         `db:"data_size" json:"data_size"`
-	DataCount   int64           `db:"data_count" json:"data_count"`
+	Name        string             `db:"name" json:"name"`
+	Description string             `json:"description" db:"description"`
+	ExpireDay   int                `db:"expire_day" json:"expire_day"`
+	Priority    int                `db:"priority" json:"priority"`
+	Disabled    bool               `db:"disabled" json:"disabled"`
+	MaxSizeMb   int                `db:"max_size_mb" json:"max_size_mb"`
+	Properties  StringInterface    `db:"properties" json:"properties"`
+	Type        BackendProfileType `db:"type" json:"type"`
+	DataSize    float64            `db:"data_size" json:"data_size"`
+	DataCount   int64              `db:"data_count" json:"data_count"`
 }
+
+type S3Properties struct {
+	KeyId      string   `json:"key_id"`
+	AccessKey  string   `json:"access_key"`
+	BucketName string   `json:"bucket_name"`
+	Region     S3Region `json:"region"`
+}
+
+type DOProperties struct {
+	KeyId      string   `json:"key_id"`
+	AccessKey  string   `json:"access_key"`
+	BucketName string   `json:"bucket_name"`
+	Region     DORegion `json:"region"`
+}
+
+type DropBoxProperties struct {
+	Token string `json:"token"`
+}
+
+type GDriveProperties struct {
+	Email      string `json:"email"`
+	PrivateKey string `json:"private_key"`
+}
+
+type S3Region string
+type DORegion string
+
+const (
+	S3UsEast1      S3Region = "us-east-1"
+	S3UsWest1               = "us-west-1"
+	S3UsWest2               = "us-west-2"
+	S3ApSouth1              = "ap-south-1"
+	S3ApNorthEast2          = "ap-northeast-2"
+	S3ApSouthEast1          = "ap-southeast-1"
+	S3ApSouthEast2          = "ap-southeast-2"
+	S3NorthEast1            = "ap-northeast-1"
+	S3EuCentral1            = "eu-central-1"
+	S3EuWest1               = "eu-west-1"
+	S3SaEast1               = "sa-east-1"
+)
+
+const (
+	DONyc3 DORegion = "nyc3"
+)
 
 type FileBackendProfilePath struct {
 	Name        *string          `json:"name"`
@@ -43,6 +97,10 @@ type FileBackendProfilePath struct {
 	Description *string          `json:"description"`
 	UpdatedBy   Lookup
 	UpdatedAt   int64
+}
+
+func (t BackendProfileType) String() string {
+	return string(t)
 }
 
 func (p *FileBackendProfile) GetJsonProperties() string {

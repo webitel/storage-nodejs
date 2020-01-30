@@ -377,7 +377,7 @@
           "format": "int32"
         },
         "type": {
-          "$ref": "#/definitions/engineLookup"
+          "type": "string"
         },
         "properties": {
           "type": "object",
@@ -413,7 +413,7 @@
           "format": "int32"
         },
         "type": {
-          "$ref": "#/definitions/engineLookup"
+          "type": "string"
         },
         "properties": {
           "type": "object",

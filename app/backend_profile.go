@@ -76,14 +76,8 @@ func (app *App) DeleteFileBackendProfiles(domainId, id int64) (*model.FileBacken
 	return profile, nil
 }
 
-//FIXME remove
-
 func (app *App) GetFileBackendProfileById(id int) (*model.FileBackendProfile, *model.AppError) {
-	if result := <-app.Store.FileBackendProfile().GetById(id); result.Err != nil {
-		return nil, result.Err
-	} else {
-		return result.Data.(*model.FileBackendProfile), nil
-	}
+	return app.Store.FileBackendProfile().GetById(id)
 }
 
 func (app *App) ListFileBackendProfiles(domain string, page, perPage int) ([]*model.FileBackendProfile, *model.AppError) {

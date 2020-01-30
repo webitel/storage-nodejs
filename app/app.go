@@ -131,20 +131,16 @@ func (app *App) initLocalFileStores() *model.AppError {
 	settings := app.Config().MediaFileStoreSettings
 
 	if app.FileCache, appErr = utils.NewBackendStore(&model.FileBackendProfile{
-		Name: "Internal file cache",
-		Type: model.Lookup{
-			Id: model.LOCAL_BACKEND,
-		},
+		Name:       "Internal file cache",
+		Type:       model.FileDriverLocal,
 		Properties: model.StringInterface{"directory": model.CACHE_DIR, "path_pattern": ""},
 	}); appErr != nil {
 		return appErr
 	}
 
 	if app.MediaFileStore, appErr = utils.NewBackendStore(&model.FileBackendProfile{
-		Name: "Media store",
-		Type: model.Lookup{
-			Id: model.LOCAL_BACKEND,
-		},
+		Name:       "Media store",
+		Type:       model.FileDriverLocal,
 		Properties: model.StringInterface{"directory": *settings.Directory, "path_pattern": *settings.PathPattern},
 	}); appErr != nil {
 		return appErr

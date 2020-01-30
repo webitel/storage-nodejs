@@ -28,10 +28,10 @@ func (self *SqlFileStore) MoveFromJob(jobId, profileId int, properties model.Str
 		_, err := self.GetMaster().Exec(`with del as (
   delete from upload_file_jobs
   where id = $1
-  returning name, uuid, size, domain, mime_type, created_at, instance
+  returning name, uuid, size, domain_id, mime_type, created_at, instance
 )
-insert into files(name, uuid, profile_id, size, domain, mime_type, properties, created_at, instance)
-select del.name, del.uuid, $2, del.size, del.domain, del.mime_type, $3, del.created_at, del.instance
+insert into files(name, uuid, profile_id, size, domain_id, mime_type, properties, created_at, instance)
+select del.name, del.uuid, $2, del.size, del.domain_id, del.mime_type, $3, del.created_at, del.instance
 from del`, jobId, profileId, properties.ToJson())
 
 		if err != nil {

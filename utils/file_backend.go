@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"regexp"
+	"sync"
 	"time"
 )
 
@@ -16,6 +17,7 @@ const (
 var regCompileMask = regexp.MustCompile(`\$DOMAIN|\$Y|\$M|\$D|\$H|\$m`)
 
 type BaseFileBackend struct {
+	sync.RWMutex
 	syncTime  int64
 	writeSize float64
 }
@@ -25,11 +27,16 @@ func (b *BaseFileBackend) GetSyncTime() int64 {
 }
 
 func (b *BaseFileBackend) GetSize() float64 {
+	b.RLock()
+	defer b.RUnlock()
 	return b.writeSize
 }
 
 // save to megabytes
 func (b *BaseFileBackend) setWriteSize(writtenBytes int64) {
+	b.Lock()
+	defer b.Unlock()
+
 	b.writeSize += float64(writtenBytes) * convert
 }
 
@@ -51,13 +58,16 @@ type FileBackend interface {
 }
 
 func NewBackendStore(profile *model.FileBackendProfile) (FileBackend, *model.AppError) {
-	switch profile.Type.Id {
-	case model.LOCAL_BACKEND:
+	switch profile.Type {
+	case model.FileDriverLocal:
 		return &LocalFileBackend{
-			BaseFileBackend: BaseFileBackend{profile.UpdatedAt, 0},
-			name:            profile.Name,
-			directory:       profile.Properties.GetString("directory"),
-			pathPattern:     profile.Properties.GetString("path_pattern"),
+			BaseFileBackend: BaseFileBackend{
+				syncTime:  profile.UpdatedAt,
+				writeSize: 0,
+			},
+			name:        profile.Name,
+			directory:   profile.Properties.GetString("directory"),
+			pathPattern: profile.Properties.GetString("path_pattern"),
 		}, nil
 
 	}
