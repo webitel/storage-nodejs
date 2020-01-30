@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+option go_package = "github.com/webitel/storage/grpc_api/storage";
+
 package storage;
 
 import "engine/const.proto";
