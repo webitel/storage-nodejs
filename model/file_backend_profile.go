@@ -64,6 +64,7 @@ type DropBoxProperties struct {
 type GDriveProperties struct {
 	Email      string `json:"email"`
 	PrivateKey string `json:"private_key"`
+	Directory  string `json:"directory"`
 }
 
 type S3Region string
