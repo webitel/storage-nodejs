@@ -1,6 +1,7 @@
 package apis
 
 import (
+	"fmt"
 	"github.com/webitel/storage/model"
 	"io"
 	"mime"
@@ -11,9 +12,9 @@ import (
 )
 
 func (api *API) InitMediaFile() {
-
 	api.PublicRoutes.MediaFiles.Handle("", api.ApiSessionRequired(saveMediaFile)).Methods("POST")
 	api.PublicRoutes.MediaFiles.Handle("/{id}/stream", api.ApiSessionRequired(streamMediaFile)).Methods("GET")
+	api.PublicRoutes.MediaFiles.Handle("/{id}/download", api.ApiSessionRequired(downloadMediaFile)).Methods("GET")
 }
 
 func streamMediaFile(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -55,7 +56,7 @@ func streamMediaFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		sendSize = ranges[0].Length
 		w.Header().Set("Content-Range", ranges[0].ContentRange(file.Size))
 	default:
-		//TODO
+
 	}
 
 	if reader, c.Err = c.App.MediaFileStore.Reader(file, offset); c.Err != nil {
@@ -64,16 +65,55 @@ func streamMediaFile(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	defer reader.Close()
 
-	w.Header().Set("Accept-Ranges", "bytes")
-	//w.Header().Set("Cache-Control", "no-cache, must-revalidate, max-age=0")
-	w.Header().Set("Content-Type", file.MimeType)
-
 	if w.Header().Get("Content-Encoding") == "" {
 		w.Header().Set("Content-Length", strconv.FormatInt(sendSize, 10))
 	}
 
+	w.Header().Set("Accept-Ranges", "bytes")
+	w.Header().Set("Content-Type", file.MimeType)
+
 	w.WriteHeader(code)
 	io.CopyN(w, reader, sendSize)
+}
+
+func downloadMediaFile(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireId()
+
+	if c.Err != nil {
+		return
+	}
+
+	var file *model.MediaFile
+	var id, domainId int
+	var err error
+	var reader io.ReadCloser
+
+	if id, err = strconv.Atoi(c.Params.Id); err != nil {
+		c.SetInvalidUrlParam("id")
+		return
+	}
+
+	domainId, _ = strconv.Atoi(c.Params.Domain)
+
+	if file, c.Err = c.Ctrl.GetMediaFile(&c.Session, int64(domainId), id); c.Err != nil {
+		return
+	}
+
+	sendSize := file.Size
+	code := http.StatusOK
+
+	if reader, c.Err = c.App.MediaFileStore.Reader(file, 0); c.Err != nil {
+		return
+	}
+
+	defer reader.Close()
+
+	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment;  filename=%s", file.Name))
+	w.Header().Set("Content-Type", file.MimeType)
+	w.Header().Set("Content-Length", strconv.FormatInt(sendSize, 10))
+
+	w.WriteHeader(code)
+	io.Copy(w, reader)
 }
 
 func saveMediaFile(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -131,5 +171,4 @@ func saveMediaFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte(response.ToJson()))
-
 }
