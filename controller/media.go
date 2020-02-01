@@ -58,7 +58,3 @@ func (c *Controller) DeleteMediaFile(session *auth_manager.Session, domainId int
 
 	return c.app.DeleteMediaFile(session.Domain(domainId), id)
 }
-
-func (c *Controller) StreamFile(session *auth_manager.Session, domainId int64, id int) {
-
-}

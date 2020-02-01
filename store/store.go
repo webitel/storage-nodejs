@@ -78,7 +78,8 @@ type FileBackendProfileStore interface {
 }
 
 type FileStore interface {
-	Get(domain, uuid string) StoreChannel
+	GetFileWithProfile(domainId, id int64) (*model.FileWithProfile, *model.AppError)
+
 	GetAllPageByDomain(domain string, offset, limit int) StoreChannel
 	MoveFromJob(jobId, profileId int, properties model.StringInterface) StoreChannel
 	FetchDeleted(limit int) StoreChannel
@@ -107,7 +108,7 @@ type ScheduleStore interface {
 }
 
 type JobStore interface {
-	Save(job *model.Job) StoreChannel
+	Save(job *model.Job) (*model.Job, *model.AppError)
 	UpdateOptimistically(job *model.Job, currentStatus string) StoreChannel
 	UpdateStatus(id string, status string) StoreChannel
 	UpdateStatusOptimistically(id string, currentStatus string, newStatus string) StoreChannel

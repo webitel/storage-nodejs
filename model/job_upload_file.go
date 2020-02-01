@@ -33,6 +33,10 @@ func (self *JobUploadFile) PreSave() {
 	self.UpdatedAt = GetMillis()
 }
 
+func (f *JobUploadFile) GetSize() int64 {
+	return f.Size
+}
+
 func (self *JobUploadFile) GetStoreName() string {
 	return fmt.Sprintf("%s_%s", self.Uuid, self.Name)
 }

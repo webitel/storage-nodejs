@@ -29,12 +29,12 @@ func init() {
 		wlog.Debug("Initialize uploader")
 		return &UploaderInterfaceImpl{
 			App:               a,
-			limit:             10,
+			limit:             100,
 			betweenAttemptSec: 60,
 			schedule:          make(chan struct{}, 1),
 			stopSignal:        make(chan struct{}),
 			pollingInterval:   time.Second * 2,
-			pool:              pool.NewPool(10, 1),
+			pool:              pool.NewPool(100, 10), //FIXME added config
 		}
 	})
 }
@@ -46,7 +46,7 @@ func (u *UploaderInterfaceImpl) Start() {
 
 func (u *UploaderInterfaceImpl) run() {
 	var result store.StoreResult
-	var jobs = []*model.JobUploadFileWithProfile{}
+	var jobs []*model.JobUploadFileWithProfile
 	var count int
 	var i int
 	for {

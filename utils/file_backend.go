@@ -42,6 +42,7 @@ func (b *BaseFileBackend) setWriteSize(writtenBytes int64) {
 
 type File interface {
 	Domain() int64
+	GetSize() int64
 	GetStoreName() string
 	GetPropertyString(name string) string
 	SetPropertyString(name, value string)
@@ -69,7 +70,24 @@ func NewBackendStore(profile *model.FileBackendProfile) (FileBackend, *model.App
 			directory:   profile.Properties.GetString("directory"),
 			pathPattern: profile.Properties.GetString("path_pattern"),
 		}, nil
-
+	case model.FileDriverS3:
+		d := &S3FileBackend{
+			BaseFileBackend: BaseFileBackend{
+				syncTime:  profile.UpdatedAt,
+				writeSize: 0,
+			},
+			name:        profile.Name,
+			pathPattern: profile.Properties.GetString("path_pattern"),
+			bucket:      profile.Properties.GetString("bucket"),
+			accessKey:   profile.Properties.GetString("access_key"),
+			accessToken: profile.Properties.GetString("access_token"),
+			endpoint:    profile.Properties.GetString("endpoint"),
+			region:      profile.Properties.GetString("region"),
+		}
+		if err := d.TestConnection(); err != nil {
+			return nil, err
+		}
+		return d, nil
 	}
 
 	return nil, model.NewAppError("NewFileBackend", "api.file.no_driver.app_error", nil, "",

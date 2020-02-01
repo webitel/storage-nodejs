@@ -23,7 +23,7 @@ func (self SqlFileStore) CreateIndexesIfNotExists() {
 }
 
 //TODO reference tables ?
-func (self *SqlFileStore) MoveFromJob(jobId, profileId int, properties model.StringInterface) store.StoreChannel {
+func (self SqlFileStore) MoveFromJob(jobId, profileId int, properties model.StringInterface) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		_, err := self.GetMaster().Exec(`with del as (
   delete from upload_file_jobs
@@ -40,7 +40,7 @@ from del`, jobId, profileId, properties.ToJson())
 	})
 }
 
-func (self *SqlFileStore) GetAllPageByDomain(domain string, offset, limit int) store.StoreChannel {
+func (self SqlFileStore) GetAllPageByDomain(domain string, offset, limit int) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var recordings []*model.File
 
@@ -56,7 +56,25 @@ func (self *SqlFileStore) GetAllPageByDomain(domain string, offset, limit int) s
 	})
 }
 
-func (self *SqlFileStore) Get(domain, uuid string) store.StoreChannel {
+func (s SqlFileStore) GetFileWithProfile(domainId, id int64) (*model.FileWithProfile, *model.AppError) {
+	var file *model.FileWithProfile
+	err := s.GetReplica().SelectOne(&file, `SELECT f.*, p.updated_at as profile_updated_at
+	FROM files f
+		JOIN file_backend_profiles p on p.id = f.profile_id
+	WHERE f.id = :Id
+	  AND f.domain_id = :DomainId`, map[string]interface{}{
+		"Id":       id,
+		"DomainId": domainId,
+	})
+
+	if err != nil {
+		return nil, model.NewAppError("SqlFileStore.Get", "store.sql_file.get.app_error", nil,
+			fmt.Sprintf("Id=%d %s", id, err.Error()), extractCodeFromErr(err))
+	}
+	return file, nil
+}
+
+func (self SqlFileStore) Get1(domain, uuid string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var files []*model.FileWithProfile
 		_, err := self.GetReplica().Select(&files, `SELECT files.*, p.updated_at as profile_updated_at FROM files JOIN file_backend_profiles p on p.id = files.profile_id WHERE uuid = :Uuid AND files.domain = :Domain`,
@@ -73,13 +91,7 @@ func (self *SqlFileStore) Get(domain, uuid string) store.StoreChannel {
 	})
 }
 
-func (self *SqlFileStore) Delete(domain string, id int64) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-
-	})
-}
-
-func (self *SqlFileStore) DeleteById(id int64) store.StoreChannel {
+func (self SqlFileStore) DeleteById(id int64) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		if _, err := self.GetMaster().Exec(
 			`DELETE FROM
@@ -94,7 +106,7 @@ func (self *SqlFileStore) DeleteById(id int64) store.StoreChannel {
 	})
 }
 
-func (self *SqlFileStore) FetchDeleted(limit int) store.StoreChannel {
+func (self SqlFileStore) FetchDeleted(limit int) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var recordings []*model.FileWithProfile
 
@@ -110,7 +122,7 @@ func (self *SqlFileStore) FetchDeleted(limit int) store.StoreChannel {
 	})
 }
 
-func (self *SqlFileStore) SetNoExistsById(id int64, notExists bool) store.StoreChannel {
+func (self SqlFileStore) SetNoExistsById(id int64, notExists bool) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		if _, err := self.GetMaster().Exec(
 			`update files

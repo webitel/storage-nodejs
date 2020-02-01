@@ -12,18 +12,6 @@ type SqlScheduleStore struct {
 
 func NewSqlScheduleStore(sqlStore SqlStore) store.ScheduleStore {
 	us := &SqlScheduleStore{sqlStore}
-
-	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.Schedule{}, "schedulers").SetKeys(true, "id")
-		table.ColMap("CronExpression").SetNotNull(true).SetMaxSize(50)
-		table.ColMap("type").SetNotNull(true).SetMaxSize(50)
-		table.ColMap("Name").SetNotNull(true).SetMaxSize(50)
-		table.ColMap("TimeZone").SetNotNull(false).SetMaxSize(50)
-		table.ColMap("Description").SetNotNull(false).SetMaxSize(500)
-		table.ColMap("CreatedAt").SetNotNull(true)
-		table.ColMap("Enabled").SetNotNull(true)
-	}
-
 	return us
 }
 

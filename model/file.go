@@ -2,7 +2,6 @@ package model
 
 import (
 	"encoding/json"
-	"fmt"
 )
 
 type BaseFile struct {
@@ -26,6 +25,10 @@ type File struct {
 
 func (f *File) Domain() int64 {
 	return f.DomainId
+}
+
+func (f *BaseFile) GetSize() int64 {
+	return f.Size
 }
 
 type RemoveFile struct {
@@ -68,5 +71,5 @@ func (self BaseFile) SetPropertyString(name, value string) {
 }
 
 func (self File) GetStoreName() string {
-	return fmt.Sprintf("%s_%s", self.Uuid, self.Name)
+	return self.Name // need uuid ?
 }

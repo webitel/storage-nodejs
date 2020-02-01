@@ -23,14 +23,18 @@ func (jss SqlJobStore) CreateIndexesIfNotExists() {
 
 }
 
-func (jss SqlJobStore) Save(job *model.Job) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if err := jss.GetMaster().Insert(job); err != nil {
-			result.Err = model.NewAppError("SqlJobStore.Save", "store.sql_job.save.app_error", nil, "id="+job.Id+", "+err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = job
-		}
-	})
+func (jss SqlJobStore) Save(job *model.Job) (*model.Job, *model.AppError) {
+
+	err := jss.GetMaster().SelectOne(job, `insert into jobs (id, type, priority, schedule_id, schedule_time, create_at, start_at, last_activity_at, status,
+                  progress, data)
+values (:Id, :Type, :Priority, :ScheduleId, :ScheduleTime, :CreatedAt, :StartAt, :LastActivityAt, :Status, :Progress, :Data)
+returning *`, job)
+
+	if err != nil {
+		return nil, model.NewAppError("SqlJobStore.Save", "store.sql_job.save.app_error", nil, "id="+job.Id+", "+err.Error(), http.StatusInternalServerError)
+	}
+
+	return job, nil
 }
 
 func (jss SqlJobStore) UpdateOptimistically(job *model.Job, currentStatus string) store.StoreChannel {

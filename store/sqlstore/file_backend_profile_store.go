@@ -183,7 +183,6 @@ from p
 		"Disabled":    profile.Disabled,
 		"MaxSize":     profile.MaxSizeMb,
 		"Properties":  model.StringInterfaceToJson(profile.Properties),
-		"Type":        profile.Type,
 		"UpdatedAt":   profile.UpdatedAt,
 		"UpdatedBy":   profile.UpdatedBy.Id,
 		"DomainId":    profile.DomainId,

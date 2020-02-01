@@ -28,7 +28,8 @@ func (app *App) GetSession(token string) (*auth_manager.Session, *model.AppError
 
 		case auth_manager.ErrValidRoleIds:
 			return nil, model.NewAppError("App.GetSession", "app.session.is_valid.role_ids.app_error", nil, err.Error(), http.StatusInternalServerError)
-
+		default:
+			return nil, model.NewAppError("App.GetSession", "app.session.unauthorized.app_error", nil, err.Error(), http.StatusUnauthorized)
 		}
 	}
 

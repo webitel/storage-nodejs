@@ -1,7 +1,6 @@
 package private
 
 import (
-	"fmt"
 	"github.com/webitel/storage/model"
 	"net/http"
 	"strconv"
@@ -32,7 +31,7 @@ func putFile(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	fileRequest.DomainId = int64(domainId)
 	fileRequest.Uuid = r.URL.Query().Get("id")
-	fileRequest.Name = fmt.Sprintf("%s.%s", r.URL.Query().Get("name"), r.URL.Query().Get("type"))
+	fileRequest.Name = r.URL.Query().Get("name")
 	fileRequest.MimeType = r.Header.Get("Content-Type")
 
 	if r.URL.Query().Get("email_msg") != "" && r.URL.Query().Get("email_msg") != "none" {

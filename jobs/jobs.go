@@ -16,7 +16,7 @@ const (
 )
 
 func (srv *JobServer) CreateJob(jobType string, scheduleId *int64, scheduleTime int64, jobData map[string]string) (*model.Job, *model.AppError) {
-	job := model.Job{
+	job := &model.Job{
 		Id:           model.NewId(),
 		Type:         jobType,
 		CreateAt:     model.GetMillis(),
@@ -26,15 +26,13 @@ func (srv *JobServer) CreateJob(jobType string, scheduleId *int64, scheduleTime 
 		Data:         jobData,
 	}
 
-	if err := job.IsValid(); err != nil {
+	err := job.IsValid()
+	if err != nil {
 		return nil, err
 	}
 
-	if result := <-srv.Store.Job().Save(&job); result.Err != nil {
-		return nil, result.Err
-	}
-
-	return &job, nil
+	job, err = srv.Store.Job().Save(job)
+	return job, err
 }
 
 func (srv *JobServer) GetJob(id string) (*model.Job, *model.AppError) {

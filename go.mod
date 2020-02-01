@@ -4,6 +4,7 @@ go 1.13
 
 require (
 	github.com/armon/go-metrics v0.3.0 // indirect
+	github.com/aws/aws-sdk-go v1.28.9
 	github.com/go-gorp/gorp v2.2.0+incompatible
 	github.com/golang/protobuf v1.3.2
 	github.com/google/uuid v1.1.1 // indirect
@@ -14,6 +15,7 @@ require (
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/hashicorp/serf v0.8.5 // indirect
 	github.com/jinzhu/gorm v1.9.12 // indirect
+	github.com/jmoiron/sqlx v1.2.0
 	github.com/lib/pq v1.3.0
 	github.com/mailru/easyjson v0.7.0 // indirect
 	github.com/nicksnyder/go-i18n v1.10.1
@@ -22,7 +24,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/robfig/cron v1.2.0
 	github.com/webitel/call_center v0.0.0-20200128115525-8de3454665f3
-	github.com/webitel/engine v0.0.0-20200129041231-4feff7bc6577
+	github.com/webitel/engine v0.0.0-20200131102238-ed24089a0017
 	github.com/webitel/wlog v0.0.0-20190823170623-8cc283b29e3e
 	go.uber.org/multierr v1.4.0 // indirect
 	golang.org/x/lint v0.0.0-20191125180803-fdd1cda4f05f // indirect
