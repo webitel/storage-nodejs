@@ -67,8 +67,8 @@ type UploadJobStore interface {
 type FileBackendProfileStore interface {
 	CheckAccess(domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError)
 	Create(profile *model.FileBackendProfile) (*model.FileBackendProfile, *model.AppError)
-	GetAllPage(domainId int64, offset, limit int) ([]*model.FileBackendProfile, *model.AppError)
-	GetAllPageByGroups(domainId int64, groups []int, offset, limit int) ([]*model.FileBackendProfile, *model.AppError)
+	GetAllPage(domainId int64, req *model.SearchFileBackendProfile) ([]*model.FileBackendProfile, *model.AppError)
+	GetAllPageByGroups(domainId int64, groups []int, search *model.SearchFileBackendProfile) ([]*model.FileBackendProfile, *model.AppError)
 	Get(id, domainId int64) (*model.FileBackendProfile, *model.AppError)
 	GetById(id int) (*model.FileBackendProfile, *model.AppError)
 	Update(profile *model.FileBackendProfile) (*model.FileBackendProfile, *model.AppError)
@@ -89,7 +89,7 @@ type FileStore interface {
 
 type MediaFileStore interface {
 	Create(file *model.MediaFile) (*model.MediaFile, *model.AppError)
-	GetAllPage(domainId int64, req *model.ListRequest) ([]*model.MediaFile, *model.AppError)
+	GetAllPage(domainId int64, search *model.SearchMediaFile) ([]*model.MediaFile, *model.AppError)
 	Get(domainId int64, id int) (*model.MediaFile, *model.AppError)
 	Delete(domainId, id int64) *model.AppError
 

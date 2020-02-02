@@ -31,22 +31,23 @@ func (c *Controller) CreateBackendProfile(session *auth_manager.Session, profile
 	return c.app.CreateFileBackendProfile(profile)
 }
 
-func (c *Controller) SearchBackendProfile(session *auth_manager.Session, domainId int64, page, size int) ([]*model.FileBackendProfile, *model.AppError) {
+func (c *Controller) SearchBackendProfile(session *auth_manager.Session, domainId int64, search *model.SearchFileBackendProfile) ([]*model.FileBackendProfile, bool, *model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_BACKEND_PROFILE)
 	if !permission.CanRead() {
-		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+		return nil, false, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
 	var list []*model.FileBackendProfile
 	var err *model.AppError
+	var endOfList bool
 
 	if permission.Rbac {
-		list, err = c.app.GetFileBackendProfilePageByGroups(session.Domain(domainId), session.RoleIds, page, size)
+		list, err = c.app.GetFileBackendProfilePageByGroups(session.Domain(domainId), session.RoleIds, search)
 	} else {
-		list, err = c.app.GetFileBackendProfilePage(session.Domain(domainId), page, size)
+		list, endOfList, err = c.app.SearchFileBackendProfiles(session.Domain(domainId), search)
 	}
 
-	return list, err
+	return list, endOfList, err
 }
 
 func (c *Controller) GetBackendProfile(session *auth_manager.Session, id int64, domainId int64) (*model.FileBackendProfile, *model.AppError) {

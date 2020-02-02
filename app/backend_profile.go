@@ -15,12 +15,17 @@ func (app *App) CreateFileBackendProfile(profile *model.FileBackendProfile) (*mo
 	return app.Store.FileBackendProfile().Create(profile)
 }
 
-func (app *App) GetFileBackendProfilePage(domainId int64, page, perPage int) ([]*model.FileBackendProfile, *model.AppError) {
-	return app.Store.FileBackendProfile().GetAllPage(domainId, page*perPage, perPage)
+func (app *App) SearchFileBackendProfiles(domainId int64, search *model.SearchFileBackendProfile) ([]*model.FileBackendProfile, bool, *model.AppError) {
+	res, err := app.Store.FileBackendProfile().GetAllPage(domainId, search)
+	if err != nil {
+		return nil, false, err
+	}
+	search.RemoveLastElemIfNeed(&res)
+	return res, search.EndOfList(), nil
 }
 
-func (app *App) GetFileBackendProfilePageByGroups(domainId int64, groups []int, page, perPage int) ([]*model.FileBackendProfile, *model.AppError) {
-	return app.Store.FileBackendProfile().GetAllPageByGroups(domainId, groups, page*perPage, perPage)
+func (app *App) GetFileBackendProfilePageByGroups(domainId int64, groups []int, search *model.SearchFileBackendProfile) ([]*model.FileBackendProfile, *model.AppError) {
+	return app.Store.FileBackendProfile().GetAllPageByGroups(domainId, groups, search)
 }
 
 func (app *App) GetFileBackendProfile(id, domain int64) (*model.FileBackendProfile, *model.AppError) {

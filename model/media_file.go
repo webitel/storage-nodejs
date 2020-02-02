@@ -10,6 +10,10 @@ type MediaFile struct {
 	DomainName string `json:"-" db:"domain_name"`
 }
 
+type SearchMediaFile struct {
+	ListRequest
+}
+
 func (self *MediaFile) PreSave() *AppError {
 	self.CreatedAt = GetMillis()
 	self.UpdatedAt = self.CreatedAt

@@ -43,6 +43,10 @@ type FileBackendProfile struct {
 	DataCount   int64              `db:"data_count" json:"data_count"`
 }
 
+type SearchFileBackendProfile struct {
+	ListRequest
+}
+
 type S3Properties struct {
 	KeyId      string   `json:"key_id"`
 	AccessKey  string   `json:"access_key"`

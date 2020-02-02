@@ -1,6 +1,9 @@
 package model
 
-import "github.com/webitel/engine/model"
+import (
+	"fmt"
+	"reflect"
+)
 
 const (
 	PAGE_DEFAULT     = 0
@@ -9,56 +12,62 @@ const (
 )
 
 type ListRequest struct {
-	Q       *string
-	page    int
-	perPage int
-	data    []interface{}
+	Q       string
+	Page    int
+	PerPage int
+	endList bool
 }
 
-func (l *ListRequest) Split(data []interface{}) []interface{} {
-	if len(data) > l.perPage {
-		return data[:l.perPage]
+func (l *ListRequest) RemoveLastElemIfNeed(slicePtr interface{}) {
+	s := reflect.ValueOf(slicePtr)
+	if s.Kind() != reflect.Ptr || s.Type().Elem().Kind() != reflect.Slice {
+		panic(fmt.Errorf("first argument to Remove must be pointer to slice, not %T", slicePtr))
 	}
-	return data
-}
-
-func (l *ListRequest) SetPage(page int) *ListRequest {
-	l.page = page
-	l.valid()
-	return l
-}
-
-func (l *ListRequest) SetQ(q string) *ListRequest {
-	if q == "" {
-		l.Q = nil
-	} else {
-		l.Q = model.NewString(q)
+	if s.IsNil() {
+		return
 	}
-	return l
+
+	itr := s.Elem()
+
+	l.endList = itr.Len() <= l.PerPage
+
+	if l.endList {
+		return
+	}
+
+	newSlice := reflect.MakeSlice(itr.Type(), itr.Len()-1, itr.Len()-1)
+	reflect.Copy(newSlice.Slice(0, newSlice.Len()), itr.Slice(0, itr.Len()-1))
+	s.Elem().Set(newSlice)
 }
 
-func (l *ListRequest) SetPerPage(perPage int) *ListRequest {
-	l.perPage = perPage
-	l.valid()
-	return l
+func (l *ListRequest) EndOfList() bool {
+	return l.endList
+}
+
+func (l *ListRequest) GetQ() *string {
+	if l.Q != "" {
+		return NewString(l.Q)
+	}
+
+	return nil
 }
 
 func (l *ListRequest) GetLimit() int {
 	l.valid()
-	return l.perPage + 1 //FIXME for next page...
+	return l.PerPage + 1 //FIXME for next page...
 }
 
 func (l *ListRequest) GetOffset() int {
 	l.valid()
-	return l.perPage * l.page
+	return l.PerPage * l.Page
 }
 
 func (l *ListRequest) valid() {
-	if l.page < 0 {
-		l.page = PAGE_DEFAULT
+	if l.Page < 0 {
+		l.Page = PAGE_DEFAULT
 	}
 
-	if l.perPage < 1 || l.perPage > PER_PAGE_MAXIMUM {
-		l.perPage = PER_PAGE_DEFAULT
+	if l.PerPage < 1 || l.PerPage > PER_PAGE_MAXIMUM {
+		l.PerPage = PER_PAGE_DEFAULT
 	}
 }

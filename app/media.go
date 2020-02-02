@@ -43,10 +43,14 @@ func (app *App) SaveMediaFile(src io.Reader, mediaFile *model.MediaFile) (*model
 	}
 }
 
-func (app *App) GetMediaFilePage(domainId int64, q string, page, perPage int) ([]*model.MediaFile, *model.AppError) {
-	r := model.ListRequest{}
-	r.SetPage(page).SetPerPage(perPage).SetQ(q)
-	return app.Store.MediaFile().GetAllPage(domainId, &r)
+func (app *App) GetMediaFilePage(domainId int64, search *model.SearchMediaFile) ([]*model.MediaFile, bool, *model.AppError) {
+	files, err := app.Store.MediaFile().GetAllPage(domainId, search)
+	if err != nil {
+		return nil, false, err
+	}
+
+	search.RemoveLastElemIfNeed(&files)
+	return files, search.EndOfList(), nil
 }
 
 func (app *App) GetMediaFile(domainId int64, id int) (*model.MediaFile, *model.AppError) {

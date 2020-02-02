@@ -343,6 +343,6 @@ func (ss *SqlSupplier) Cdr() store.CdrStoreData {
 	return ss.oldStores.cdrData
 }
 
-func (ss SqlSupplier) Schedule() store.ScheduleStore {
+func (ss *SqlSupplier) Schedule() store.ScheduleStore {
 	return ss.oldStores.scheduler
 }

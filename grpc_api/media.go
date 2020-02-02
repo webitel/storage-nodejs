@@ -23,7 +23,17 @@ func (api *media) SearchMediaFile(ctx context.Context, in *storage.SearchMediaFi
 	}
 
 	var list []*model.MediaFile
-	list, err = api.ctrl.SearchMediaFile(session, in.GetDomainId(), in.GetQ(), int(in.GetPage()), int(in.GetSize()))
+	var endOfList bool
+
+	req := &model.SearchMediaFile{
+		ListRequest: model.ListRequest{
+			Q:       in.GetQ(),
+			Page:    int(in.GetPage()),
+			PerPage: int(in.GetSize()),
+		},
+	}
+
+	list, endOfList, err = api.ctrl.SearchMediaFile(session, in.GetDomainId(), req)
 
 	if err != nil {
 		return nil, err
@@ -34,6 +44,7 @@ func (api *media) SearchMediaFile(ctx context.Context, in *storage.SearchMediaFi
 		items = append(items, toGrpcMediaFile(v))
 	}
 	return &storage.ListMedia{
+		Next:  !endOfList,
 		Items: items,
 	}, nil
 }

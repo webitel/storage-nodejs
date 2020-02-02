@@ -65,7 +65,7 @@ from f
 	return file, nil
 }
 
-func (s *SqlMediaFileStore) GetAllPage(domainId int64, req *model.ListRequest) ([]*model.MediaFile, *model.AppError) {
+func (s *SqlMediaFileStore) GetAllPage(domainId int64, search *model.SearchMediaFile) ([]*model.MediaFile, *model.AppError) {
 	var files []*model.MediaFile
 
 	_, err := s.GetMaster().Select(&files, `select f.id, f.name, f.created_at, call_center.cc_get_lookup(c.id, c.name) created_by,
@@ -78,10 +78,11 @@ func (s *SqlMediaFileStore) GetAllPage(domainId int64, req *model.ListRequest) (
 	limit :Limit
 	offset :Offset`, map[string]interface{}{
 		"DomainId": domainId,
-		"Limit":    req.GetLimit(),
-		"Offset":   req.GetOffset(),
-		"Q":        req.Q,
+		"Limit":    search.GetLimit(),
+		"Offset":   search.GetOffset(),
+		"Q":        search.GetQ(),
 	})
+
 	if err != nil {
 		return nil, model.NewAppError("SqlMediaFileStore.GetAllPage", "store.sql_media_file.get_all.finding.app_error",
 			nil, err.Error(), extractCodeFromErr(err))

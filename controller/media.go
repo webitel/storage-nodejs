@@ -28,13 +28,14 @@ func (c *Controller) CreateMediaFile(session *auth_manager.Session, src io.Reade
 	return c.app.SaveMediaFile(src, mediaFile)
 }
 
-func (c *Controller) SearchMediaFile(session *auth_manager.Session, domainId int64, q string, page, size int) ([]*model.MediaFile, *model.AppError) {
+func (c *Controller) SearchMediaFile(session *auth_manager.Session, domainId int64, search *model.SearchMediaFile) ([]*model.MediaFile, bool, *model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_MEDIA_FILE)
 	if !permission.CanRead() {
-		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+		return nil, false, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
-	return c.app.GetMediaFilePage(session.Domain(domainId), q, page, size)
+	list, next, err := c.app.GetMediaFilePage(session.Domain(domainId), search)
+	return list, next, err
 }
 
 func (c *Controller) GetMediaFile(session *auth_manager.Session, domainId int64, id int) (*model.MediaFile, *model.AppError) {

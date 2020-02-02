@@ -13,10 +13,8 @@ type RoutesPublic struct {
 	Root    *mux.Router // ''
 	ApiRoot *mux.Router // 'api/v2'
 
-	BackendProfile      *mux.Router // '/backend_profiles'
 	CallRecordingsFiles *mux.Router // '/files'
 	MediaFiles          *mux.Router // '/media
-	Cdr                 *mux.Router // '/cdr'
 }
 
 type API struct {

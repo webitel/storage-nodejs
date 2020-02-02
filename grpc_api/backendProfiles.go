@@ -49,7 +49,17 @@ func (api *backendProfiles) SearchBackendProfile(ctx context.Context, in *storag
 	}
 
 	var list []*model.FileBackendProfile
-	list, err = api.ctrl.SearchBackendProfile(session, in.GetDomainId(), int(in.GetPage()), int(in.GetSize()))
+	var endOfData bool
+
+	rec := &model.SearchFileBackendProfile{
+		ListRequest: model.ListRequest{
+			Q:       in.GetQ(),
+			Page:    int(in.GetPage()),
+			PerPage: int(in.GetSize()),
+		},
+	}
+
+	list, endOfData, err = api.ctrl.SearchBackendProfile(session, in.GetDomainId(), rec)
 
 	if err != nil {
 		return nil, err
@@ -60,6 +70,7 @@ func (api *backendProfiles) SearchBackendProfile(ctx context.Context, in *storag
 		items = append(items, toGrpcProfile(v))
 	}
 	return &storage.ListBackendProfile{
+		Next:  !endOfData,
 		Items: items,
 	}, nil
 }

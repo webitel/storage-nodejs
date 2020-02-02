@@ -80,7 +80,7 @@ from p
 	return profile, nil
 }
 
-func (s SqlFileBackendProfileStore) GetAllPage(domainId int64, offset, limit int) ([]*model.FileBackendProfile, *model.AppError) {
+func (s SqlFileBackendProfileStore) GetAllPage(domainId int64, search *model.SearchFileBackendProfile) ([]*model.FileBackendProfile, *model.AppError) {
 	var profiles []*model.FileBackendProfile
 	_, err := s.GetMaster().Select(&profiles, `select p.id, call_center.cc_get_lookup(c.id, c.name) as created_by, p.created_at, call_center.cc_get_lookup(u.id, u.name) as updated_by,
        p.updated_at, p.name, p.description, p.expire_day, p.priority, p.disabled, p.max_size_mb, p.properties,
@@ -88,13 +88,14 @@ func (s SqlFileBackendProfileStore) GetAllPage(domainId int64, offset, limit int
 from file_backend_profiles p
     left join directory.wbt_user c on c.id = p.created_by
     left join directory.wbt_user u on u.id = p.updated_by
-    where p.domain_id = :DomainId
+    where p.domain_id = :DomainId  and ( (:Q::varchar isnull or p.name like :Q::varchar) or (:Q::varchar isnull or p.description like :Q::varchar))
     order by p.priority
 	limit :Limit
 	offset :Offset`, map[string]interface{}{
 		"DomainId": domainId,
-		"Limit":    limit,
-		"Offset":   offset,
+		"Limit":    search.GetLimit(),
+		"Offset":   search.GetOffset(),
+		"Q":        search.GetQ(),
 	})
 	if err != nil {
 		return nil, model.NewAppError("SqlBackendProfileStore.GetAllPage", "store.sql_file_backend_profile.get_all.finding.app_error",
@@ -104,7 +105,7 @@ from file_backend_profiles p
 	return profiles, nil
 }
 
-func (s SqlFileBackendProfileStore) GetAllPageByGroups(domainId int64, groups []int, offset, limit int) ([]*model.FileBackendProfile, *model.AppError) {
+func (s SqlFileBackendProfileStore) GetAllPageByGroups(domainId int64, groups []int, search *model.SearchFileBackendProfile) ([]*model.FileBackendProfile, *model.AppError) {
 	var profiles []*model.FileBackendProfile
 	_, err := s.GetMaster().Select(&profiles, `select p.id, call_center.cc_get_lookup(c.id, c.name) as created_by, p.created_at, call_center.cc_get_lookup(u.id, u.name) as updated_by,
        p.updated_at, p.name, p.description, p.expire_day, p.priority, p.disabled, p.max_size_mb, p.properties,
@@ -116,13 +117,14 @@ from file_backend_profiles p
 		exists(select 1
 		  from file_backend_profiles_acl a
 		  where a.dc = p.domain_id and a.object = p.id and a.subject = any(:Groups::int[]) and a.access&:Access = :Access)
-	  )
+	  )   
     order by p.priority
 	limit :Limit
 	offset :Offset`, map[string]interface{}{
 		"DomainId": domainId,
-		"Limit":    limit,
-		"Offset":   offset,
+		"Limit":    search.GetLimit(),
+		"Offset":   search.GetOffset(),
+		"Q":        search.GetQ(),
 		"Groups":   pq.Array(groups),
 		"Access":   auth_manager.PERMISSION_ACCESS_READ.Value(),
 	})

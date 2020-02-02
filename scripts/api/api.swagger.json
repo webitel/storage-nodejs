@@ -43,6 +43,12 @@
             "format": "int32"
           },
           {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
             "name": "domain_id",
             "in": "query",
             "required": false,
@@ -437,6 +443,10 @@
     "storageListBackendProfile": {
       "type": "object",
       "properties": {
+        "next": {
+          "type": "boolean",
+          "format": "boolean"
+        },
         "items": {
           "type": "array",
           "items": {
