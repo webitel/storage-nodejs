@@ -24,7 +24,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/robfig/cron v1.2.0
 	github.com/webitel/call_center v0.0.0-20200128115525-8de3454665f3
-	github.com/webitel/engine v0.0.0-20200131102238-ed24089a0017
+	github.com/webitel/engine v0.0.0-20200203142622-cce7ac3798e2
 	github.com/webitel/wlog v0.0.0-20190823170623-8cc283b29e3e
 	go.uber.org/multierr v1.4.0 // indirect
 	golang.org/x/lint v0.0.0-20191125180803-fdd1cda4f05f // indirect
