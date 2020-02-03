@@ -3,6 +3,7 @@ package model
 import (
 	"fmt"
 	"reflect"
+	"strings"
 )
 
 const (
@@ -46,7 +47,7 @@ func (l *ListRequest) EndOfList() bool {
 
 func (l *ListRequest) GetQ() *string {
 	if l.Q != "" {
-		return NewString(l.Q)
+		return NewString(strings.Replace(l.Q, "*", "%", -1))
 	}
 
 	return nil
