@@ -216,9 +216,6 @@ func toStorageBackendType(t string) model.BackendProfileType {
 	case model.FileDriverS3.String():
 		return model.FileDriverS3
 
-	case model.FileDriverDO.String():
-		return model.FileDriverDO
-
 	case model.FileDriverGDrive.String():
 		return model.FileDriverGDrive
 

@@ -78,9 +78,9 @@ func NewBackendStore(profile *model.FileBackendProfile) (FileBackend, *model.App
 			},
 			name:        profile.Name,
 			pathPattern: profile.Properties.GetString("path_pattern"),
-			bucket:      profile.Properties.GetString("bucket"),
-			accessKey:   profile.Properties.GetString("access_key"),
-			accessToken: profile.Properties.GetString("access_token"),
+			bucket:      profile.Properties.GetString("bucket_name"),
+			accessKey:   profile.Properties.GetString("key_id"),
+			accessToken: profile.Properties.GetString("access_key"),
 			endpoint:    profile.Properties.GetString("endpoint"),
 			region:      profile.Properties.GetString("region"),
 		}

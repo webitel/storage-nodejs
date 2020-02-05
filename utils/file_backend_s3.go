@@ -37,14 +37,25 @@ func (self *S3FileBackend) GetStoreDirectory(domain int64) string {
 	return path.Join(parseStorePattern(self.pathPattern, domain))
 }
 
+func (self *S3FileBackend) getEndpoint() *string {
+	if self.endpoint == "amazonaws.com" {
+		return nil
+	} else if self.region != "" {
+		return aws.String(fmt.Sprintf("%s.%s", self.region, self.endpoint))
+	} else {
+		return aws.String(fmt.Sprintf("%s", self.endpoint))
+	}
+}
+
 func (self *S3FileBackend) TestConnection() *model.AppError {
 	config := &aws.Config{
-		Region:           aws.String(self.region),
-		DisableSSL:       aws.Bool(true),
-		S3ForcePathStyle: aws.Bool(true),
-		Endpoint:         aws.String(self.endpoint),
-		Credentials:      credentials.NewStaticCredentials(self.accessKey, self.accessToken, ""),
+		Region:   aws.String(self.region),
+		Endpoint: self.getEndpoint(),
+		//DisableSSL: aws.Bool(true),
+		//S3ForcePathStyle: aws.Bool(true),
+		Credentials: credentials.NewStaticCredentials(self.accessKey, self.accessToken, ""),
 	}
+
 	sess, err := session.NewSession(config)
 	if err != nil {
 		panic(err.Error())
