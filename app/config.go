@@ -12,6 +12,7 @@ var (
 	amqpSource            = flag.String("amqp", "amqp://webitel:webitel@rabbit:5672?heartbeat=10", "AMQP connection")
 	elasticSource         = flag.String("elastic", "http://10.10.10.200:9200", "Elastic endpoint")
 	grpcServerPort        = flag.Int("grpc_port", 0, "GRPC port")
+	grpcServerAddr        = flag.String("grpc_addr", "", "GRPC host")
 	dev                   = flag.Bool("dev", false, "enable dev mode")
 	internalServerAddress = flag.String("internal_address", ":10021", "Internal server address")
 	publicServerAddress   = flag.String("public_address", ":10023", "Public server address")
@@ -59,7 +60,7 @@ func loadConfig(fileName string) (*model.Config, *model.AppError) {
 			Url: *consulHost,
 		},
 		ServerSettings: model.ServerSettings{
-			Address: "",
+			Address: *grpcServerAddr,
 			Port:    *grpcServerPort,
 			Network: "tcp",
 		},
