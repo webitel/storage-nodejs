@@ -18,7 +18,6 @@ const (
 	FileDriverUnknown BackendProfileType = "unknown"
 	FileDriverLocal   BackendProfileType = "local"
 	FileDriverS3      BackendProfileType = "s3"
-	FileDriverDO      BackendProfileType = "do"
 	FileDriverGDrive  BackendProfileType = "g_drive"
 	FileDriverDropBox BackendProfileType = "drop_box"
 )

@@ -16,8 +16,17 @@ SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
 
+ALTER TABLE IF EXISTS ONLY storage.file_backend_profiles_acl DROP CONSTRAINT IF EXISTS file_backend_profiles_acl_subject_fk;
+ALTER TABLE IF EXISTS ONLY storage.file_backend_profiles_acl DROP CONSTRAINT IF EXISTS file_backend_profiles_acl_object_fk;
+ALTER TABLE IF EXISTS ONLY storage.file_backend_profiles_acl DROP CONSTRAINT IF EXISTS file_backend_profiles_acl_grantor_id_fk;
+ALTER TABLE IF EXISTS ONLY storage.file_backend_profiles_acl DROP CONSTRAINT IF EXISTS file_backend_profiles_acl_grantor_fk;
+ALTER TABLE IF EXISTS ONLY storage.file_backend_profiles_acl DROP CONSTRAINT IF EXISTS file_backend_profiles_acl_domain_fk;
 DROP INDEX IF EXISTS storage.media_files_domain_id_name_uindex;
+DROP INDEX IF EXISTS storage.file_backend_profiles_domain_udx;
+DROP INDEX IF EXISTS storage.file_backend_profiles_acl_subject_object_udx;
+DROP INDEX IF EXISTS storage.file_backend_profiles_acl_object_subject_udx;
 DROP INDEX IF EXISTS storage.file_backend_profiles_acl_id_uindex;
+DROP INDEX IF EXISTS storage.file_backend_profiles_acl_grantor_idx;
 ALTER TABLE IF EXISTS ONLY storage.upload_file_jobs DROP CONSTRAINT IF EXISTS upload_file_jobs_pkey;
 ALTER TABLE IF EXISTS ONLY storage.schedulers DROP CONSTRAINT IF EXISTS schedulers_pkey;
 ALTER TABLE IF EXISTS ONLY storage.remove_file_jobs DROP CONSTRAINT IF EXISTS remove_file_jobs_pkey;
@@ -503,6 +512,13 @@ ALTER TABLE ONLY storage.upload_file_jobs
 
 
 --
+-- Name: file_backend_profiles_acl_grantor_idx; Type: INDEX; Schema: storage; Owner: -
+--
+
+CREATE INDEX file_backend_profiles_acl_grantor_idx ON storage.file_backend_profiles_acl USING btree (grantor);
+
+
+--
 -- Name: file_backend_profiles_acl_id_uindex; Type: INDEX; Schema: storage; Owner: -
 --
 
@@ -510,10 +526,71 @@ CREATE UNIQUE INDEX file_backend_profiles_acl_id_uindex ON storage.file_backend_
 
 
 --
+-- Name: file_backend_profiles_acl_object_subject_udx; Type: INDEX; Schema: storage; Owner: -
+--
+
+CREATE UNIQUE INDEX file_backend_profiles_acl_object_subject_udx ON storage.file_backend_profiles_acl USING btree (object, subject) INCLUDE (access);
+
+
+--
+-- Name: file_backend_profiles_acl_subject_object_udx; Type: INDEX; Schema: storage; Owner: -
+--
+
+CREATE UNIQUE INDEX file_backend_profiles_acl_subject_object_udx ON storage.file_backend_profiles_acl USING btree (subject, object) INCLUDE (access);
+
+
+--
+-- Name: file_backend_profiles_domain_udx; Type: INDEX; Schema: storage; Owner: -
+--
+
+CREATE UNIQUE INDEX file_backend_profiles_domain_udx ON storage.file_backend_profiles USING btree (id, domain_id);
+
+
+--
 -- Name: media_files_domain_id_name_uindex; Type: INDEX; Schema: storage; Owner: -
 --
 
 CREATE UNIQUE INDEX media_files_domain_id_name_uindex ON storage.media_files USING btree (domain_id, name);
+
+
+--
+-- Name: file_backend_profiles_acl file_backend_profiles_acl_domain_fk; Type: FK CONSTRAINT; Schema: storage; Owner: -
+--
+
+ALTER TABLE ONLY storage.file_backend_profiles_acl
+    ADD CONSTRAINT file_backend_profiles_acl_domain_fk FOREIGN KEY (dc) REFERENCES directory.wbt_domain(dc) ON DELETE CASCADE;
+
+
+--
+-- Name: file_backend_profiles_acl file_backend_profiles_acl_grantor_fk; Type: FK CONSTRAINT; Schema: storage; Owner: -
+--
+
+ALTER TABLE ONLY storage.file_backend_profiles_acl
+    ADD CONSTRAINT file_backend_profiles_acl_grantor_fk FOREIGN KEY (grantor, dc) REFERENCES directory.wbt_auth(id, dc);
+
+
+--
+-- Name: file_backend_profiles_acl file_backend_profiles_acl_grantor_id_fk; Type: FK CONSTRAINT; Schema: storage; Owner: -
+--
+
+ALTER TABLE ONLY storage.file_backend_profiles_acl
+    ADD CONSTRAINT file_backend_profiles_acl_grantor_id_fk FOREIGN KEY (grantor) REFERENCES directory.wbt_auth(id) ON DELETE SET NULL;
+
+
+--
+-- Name: file_backend_profiles_acl file_backend_profiles_acl_object_fk; Type: FK CONSTRAINT; Schema: storage; Owner: -
+--
+
+ALTER TABLE ONLY storage.file_backend_profiles_acl
+    ADD CONSTRAINT file_backend_profiles_acl_object_fk FOREIGN KEY (object, dc) REFERENCES storage.file_backend_profiles(id, domain_id) ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- Name: file_backend_profiles_acl file_backend_profiles_acl_subject_fk; Type: FK CONSTRAINT; Schema: storage; Owner: -
+--
+
+ALTER TABLE ONLY storage.file_backend_profiles_acl
+    ADD CONSTRAINT file_backend_profiles_acl_subject_fk FOREIGN KEY (subject, dc) REFERENCES directory.wbt_auth(id, dc) ON DELETE CASCADE;
 
 
 --

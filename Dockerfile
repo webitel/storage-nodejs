@@ -7,8 +7,8 @@ WORKDIR /go/src/github.com/webitel/storage/
 ENV GO111MODULE=on
 RUN go mod download
 
-RUN GIT_COMMIT=$(git rev-list -1 HEAD) && \
-    CGO_ENABLED=0 GOOS=linux go build -ldflags "-X github.com/webitel/storage/model.BuildNumber=$GIT_COMMIT" -a -o storage .
+RUN GIT_COMMIT=$(git log -1 --format='%h %ci') && \
+    CGO_ENABLED=0 GOOS=linux go build -ldflags "-X 'github.com/webitel/storage/model.BuildNumber=$GIT_COMMIT'" -a -o storage .
 
 FROM scratch
 
