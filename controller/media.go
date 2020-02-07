@@ -25,6 +25,10 @@ func (c *Controller) CreateMediaFile(session *auth_manager.Session, src io.Reade
 		},
 	}
 
+	if err := mediaFile.IsValid(); err != nil {
+		return nil, err
+	}
+
 	return c.app.SaveMediaFile(src, mediaFile)
 }
 

@@ -84,8 +84,13 @@ func (s SqlFileBackendProfileStore) GetAllPage(domainId int64, search *model.Sea
 	var profiles []*model.FileBackendProfile
 	_, err := s.GetMaster().Select(&profiles, `select p.id, call_center.cc_get_lookup(c.id, c.name) as created_by, p.created_at, call_center.cc_get_lookup(u.id, u.name) as updated_by,
        p.updated_at, p.name, p.description, p.expire_day, p.priority, p.disabled, p.max_size_mb, p.properties,
-       p.type, p.data_size, p.data_count
+       p.type, coalesce(s.size, 0) data_size, coalesce(s.cnt, 0) data_count
 from file_backend_profiles p
+    left join lateral (
+        select sum(s.size) size, sum(s.count) as cnt
+        from files_statistics s
+        where s.profile_id = p.id
+    ) s on true
     left join directory.wbt_user c on c.id = p.created_by
     left join directory.wbt_user u on u.id = p.updated_by
     where p.domain_id = :DomainId  and ( (:Q::varchar isnull or p.name like :Q::varchar) or (:Q::varchar isnull or p.description like :Q::varchar))
@@ -109,8 +114,13 @@ func (s SqlFileBackendProfileStore) GetAllPageByGroups(domainId int64, groups []
 	var profiles []*model.FileBackendProfile
 	_, err := s.GetMaster().Select(&profiles, `select p.id, call_center.cc_get_lookup(c.id, c.name) as created_by, p.created_at, call_center.cc_get_lookup(u.id, u.name) as updated_by,
        p.updated_at, p.name, p.description, p.expire_day, p.priority, p.disabled, p.max_size_mb, p.properties,
-       p.type, p.data_size, p.data_count
+       p.type, coalesce(s.size, 0) data_size, coalesce(s.cnt, 0) data_count
 from file_backend_profiles p
+    left join lateral (
+        select sum(s.size) size, sum(s.count) as cnt
+        from files_statistics s
+        where s.profile_id = p.id
+    ) s on true
     left join directory.wbt_user c on c.id = p.created_by
     left join directory.wbt_user u on u.id = p.updated_by
     where p.domain_id = :DomainId and (
@@ -141,8 +151,13 @@ func (s SqlFileBackendProfileStore) Get(id, domainId int64) (*model.FileBackendP
 	var profile *model.FileBackendProfile
 	err := s.GetMaster().SelectOne(&profile, `select p.id, call_center.cc_get_lookup(c.id, c.name) as created_by, p.created_at, call_center.cc_get_lookup(u.id, u.name) as updated_by,
        p.updated_at, p.name, p.description, p.expire_day, p.priority, p.disabled, p.max_size_mb, p.properties,
-       p.type, p.data_size, p.data_count, p.domain_id
+       p.type, coalesce(s.size, 0) data_size, coalesce(s.cnt, 0) data_count, p.domain_id
 from file_backend_profiles p
+    left join lateral (
+        select sum(s.size) size, sum(s.count) as cnt
+        from files_statistics s
+        where s.profile_id = p.id
+    ) s on true
     left join directory.wbt_user c on c.id = p.created_by
     left join directory.wbt_user u on u.id = p.updated_by
     where p.id = :Id and p.domain_id = :DomainId`, map[string]interface{}{
@@ -175,8 +190,13 @@ func (s SqlFileBackendProfileStore) Update(profile *model.FileBackendProfile) (*
 )
 select p.id, call_center.cc_get_lookup(c.id, c.name) as created_by, p.created_at, call_center.cc_get_lookup(u.id, u.name) as updated_by,
        p.updated_at, p.name, p.description, p.expire_day, p.priority, p.disabled, p.max_size_mb, p.properties,
-       p.type, p.data_size, p.data_count
+       p.type, coalesce(s.size, 0) data_size, coalesce(s.cnt, 0) data_count
 from p
+    left join lateral (
+        select sum(s.size) size, sum(s.count) as cnt
+        from files_statistics s
+        where s.profile_id = p.id
+    ) s on true
     left join directory.wbt_user c on c.id = p.created_by
     left join directory.wbt_user u on u.id = p.updated_by`, map[string]interface{}{
 		"Name":        profile.Name,
@@ -213,8 +233,13 @@ func (s SqlFileBackendProfileStore) GetById(id int) (*model.FileBackendProfile, 
 	var profile *model.FileBackendProfile
 	err := s.GetMaster().SelectOne(&profile, `select p.id, call_center.cc_get_lookup(c.id, c.name) as created_by, p.created_at, call_center.cc_get_lookup(u.id, u.name) as updated_by,
        p.updated_at, p.name, p.description, p.expire_day, p.priority, p.disabled, p.max_size_mb, p.properties,
-       p.type, p.data_size, p.data_count, p.domain_id
+       p.type, coalesce(s.size, 0) data_size, coalesce(s.cnt, 0) data_count, p.domain_id
 from file_backend_profiles p
+    left join lateral (
+        select sum(s.size) size, sum(s.count) as cnt
+        from files_statistics s
+        where s.profile_id = p.id
+    ) s on true
     left join directory.wbt_user c on c.id = p.created_by
     left join directory.wbt_user u on u.id = p.updated_by
     where p.id = :Id `, map[string]interface{}{

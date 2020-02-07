@@ -2,6 +2,7 @@ package model
 
 import (
 	"encoding/json"
+	"net/http"
 )
 
 type MediaFile struct {
@@ -20,8 +21,23 @@ func (self *MediaFile) PreSave() *AppError {
 	return nil
 }
 
-func (self *MediaFile) IsValid() *AppError {
+func (f *MediaFile) IsValid() *AppError {
+	if len(f.Name) < 3 {
+		return NewAppError("MediaFile.IsValid", "model.media.is_valid.name.app_error", nil, "name="+f.Name, http.StatusBadRequest)
+	}
 
+	if len(f.MimeType) < 3 {
+		return NewAppError("MediaFile.IsValid", "model.media.is_valid.mime_type.app_error", nil, "name="+f.Name, http.StatusBadRequest)
+	}
+
+	if f.DomainId == 0 {
+		return NewAppError("MediaFile.IsValid", "model.media.is_valid.domain_id.app_error", nil, "name="+f.Name, http.StatusBadRequest)
+	}
+
+	if f.Size == 0 {
+		//FIXME
+		//return NewAppError("MediaFile.IsValid", "model.media.is_valid.size.app_error", nil, "name="+f.Name, http.StatusBadRequest)
+	}
 	return nil
 }
 

@@ -7,8 +7,7 @@ import (
 )
 
 func (api *API) InitFile() {
-	api.Routes.Files.Handle("", api.ApiHandler(putFile)).Methods("PUT")
-	api.Routes.Files.Handle("", api.ApiHandler(testFile)).Methods("GET")
+	api.Routes.Files.Handle("", api.ApiHandler(putRecordCallFile)).Methods("PUT")
 }
 
 //  /sys/records?
@@ -19,7 +18,7 @@ func (api *API) InitFile() {
 // &name=recordSession
 // &email_sbj=none
 // &email_msg=none
-func putFile(c *Context, w http.ResponseWriter, r *http.Request) {
+func putRecordCallFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	var fileRequest model.JobUploadFile
 	var domainId int
 	var err error
@@ -48,9 +47,4 @@ func putFile(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("{\"status\": \"+OK\"}"))
-}
-
-func testFile(c *Context, w http.ResponseWriter, r *http.Request) {
-
-	w.WriteHeader(http.StatusOK)
 }

@@ -69,6 +69,8 @@ func (schedulers *Schedulers) Start() *Schedulers {
 }
 
 func (schedulers *Schedulers) scheduleJobs(now *time.Time) {
+	return //FIXME
+
 	var nextTime int64
 	var appErr *model.AppError
 

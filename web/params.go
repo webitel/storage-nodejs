@@ -1,22 +1,22 @@
 package web
 
 import (
-	"net/http"
 	"github.com/gorilla/mux"
+	"net/http"
 	"strconv"
 )
 
 const (
-	PAGE_DEFAULT          = 0
-	PER_PAGE_DEFAULT      = 60
-	PER_PAGE_MAXIMUM      = 1000
+	PAGE_DEFAULT     = 0
+	PER_PAGE_DEFAULT = 60
+	PER_PAGE_MAXIMUM = 1000
 )
 
 type Params struct {
-	Domain string
-	Id string
-	Page           int
-	PerPage        int
+	Domain  string
+	Id      string
+	Page    int
+	PerPage int
 }
 
 func ParamsFromRequest(r *http.Request) *Params {
@@ -25,7 +25,7 @@ func ParamsFromRequest(r *http.Request) *Params {
 	props := mux.Vars(r)
 	query := r.URL.Query()
 
-	params.Domain = query.Get("domain")
+	params.Domain = query.Get("domain_id")
 
 	if val, ok := props["id"]; ok {
 		params.Id = val
