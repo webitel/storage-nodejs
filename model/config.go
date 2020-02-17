@@ -56,6 +56,7 @@ type BrokerSettings struct {
 }
 
 type Config struct {
+	TranslationsDirectory  string
 	NodeName               string
 	IsDev                  bool
 	DiscoverySettings      DiscoverySettings

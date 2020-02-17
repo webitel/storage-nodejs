@@ -67,17 +67,18 @@ func New(options ...string) (outApp *App, outErr error) {
 		}
 	}()
 
+	if err := app.LoadConfig(app.configFile); err != nil {
+		return nil, err
+	}
+
 	if utils.T == nil {
-		if err := utils.TranslationsPreInit(); err != nil {
+		if err := utils.TranslationsPreInit(app.Config().TranslationsDirectory); err != nil {
 			return nil, errors.Wrapf(err, "unable to load translation files")
 		}
 	}
 
 	model.AppErrorInit(utils.T)
 
-	if err := app.LoadConfig(app.configFile); err != nil {
-		return nil, err
-	}
 	app.Log = wlog.NewLogger(&wlog.LoggerConfiguration{
 		EnableConsole: true,
 		ConsoleLevel:  wlog.LevelDebug,

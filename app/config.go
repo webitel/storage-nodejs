@@ -7,6 +7,7 @@ import (
 )
 
 var (
+	translationsDirectory = flag.String("translations_directory", "i18n", "Translations directory")
 	consulHost            = flag.String("consul", "consul:8500", "Host to consul")
 	dataSource            = flag.String("data_source", "postgres://opensips:webitel@postgres:5432/webitel?fallback_application_name=storage&sslmode=disable&connect_timeout=10&search_path=storage", "Data source")
 	amqpSource            = flag.String("amqp", "amqp://webitel:webitel@rabbit:5672?heartbeat=10", "AMQP connection")
@@ -24,8 +25,9 @@ func loadConfig(fileName string) (*model.Config, *model.AppError) {
 	flag.Parse()
 
 	return &model.Config{
-		NodeName: fmt.Sprintf("%s-%s", model.APP_SERVICE_NAME, model.NewId()),
-		IsDev:    *dev,
+		TranslationsDirectory: *translationsDirectory,
+		NodeName:              fmt.Sprintf("%s-%s", model.APP_SERVICE_NAME, model.NewId()),
+		IsDev:                 *dev,
 		LocalizationSettings: model.LocalizationSettings{
 			DefaultClientLocale: model.NewString(model.DEFAULT_LOCALE),
 			DefaultServerLocale: model.NewString(model.DEFAULT_LOCALE),
