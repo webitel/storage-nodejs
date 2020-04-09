@@ -1,6 +1,8 @@
 package model
 
-import "net/http"
+import (
+	"net/http"
+)
 
 const (
 	DEFAULT_LOCALE = "en"
@@ -66,6 +68,7 @@ type Config struct {
 	NoSqlSettings          NoSqlSettings
 	BrokerSettings         BrokerSettings
 	MediaFileStoreSettings MediaFileStoreSettings
+	DefaultFileStore       *DefaultFileStore
 	ServerSettings         ServerSettings
 }
 
@@ -84,6 +87,11 @@ type MediaFileStoreSettings struct {
 	AllowMime   []string
 	Directory   *string
 	PathPattern *string
+}
+
+type DefaultFileStore struct {
+	Type  string
+	Props StringInterface
 }
 
 func (c *Config) IsValid() *AppError {

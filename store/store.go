@@ -60,7 +60,7 @@ type UploadJobStore interface {
 	Create(job *model.JobUploadFile) (*model.JobUploadFile, *model.AppError)
 	//Save(job *model.JobUploadFile) StoreChannel
 	GetAllPageByInstance(limit int, instance string) StoreChannel
-	UpdateWithProfile(limit int, instance string, betweenAttemptSec int64) StoreChannel
+	UpdateWithProfile(limit int, instance string, betweenAttemptSec int64, defStore bool) StoreChannel
 	SetStateError(id int, errMsg string) StoreChannel
 }
 
@@ -81,7 +81,7 @@ type FileStore interface {
 	GetFileWithProfile(domainId, id int64) (*model.FileWithProfile, *model.AppError)
 
 	GetAllPageByDomain(domain string, offset, limit int) StoreChannel
-	MoveFromJob(jobId, profileId int, properties model.StringInterface) StoreChannel
+	MoveFromJob(jobId int64, profileId *int, properties model.StringInterface) StoreChannel
 	FetchDeleted(limit int) StoreChannel
 	DeleteById(id int64) StoreChannel
 	SetNoExistsById(id int64, notExists bool) StoreChannel

@@ -31,7 +31,7 @@ func (api *backendProfiles) CreateBackendProfile(ctx context.Context, in *storag
 		Disabled:    in.GetDisabled(),
 		MaxSizeMb:   int(in.GetMaxSize()),
 		Properties:  toStorageBackendProperties(in.GetProperties()),
-		Type:        toStorageBackendType(in.GetType()),
+		Type:        model.StorageBackendTypeFromString(in.GetType()),
 	}
 
 	profile, err = api.ctrl.CreateBackendProfile(session, profile)
@@ -206,23 +206,4 @@ func toFrpcBackendProperties(src model.StringInterface) map[string]string {
 		out[k] = fmt.Sprintf("%v", v)
 	}
 	return out
-}
-
-func toStorageBackendType(t string) model.BackendProfileType {
-	switch t {
-	case model.FileDriverLocal.String():
-		return model.FileDriverLocal
-
-	case model.FileDriverS3.String():
-		return model.FileDriverS3
-
-	case model.FileDriverGDrive.String():
-		return model.FileDriverGDrive
-
-	case model.FileDriverDropBox.String():
-		return model.FileDriverDropBox
-	default:
-		return model.FileDriverUnknown
-
-	}
 }

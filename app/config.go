@@ -1,6 +1,7 @@
 package app
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"github.com/webitel/storage/model"
@@ -19,12 +20,15 @@ var (
 	publicServerAddress   = flag.String("public_address", ":10023", "Public server address")
 	mediaDirectory        = flag.String("media_directory", "/data", "Media file directory")
 	mediaStorePattern     = flag.String("media_store_pattern", "$DOMAIN", "Media store pattern")
+
+	defaultFileStoreType  = flag.String("file_store_type", "", "Default file store type")
+	defaultFileStoreProps = flag.String("file_store_props", "", "Default file store props")
 )
 
 func loadConfig(fileName string) (*model.Config, *model.AppError) {
 	flag.Parse()
 
-	return &model.Config{
+	cfg := &model.Config{
 		TranslationsDirectory: *translationsDirectory,
 		NodeName:              fmt.Sprintf("%s-%s", model.APP_SERVICE_NAME, model.NewId()),
 		IsDev:                 *dev,
@@ -66,7 +70,22 @@ func loadConfig(fileName string) (*model.Config, *model.AppError) {
 			Port:    *grpcServerPort,
 			Network: "tcp",
 		},
-	}, nil
+	}
+
+	if defaultFileStoreType != nil && *defaultFileStoreType != "" {
+		cfg.DefaultFileStore = &model.DefaultFileStore{
+			Type: *defaultFileStoreType,
+		}
+
+		if defaultFileStoreProps != nil {
+			err := json.Unmarshal([]byte(*defaultFileStoreProps), &cfg.DefaultFileStore.Props)
+			if err != nil {
+				panic(err)
+			}
+		}
+	}
+
+	return cfg, nil
 }
 
 func (a *App) Config() *model.Config {

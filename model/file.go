@@ -17,7 +17,7 @@ type File struct {
 	Id        int64  `db:"id" json:"id"`
 	DomainId  int64  `db:"domain_id" json:"domain_id"`
 	Uuid      string `db:"uuid" json:"uuid"`
-	ProfileId int    `db:"profile_id" json:"profile_id"`
+	ProfileId *int   `db:"profile_id" json:"profile_id"`
 	CreatedAt int64  `db:"created_at" json:"created_at"`
 	Removed   *bool  `db:"removed" json:"-"`
 	NotExists *bool  `db:"not_exists" json:"-"`
@@ -49,7 +49,7 @@ type RemoveFileJob struct {
 
 type FileWithProfile struct {
 	File
-	ProfileUpdatedAt int64 `db:"profile_updated_at"`
+	ProfileUpdatedAt *int64 `db:"profile_updated_at"`
 }
 
 func (f *File) ToJson() string {

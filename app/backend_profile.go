@@ -5,6 +5,7 @@ import (
 	"github.com/webitel/storage/model"
 	"github.com/webitel/storage/utils"
 	"github.com/webitel/wlog"
+	"net/http"
 )
 
 func (app *App) FileBackendProfileCheckAccess(domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError) {
@@ -102,22 +103,29 @@ func (app *App) PathFileBackendProfile(profile *model.FileBackendProfile, path *
 	return profile, nil
 }
 
-func (app *App) GetFileBackendStore(id int, syncTime int64) (store utils.FileBackend, appError *model.AppError) {
+func (app *App) GetFileBackendStore(id *int, syncTime *int64) (store utils.FileBackend, appError *model.AppError) {
 	var ok bool
 	var cache interface{}
-	cache, ok = app.fileBackendCache.Get(id)
+
+	if id == nil && app.UseDefaultStore() {
+		return app.DefaultFileStore, nil
+	}
+
+	if id == nil || syncTime == nil {
+		return nil, model.NewAppError("GetFileBackendStore", "", nil, "", http.StatusInternalServerError)
+	}
+
+	cache, ok = app.fileBackendCache.Get(*id)
 	if ok {
 		store = cache.(utils.FileBackend)
-		if store.GetSyncTime() != syncTime {
-			store = nil
-		} else {
+		if store.GetSyncTime() == *syncTime {
 			return
 		}
 	}
 
 	if store == nil {
 		var profile *model.FileBackendProfile
-		profile, appError = app.GetFileBackendProfileById(id)
+		profile, appError = app.GetFileBackendProfileById(*id)
 		if appError != nil {
 			return
 		}
@@ -128,7 +136,7 @@ func (app *App) GetFileBackendStore(id int, syncTime int64) (store utils.FileBac
 		return
 	}
 
-	app.fileBackendCache.Add(id, store)
+	app.fileBackendCache.Add(*id, store)
 	wlog.Info("Added to cache", wlog.String("name", store.Name()))
 	return store, nil
 }

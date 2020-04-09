@@ -54,7 +54,7 @@ func (u *UploaderInterfaceImpl) run() {
 		case <-u.schedule:
 		case <-time.After(u.pollingInterval):
 		start:
-			if result = <-u.App.Store.UploadJob().UpdateWithProfile(u.limit, u.App.GetInstanceId(), u.betweenAttemptSec); result.Err != nil {
+			if result = <-u.App.Store.UploadJob().UpdateWithProfile(u.limit, u.App.GetInstanceId(), u.betweenAttemptSec, u.App.UseDefaultStore()); result.Err != nil {
 				wlog.Critical(fmt.Sprint(result.Err))
 				continue
 			}

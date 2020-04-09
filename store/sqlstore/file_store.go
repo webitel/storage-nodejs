@@ -23,7 +23,7 @@ func (self SqlFileStore) CreateIndexesIfNotExists() {
 }
 
 //TODO reference tables ?
-func (self SqlFileStore) MoveFromJob(jobId, profileId int, properties model.StringInterface) store.StoreChannel {
+func (self SqlFileStore) MoveFromJob(jobId int64, profileId *int, properties model.StringInterface) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		_, err := self.GetMaster().Exec(`with del as (
   delete from upload_file_jobs
@@ -60,7 +60,7 @@ func (s SqlFileStore) GetFileWithProfile(domainId, id int64) (*model.FileWithPro
 	var file *model.FileWithProfile
 	err := s.GetReplica().SelectOne(&file, `SELECT f.*, p.updated_at as profile_updated_at
 	FROM files f
-		JOIN file_backend_profiles p on p.id = f.profile_id
+		left join file_backend_profiles p on p.id = f.profile_id
 	WHERE f.id = :Id
 	  AND f.domain_id = :DomainId`, map[string]interface{}{
 		"Id":       id,

@@ -189,3 +189,22 @@ func FileBackendProfileListToJson(list []*FileBackendProfile) string {
 	b, _ := json.Marshal(list)
 	return string(b)
 }
+
+func StorageBackendTypeFromString(t string) BackendProfileType {
+	switch t {
+	case FileDriverLocal.String():
+		return FileDriverLocal
+
+	case FileDriverS3.String():
+		return FileDriverS3
+
+	case FileDriverGDrive.String():
+		return FileDriverGDrive
+
+	case FileDriverDropBox.String():
+		return FileDriverDropBox
+	default:
+		return FileDriverUnknown
+
+	}
+}

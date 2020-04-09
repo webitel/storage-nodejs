@@ -59,7 +59,7 @@ func (u *UploadTask) Execute() {
 
 	wlog.Debug(fmt.Sprintf("store %s to %s %d bytes", u.job.GetStoreName(), store.Name(), u.job.Size))
 
-	result := <-u.app.Store.File().MoveFromJob(int(u.job.Id), u.job.ProfileId, f.Properties)
+	result := <-u.app.Store.File().MoveFromJob(u.job.Id, u.job.ProfileId, f.Properties)
 	if result.Err != nil {
 		wlog.Critical(result.Err.Error())
 		store.Remove(f)

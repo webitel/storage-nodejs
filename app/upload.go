@@ -8,7 +8,6 @@ import (
 )
 
 func (app *App) AddUploadJobFile(src io.ReadCloser, file *model.JobUploadFile) *model.AppError {
-
 	size, err := app.FileCache.Write(src, file)
 	if err != nil {
 		return err

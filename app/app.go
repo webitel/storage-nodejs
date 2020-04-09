@@ -27,6 +27,8 @@ type App struct {
 
 	MediaFileStore   utils.FileBackend
 	FileCache        utils.FileBackend
+	DefaultFileStore utils.FileBackend
+
 	fileBackendCache *utils.Cache
 
 	Store  store.Store
@@ -129,7 +131,8 @@ func New(options ...string) (outApp *App, outErr error) {
 
 func (app *App) initLocalFileStores() *model.AppError {
 	var appErr *model.AppError
-	settings := app.Config().MediaFileStoreSettings
+	mediaSettings := app.Config().MediaFileStoreSettings
+	fileSettings := app.Config().DefaultFileStore
 
 	if app.FileCache, appErr = utils.NewBackendStore(&model.FileBackendProfile{
 		Name:       "Internal file cache",
@@ -142,12 +145,25 @@ func (app *App) initLocalFileStores() *model.AppError {
 	if app.MediaFileStore, appErr = utils.NewBackendStore(&model.FileBackendProfile{
 		Name:       "Media store",
 		Type:       model.FileDriverLocal,
-		Properties: model.StringInterface{"directory": *settings.Directory, "path_pattern": *settings.PathPattern},
+		Properties: model.StringInterface{"directory": *mediaSettings.Directory, "path_pattern": *mediaSettings.PathPattern},
 	}); appErr != nil {
 		return appErr
 	}
 
+	if fileSettings != nil {
+		if app.DefaultFileStore, appErr = utils.NewBackendStore(&model.FileBackendProfile{
+			Name:       "Internal record file store",
+			Type:       model.StorageBackendTypeFromString(fileSettings.Type),
+			Properties: fileSettings.Props,
+		}); appErr != nil {
+			return appErr
+		}
+	}
+
 	return nil
+}
+func (app *App) UseDefaultStore() bool {
+	return app.DefaultFileStore != nil
 }
 
 func (app *App) Shutdown() {

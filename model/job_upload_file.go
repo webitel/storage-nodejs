@@ -22,8 +22,8 @@ type JobUploadFile struct {
 
 type JobUploadFileWithProfile struct {
 	JobUploadFile
-	ProfileId        int
-	ProfileUpdatedAt int64
+	ProfileId        *int   `json:"profile_id" db:"profile_id"`
+	ProfileUpdatedAt *int64 `json:"profile_updated_at" db:"profile_updated_at"`
 }
 
 func (self *JobUploadFile) PreSave() {

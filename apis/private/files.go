@@ -8,6 +8,7 @@ import (
 
 func (api *API) InitFile() {
 	api.Routes.Files.Handle("", api.ApiHandler(putRecordCallFile)).Methods("PUT")
+	api.Routes.Files.Handle("", api.ApiHandler(putRecordCallFile)).Methods("POST")
 }
 
 //  /sys/records?

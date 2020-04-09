@@ -4,7 +4,6 @@ import (
 	"github.com/webitel/storage/model"
 	"github.com/webitel/storage/store"
 	"net/http"
-	"strings"
 )
 
 type SqlUploadJobStore struct {
@@ -69,8 +68,11 @@ func (self *SqlUploadJobStore) GetAllPageByInstance(limit int, instance string) 
 	})
 }
 
-//region  sql sqlUpdateWithProfile
-const sqlUpdateWithProfile = `update upload_file_jobs uu
+func (self *SqlUploadJobStore) UpdateWithProfile(limit int, instance string, betweenAttemptSec int64, defStore bool) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		var jobs []*model.JobUploadFileWithProfile
+
+		_, err := self.GetMaster().Select(&jobs, `update upload_file_jobs uu
 set attempts = attempts + 1
   ,state = 1
   ,updated_at = extract(EPOCH from now()) :: BIGINT
@@ -79,15 +81,16 @@ from (
          t.id,
          t.name,
          t.uuid,
+
          t.domain_id,
          t.mime_type,
          t.size,
          t.email_msg,
          t.email_sub,
          profile.id as profile_id,
-         profile.updated_at
+         profile.updated_at profile_updated_at
        FROM upload_file_jobs as t
-         inner join lateral (              select
+         left join lateral (              select
                                              tmp.domain_id,
                                              tmp.id,
                                              tmp.updated_at
@@ -97,48 +100,24 @@ from (
                                                    p1.updated_at,
                                                    p1.priority
                                                  from file_backend_profiles p1
-                                                 where p1.domain_id = t.domain_id and NOT p1.disabled is TRUE
-                                                 union all select
-                                                             t.domain_id,
-                                                             p2.id,
-                                                             p2.updated_at,
-                                                             p2.priority
-                                                           from file_backend_profiles p2
-                                                           where p2.domain_id = $3 and
-                                                                 NOT p2.disabled is TRUE) as tmp
+                                                 where p1.domain_id = t.domain_id and NOT p1.disabled is TRUE) as tmp
                                            order by tmp.priority asc
                                            FETCH FIRST 1 ROW ONLY              ) profile ON profile.domain_id = t.domain_id
-       WHERE state = 0 AND instance = $2 AND (t.updated_at < $4 OR attempts = 0)
+       WHERE state = 0  and (:UseDef::bool = true or profile.id notnull ) AND instance = :Instance AND (t.updated_at < :UpdatedAt OR attempts = 0)
        ORDER BY created_at ASC
-       LIMIT $1) tmp
+       LIMIT :Limit) tmp
 WHERE tmp.id = uu.id and state = 0
-returning tmp.*`
-
-var sqlUpdateWithProfileFmt = strings.Replace(sqlUpdateWithProfile, "\n", " ", -1)
-
-//endregion
-
-func (self *SqlUploadJobStore) UpdateWithProfile(limit int, instance string, betweenAttemptSec int64) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var jobs = make([]*model.JobUploadFileWithProfile, 0, limit)
-
-		rows, err := self.GetMaster().Query(sqlUpdateWithProfileFmt, limit, instance, model.ROOT_FILE_BACKEND_DOMAIN, model.GetMillis()-betweenAttemptSec)
+returning tmp.*`, map[string]interface{}{
+			"UseDef":    defStore,
+			"Instance":  instance,
+			"Limit":     limit,
+			"UpdatedAt": model.GetMillis() - betweenAttemptSec,
+		})
 		if err != nil {
 			result.Err = model.NewAppError("SqlUploadJobStore.UpdateWithProfile", "store.sql_upload_job.update_with_profile.app_error", nil, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		defer rows.Close()
-
-		for rows.Next() {
-			job := &model.JobUploadFileWithProfile{}
-			err = rows.Scan(&job.Id, &job.Name, &job.Uuid, &job.DomainId, &job.MimeType, &job.Size, &job.EmailMsg, &job.EmailSub, &job.ProfileId, &job.ProfileUpdatedAt)
-			if err != nil {
-				result.Err = model.NewAppError("SqlUploadJobStore.UpdateWithProfile", "store.sql_upload_job.update_with_profile.scan.app_error", nil, err.Error(), http.StatusInternalServerError)
-				return
-			}
-			jobs = append(jobs, job)
-		}
 		result.Data = jobs
 	})
 }
