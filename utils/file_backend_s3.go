@@ -13,6 +13,7 @@ import (
 	"io"
 	"net/http"
 	"path"
+	"strings"
 )
 
 type S3FileBackend struct {
@@ -49,7 +50,7 @@ func (self *S3FileBackend) getEndpoint() *string {
 
 func (self *S3FileBackend) TestConnection() *model.AppError {
 	config := &aws.Config{
-		Region:   aws.String(self.region),
+		Region:   aws.String(strings.ToLower(self.region)),
 		Endpoint: self.getEndpoint(),
 		//DisableSSL: aws.Bool(true),
 		//S3ForcePathStyle: aws.Bool(true),
