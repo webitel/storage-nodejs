@@ -69,7 +69,7 @@ func (self *S3FileBackend) TestConnection() *model.AppError {
 		Bucket: aws.String(self.bucket),
 	}); err != nil {
 		if aerr, ok := err.(awserr.Error); ok {
-			if aerr.Code() != s3.ErrCodeBucketAlreadyOwnedByYou {
+			if aerr.Code() != s3.ErrCodeBucketAlreadyOwnedByYou && aerr.Code() != s3.ErrCodeBucketAlreadyExists {
 				return model.NewAppError("S3FileBackend", "utils.file.s3.test_connection.app_error", nil, err.Error(), http.StatusInternalServerError)
 			}
 		} else {
