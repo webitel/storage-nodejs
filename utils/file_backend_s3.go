@@ -124,7 +124,7 @@ func (self *S3FileBackend) Reader(file File, offset int64) (io.ReadCloser, *mode
 
 	out, err := self.svc.GetObject(params)
 	if err != nil {
-
+		return nil, model.NewAppError("S3FileBackend.Reader", "utils.file.s3.reader.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return out.Body, nil
