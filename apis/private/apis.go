@@ -13,6 +13,7 @@ type RoutesInternal struct {
 	ApiRoot *mux.Router // 'sys'
 	Files   *mux.Router // '/records'
 	Media   *mux.Router // '/media'
+	TTS     *mux.Router // '/tts'
 }
 
 type API struct {
@@ -30,9 +31,12 @@ func Init(a *app.App, root *mux.Router) *API {
 	api.Routes.ApiRoot = root.PathPrefix(model.API_INTERNAL_URL_SUFFIX_V1).Subrouter()
 	api.Routes.Files = api.Routes.ApiRoot.PathPrefix("/recordings").Subrouter()
 	api.Routes.Media = api.Routes.ApiRoot.PathPrefix("/media").Subrouter()
+	api.Routes.TTS = api.Routes.ApiRoot.PathPrefix("/tts").Subrouter()
 
 	api.InitFile()
 	api.InitMedia()
+	api.InitTTS()
+
 	return api
 }
 

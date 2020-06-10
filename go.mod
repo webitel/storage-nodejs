@@ -4,7 +4,7 @@ go 1.13
 
 require (
 	github.com/armon/go-metrics v0.3.0 // indirect
-	github.com/aws/aws-sdk-go v1.28.9
+	github.com/aws/aws-sdk-go v1.31.13
 	github.com/go-gorp/gorp v2.2.0+incompatible
 	github.com/golang/protobuf v1.3.2
 	github.com/google/uuid v1.1.1 // indirect
