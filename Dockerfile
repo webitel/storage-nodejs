@@ -1,8 +1,8 @@
-FROM node:slim
+FROM node:lts-slim
 MAINTAINER Vitaly Kovalyshyn "v.kovalyshyn@webitel.com"
 
 ENV VERSION
-ENV WEBITEL_MAJOR 3.4
+ENV WEBITEL_MAJOR 3.11
 ENV WEBITEL_REPO_BASE https://github.com/webitel
 
 COPY src /cdr
