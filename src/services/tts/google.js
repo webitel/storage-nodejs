@@ -19,6 +19,26 @@ module.exports = async (req, res, next) => {
         },
     };
 
+    if (req.query.audioEncoding) {
+        request.audioConfig.audioEncoding = req.query.sampleRateHertz;
+    }
+    if (+req.query.sampleRateHertz) {
+        request.audioConfig.sampleRateHertz = +req.query.sampleRateHertz;
+    }
+    if (+req.query.speakingRate) {
+        request.audioConfig.speakingRate = +req.query.speakingRate;
+    }
+    if (+req.query.pitch) {
+        request.audioConfig.pitch = +req.query.pitch;
+    }
+    if (+req.query.volumeGainDb) {
+        request.audioConfig.volumeGainDb = +req.query.volumeGainDb;
+    }
+    if (req.query.effectsProfileId) {
+        request.audioConfig.effectsProfileId = (req.query.effectsProfileId || '').split(',');
+    }
+
+
     if (req.query.textType === 'ssml') {
         request.input.ssml = req.query.text
     } else {
