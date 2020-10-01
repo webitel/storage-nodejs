@@ -4,6 +4,7 @@ import (
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/storage/model"
 	"github.com/webitel/storage/utils"
+	"io"
 )
 
 func (c *Controller) GetFileWithProfile(session *auth_manager.Session, domainId, id int64) (*model.File, utils.FileBackend, *model.AppError) {
@@ -14,4 +15,8 @@ func (c *Controller) GetFileWithProfile(session *auth_manager.Session, domainId,
 	}
 
 	return c.app.GetFileWithProfile(session.Domain(domainId), id)
+}
+
+func (c *Controller) UploadFileStream(src io.ReadCloser, file *model.JobUploadFile) *model.AppError {
+	return c.app.AddUploadJobFile(src, file)
 }
