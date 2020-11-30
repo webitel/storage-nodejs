@@ -8,6 +8,24 @@ import "google/api/annotations.proto";
 
 service FileService {
     rpc UploadFile (stream UploadFileRequest) returns (UploadFileResponse) {}
+    rpc UploadFileUrl (UploadFileUrlRequest) returns (UploadFileUrlResponse) {}
+}
+
+enum UploadStatusCode {
+    Unknown = 0;
+    Ok = 1;
+    Failed = 2;
+}
+
+message UploadFileUrlRequest {
+    int64 domain_id = 1;
+    string name = 2;
+    string url = 3;
+}
+
+message UploadFileUrlResponse {
+    int64 file_id = 1;
+    UploadStatusCode code = 2;
 }
 
 message UploadFileRequest {
@@ -27,12 +45,6 @@ message UploadFileRequest {
 }
 
 message UploadFileResponse {
-    enum UploadStatusCode {
-        Unknown = 0;
-        Ok = 1;
-        Failed = 2;
-    }
-
     int64 file_id = 1;
     UploadStatusCode code = 2;
 }

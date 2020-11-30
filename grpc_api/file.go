@@ -1,11 +1,13 @@
 package grpc_api
 
 import (
+	"context"
 	"errors"
 	"github.com/webitel/storage/controller"
 	"github.com/webitel/storage/grpc_api/storage"
 	"github.com/webitel/storage/model"
 	"io"
+	"net/http"
 )
 
 type file struct {
@@ -73,6 +75,32 @@ func (api *file) UploadFile(in storage.FileService_UploadFileServer) error {
 
 	return in.SendAndClose(&storage.UploadFileResponse{
 		FileId: fileRequest.Id,
-		Code:   0,
+		Code:   storage.UploadStatusCode_Ok,
 	})
+}
+
+func (api *file) UploadFileUrl(ctx context.Context, in *storage.UploadFileUrlRequest) (*storage.UploadFileUrlResponse, error) {
+	if in.Url == "" || in.DomainId == 0 || in.Name == "" {
+		// new error
+	}
+
+	res, err := http.Get(in.GetUrl())
+	if err != nil {
+		return nil, err
+	}
+
+	var fileRequest model.JobUploadFile
+	fileRequest.DomainId = in.DomainId
+	fileRequest.Name = in.Name
+	fileRequest.MimeType = res.Header.Get("Content-Type")
+	fileRequest.Uuid = model.NewId()
+
+	if err := api.ctrl.UploadFileStream(res.Body, &fileRequest); err != nil {
+		return nil, err
+	}
+
+	return &storage.UploadFileUrlResponse{
+		FileId: fileRequest.Id,
+		Code:   storage.UploadStatusCode_Ok,
+	}, nil
 }

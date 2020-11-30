@@ -3,7 +3,7 @@ package grpc_api
 import (
 	"context"
 	"fmt"
-	"github.com/webitel/engine/grpc_api/engine"
+	"github.com/webitel/protos/engine"
 	"github.com/webitel/storage/controller"
 	"github.com/webitel/storage/grpc_api/storage"
 	"github.com/webitel/storage/model"

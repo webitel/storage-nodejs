@@ -326,6 +326,24 @@
     }
   },
   "definitions": {
+    "UploadFileRequestMetadata": {
+      "type": "object",
+      "properties": {
+        "domain_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "name": {
+          "type": "string"
+        },
+        "mime_type": {
+          "type": "string"
+        },
+        "uuid": {
+          "type": "string"
+        }
+      }
+    },
     "engineLookup": {
       "type": "object",
       "properties": {
@@ -590,6 +608,39 @@
           "format": "int64"
         }
       }
+    },
+    "storageUploadFileResponse": {
+      "type": "object",
+      "properties": {
+        "file_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "code": {
+          "$ref": "#/definitions/storageUploadStatusCode"
+        }
+      }
+    },
+    "storageUploadFileUrlResponse": {
+      "type": "object",
+      "properties": {
+        "file_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "code": {
+          "$ref": "#/definitions/storageUploadStatusCode"
+        }
+      }
+    },
+    "storageUploadStatusCode": {
+      "type": "string",
+      "enum": [
+        "Unknown",
+        "Ok",
+        "Failed"
+      ],
+      "default": "Unknown"
     }
   }
 }
