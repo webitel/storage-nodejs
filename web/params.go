@@ -13,10 +13,12 @@ const (
 )
 
 type Params struct {
-	Domain  string
-	Id      string
-	Page    int
-	PerPage int
+	Domain    string
+	Id        string
+	Page      int
+	PerPage   int
+	Expires   int64
+	Signature string
 }
 
 func ParamsFromRequest(r *http.Request) *Params {
@@ -44,6 +46,11 @@ func ParamsFromRequest(r *http.Request) *Params {
 	} else {
 		params.PerPage = val
 	}
+
+	if val, err := strconv.Atoi(query.Get("expires")); err == nil || val > 0 {
+		params.Expires = int64(val)
+	}
+	params.Signature = query.Get("signature")
 
 	return params
 }

@@ -21,10 +21,10 @@ func NewFileApi(api *controller.Controller) *file {
 func (api *file) UploadFile(in storage.FileService_UploadFileServer) error {
 	var chunk *storage.UploadFileRequest_Chunk
 
-	res, err := in.Recv()
-	if err != nil {
+	res, gErr := in.Recv()
+	if gErr != nil {
 
-		return err
+		return gErr
 	}
 
 	metadata, ok := res.Data.(*storage.UploadFileRequest_Metadata_)
@@ -43,8 +43,8 @@ func (api *file) UploadFile(in storage.FileService_UploadFileServer) error {
 
 	go func(writer *io.PipeWriter) {
 		for {
-			res, err = in.Recv()
-			if err != nil {
+			res, gErr = in.Recv()
+			if gErr != nil {
 				//TODO
 				break
 			}
@@ -61,7 +61,7 @@ func (api *file) UploadFile(in storage.FileService_UploadFileServer) error {
 			writer.Write(chunk.Chunk)
 		}
 
-		if err != nil {
+		if gErr != nil {
 
 		}
 
@@ -69,24 +69,34 @@ func (api *file) UploadFile(in storage.FileService_UploadFileServer) error {
 
 	}(pipeWriter)
 
-	if err := api.ctrl.UploadFileStream(pipeReader, &fileRequest); err != nil {
+	var err *model.AppError
+	var publicUrl string
+	if err = api.ctrl.UploadFileStream(pipeReader, &fileRequest); err != nil {
+		return err
+	}
+
+	if publicUrl, err = api.ctrl.GeneratePreSignetResourceSignature(model.AnyFileRouteName, "download", fileRequest.Id, fileRequest.DomainId); err != nil {
 		return err
 	}
 
 	return in.SendAndClose(&storage.UploadFileResponse{
-		FileId: fileRequest.Id,
-		Code:   storage.UploadStatusCode_Ok,
+		FileId:  fileRequest.Id,
+		Code:    storage.UploadStatusCode_Ok,
+		FileUrl: publicUrl,
 	})
 }
 
 func (api *file) UploadFileUrl(ctx context.Context, in *storage.UploadFileUrlRequest) (*storage.UploadFileUrlResponse, error) {
+	var err *model.AppError
+	var publicUrl string
+
 	if in.Url == "" || in.DomainId == 0 || in.Name == "" {
-		// new error
+		return nil, errors.New("bad request")
 	}
 
-	res, err := http.Get(in.GetUrl())
-	if err != nil {
-		return nil, err
+	res, httpErr := http.Get(in.GetUrl())
+	if httpErr != nil {
+		return nil, httpErr
 	}
 
 	var fileRequest model.JobUploadFile
@@ -95,12 +105,17 @@ func (api *file) UploadFileUrl(ctx context.Context, in *storage.UploadFileUrlReq
 	fileRequest.MimeType = res.Header.Get("Content-Type")
 	fileRequest.Uuid = model.NewId()
 
-	if err := api.ctrl.UploadFileStream(res.Body, &fileRequest); err != nil {
+	if err = api.ctrl.UploadFileStream(res.Body, &fileRequest); err != nil {
+		return nil, err
+	}
+
+	if publicUrl, err = api.ctrl.GeneratePreSignetResourceSignature(model.AnyFileRouteName, "download", fileRequest.Id, fileRequest.DomainId); err != nil {
 		return nil, err
 	}
 
 	return &storage.UploadFileUrlResponse{
-		FileId: fileRequest.Id,
-		Code:   storage.UploadStatusCode_Ok,
+		FileId:  fileRequest.Id,
+		Code:    storage.UploadStatusCode_Ok,
+		FileUrl: publicUrl,
 	}, nil
 }

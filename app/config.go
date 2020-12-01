@@ -23,15 +23,20 @@ var (
 
 	defaultFileStoreType  = flag.String("file_store_type", "", "Default file store type")
 	defaultFileStoreProps = flag.String("file_store_props", "", "Default file store props")
+
+	presignedCertFile = flag.String("presigned_cert", "./key.pem", "Location to pre signed certificate")
+	presignedTimeout  = flag.Int64("presigned_timeout", 1000*60*15, "Pre signed timeout")
 )
 
 func loadConfig(fileName string) (*model.Config, *model.AppError) {
 	flag.Parse()
 
 	cfg := &model.Config{
-		TranslationsDirectory: *translationsDirectory,
-		NodeName:              fmt.Sprintf("%s-%s", model.APP_SERVICE_NAME, model.NewId()),
-		IsDev:                 *dev,
+		TranslationsDirectory:        *translationsDirectory,
+		PreSignedCertificateLocation: *presignedCertFile,
+		PreSignedTimeout:             *presignedTimeout,
+		NodeName:                     fmt.Sprintf("%s-%s", model.APP_SERVICE_NAME, model.NewId()),
+		IsDev:                        *dev,
 		LocalizationSettings: model.LocalizationSettings{
 			DefaultClientLocale: model.NewString(model.DEFAULT_LOCALE),
 			DefaultServerLocale: model.NewString(model.DEFAULT_LOCALE),

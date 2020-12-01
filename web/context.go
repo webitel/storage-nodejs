@@ -103,5 +103,39 @@ func (c *Context) RequireDomain() *Context {
 		return c
 	}
 
+	if len(c.Params.Domain) == 0 {
+		c.SetInvalidUrlParam("domain_id")
+	}
+
+	return c
+}
+
+func (c *Context) RequireExpire() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if c.Params.Expires < 1 {
+		c.SetInvalidUrlParam("expires")
+	}
+	return c
+}
+
+func (c *Context) SetSessionExpire() {
+	c.Err = model.NewAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "", http.StatusUnauthorized)
+}
+
+func (c *Context) SetSessionErrSignature() {
+	c.Err = model.NewAppError("ServeHTTP", "api.context.session_signature.app_error", nil, "", http.StatusUnauthorized)
+}
+
+func (c *Context) RequireSignature() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if len(c.Params.Signature) == 0 {
+		c.SetInvalidUrlParam("signature")
+	}
 	return c
 }

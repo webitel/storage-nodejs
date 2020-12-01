@@ -58,18 +58,20 @@ type BrokerSettings struct {
 }
 
 type Config struct {
-	TranslationsDirectory  string
-	NodeName               string
-	IsDev                  bool
-	DiscoverySettings      DiscoverySettings
-	LocalizationSettings   LocalizationSettings
-	ServiceSettings        ServiceSettings
-	SqlSettings            SqlSettings
-	NoSqlSettings          NoSqlSettings
-	BrokerSettings         BrokerSettings
-	MediaFileStoreSettings MediaFileStoreSettings
-	DefaultFileStore       *DefaultFileStore
-	ServerSettings         ServerSettings
+	TranslationsDirectory        string
+	NodeName                     string
+	IsDev                        bool
+	PreSignedCertificateLocation string
+	PreSignedTimeout             int64
+	DiscoverySettings            DiscoverySettings
+	LocalizationSettings         LocalizationSettings
+	ServiceSettings              ServiceSettings
+	SqlSettings                  SqlSettings
+	NoSqlSettings                NoSqlSettings
+	BrokerSettings               BrokerSettings
+	MediaFileStoreSettings       MediaFileStoreSettings
+	DefaultFileStore             *DefaultFileStore
+	ServerSettings               ServerSettings
 }
 
 type DiscoverySettings struct {

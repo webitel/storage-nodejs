@@ -616,6 +616,9 @@
           "type": "string",
           "format": "int64"
         },
+        "file_url": {
+          "type": "string"
+        },
         "code": {
           "$ref": "#/definitions/storageUploadStatusCode"
         }
@@ -627,6 +630,9 @@
         "file_id": {
           "type": "string",
           "format": "int64"
+        },
+        "file_url": {
+          "type": "string"
         },
         "code": {
           "$ref": "#/definitions/storageUploadStatusCode"

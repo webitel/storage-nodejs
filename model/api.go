@@ -18,3 +18,7 @@ const (
 	STATUS    = "status"
 	STATUS_OK = "OK"
 )
+
+const (
+	AnyFileRouteName = "/any/file"
+)

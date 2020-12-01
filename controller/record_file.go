@@ -20,3 +20,7 @@ func (c *Controller) GetFileWithProfile(session *auth_manager.Session, domainId,
 func (c *Controller) UploadFileStream(src io.ReadCloser, file *model.JobUploadFile) *model.AppError {
 	return c.app.AddUploadJobFile(src, file)
 }
+
+func (c *Controller) GeneratePreSignetResourceSignature(resource, action string, id int64, domainId int64) (string, *model.AppError) {
+	return c.app.GeneratePreSignetResourceSignature(resource, action, id, domainId)
+}

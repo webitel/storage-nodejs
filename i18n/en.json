@@ -12,6 +12,10 @@
     "translation": "Invalid or expired session, please login again."
   },
   {
+    "id": "api.context.session_signature.app_error",
+    "translation": "Invalid or expired session signature."
+  },
+  {
     "id": "api.file.no_driver.app_error",
     "translation": "No file driver selected."
   },

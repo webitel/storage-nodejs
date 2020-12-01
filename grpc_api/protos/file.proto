@@ -25,7 +25,8 @@ message UploadFileUrlRequest {
 
 message UploadFileUrlResponse {
     int64 file_id = 1;
-    UploadStatusCode code = 2;
+    string file_url = 2;
+    UploadStatusCode code = 3;
 }
 
 message UploadFileRequest {
@@ -46,5 +47,6 @@ message UploadFileRequest {
 
 message UploadFileResponse {
     int64 file_id = 1;
-    UploadStatusCode code = 2;
+    string file_url = 2;
+    UploadStatusCode code = 3;
 }

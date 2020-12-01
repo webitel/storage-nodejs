@@ -5,6 +5,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/webitel/engine/auth_manager"
+	presign "github.com/webitel/engine/presign"
 	"github.com/webitel/storage/broker"
 	"github.com/webitel/storage/interfaces"
 	"github.com/webitel/storage/jobs"
@@ -42,6 +43,8 @@ type App struct {
 
 	sessionManager auth_manager.AuthManager
 	Uploader       interfaces.UploadRecordingsFilesInterface
+
+	preSigned presign.PreSign
 
 	upTime time.Time
 }
@@ -91,6 +94,12 @@ func New(options ...string) (outApp *App, outErr error) {
 
 	if err := utils.InitTranslations(app.Config().LocalizationSettings); err != nil {
 		return nil, errors.Wrapf(err, "unable to load translation files")
+	}
+
+	if preSign, err := presign.NewPreSigned(app.Config().PreSignedCertificateLocation); err != nil {
+		return nil, errors.Wrapf(err, "unable to load certificate file")
+	} else {
+		app.preSigned = preSign
 	}
 
 	app.initLocalFileStores()
