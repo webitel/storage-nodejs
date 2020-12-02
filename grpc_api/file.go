@@ -100,10 +100,13 @@ func (api *file) UploadFileUrl(ctx context.Context, in *storage.UploadFileUrlReq
 	}
 
 	var fileRequest model.JobUploadFile
-	fileRequest.DomainId = in.DomainId
-	fileRequest.Name = in.Name
+	fileRequest.DomainId = in.GetDomainId()
+	fileRequest.Name = in.GetName()
 	fileRequest.MimeType = res.Header.Get("Content-Type")
-	fileRequest.Uuid = model.NewId()
+	fileRequest.Uuid = in.GetUuid()
+	if fileRequest.Uuid == "" {
+		fileRequest.Uuid = model.NewId() // bad request ?
+	}
 
 	if err = api.ctrl.UploadFileStream(res.Body, &fileRequest); err != nil {
 		return nil, err
@@ -114,8 +117,9 @@ func (api *file) UploadFileUrl(ctx context.Context, in *storage.UploadFileUrlReq
 	}
 
 	return &storage.UploadFileUrlResponse{
-		FileId:  fileRequest.Id,
-		Code:    storage.UploadStatusCode_Ok,
-		FileUrl: publicUrl,
+		FileId:   fileRequest.Id,
+		Code:     storage.UploadStatusCode_Ok,
+		FileUrl:  publicUrl,
+		MimeType: fileRequest.MimeType,
 	}, nil
 }

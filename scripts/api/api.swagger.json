@@ -634,6 +634,9 @@
         "file_url": {
           "type": "string"
         },
+        "mime_type": {
+          "type": "string"
+        },
         "code": {
           "$ref": "#/definitions/storageUploadStatusCode"
         }
