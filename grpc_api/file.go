@@ -81,6 +81,7 @@ func (api *file) UploadFile(in storage.FileService_UploadFileServer) error {
 
 	return in.SendAndClose(&storage.UploadFileResponse{
 		FileId:  fileRequest.Id,
+		Size:    fileRequest.Size,
 		Code:    storage.UploadStatusCode_Ok,
 		FileUrl: publicUrl,
 	})
@@ -120,6 +121,7 @@ func (api *file) UploadFileUrl(ctx context.Context, in *storage.UploadFileUrlReq
 		FileId:   fileRequest.Id,
 		Code:     storage.UploadStatusCode_Ok,
 		FileUrl:  publicUrl,
+		Size:     fileRequest.Size,
 		MimeType: fileRequest.MimeType,
 	}, nil
 }
