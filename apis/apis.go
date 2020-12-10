@@ -13,9 +13,10 @@ type RoutesPublic struct {
 	Root    *mux.Router // ''
 	ApiRoot *mux.Router // 'api/v2'
 
-	CallRecordingsFiles *mux.Router // '/files'
+	CallRecordingsFiles *mux.Router // '/call files'
 	MediaFiles          *mux.Router // '/media
 	AnyFiles            *mux.Router // for chat
+	Files               *mux.Router // for chat
 }
 
 type API struct {
@@ -35,11 +36,13 @@ func Init(a *app.App, root *mux.Router) *API {
 
 	api.PublicRoutes.MediaFiles = api.PublicRoutes.ApiRoot.PathPrefix("/media").Subrouter()
 	api.PublicRoutes.CallRecordingsFiles = api.PublicRoutes.ApiRoot.PathPrefix("/recordings").Subrouter()
+	api.PublicRoutes.Files = api.PublicRoutes.ApiRoot.PathPrefix("/file").Subrouter()
 	api.PublicRoutes.AnyFiles = api.PublicRoutes.ApiRoot.PathPrefix(model.AnyFileRouteName).Subrouter()
 
 	api.InitMediaFile()
 	api.InitCallRecordingsFiles()
 	api.InitAnyFile()
+	api.InitFile()
 
 	return api
 }
