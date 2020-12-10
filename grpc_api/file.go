@@ -100,6 +100,8 @@ func (api *file) UploadFileUrl(ctx context.Context, in *storage.UploadFileUrlReq
 		return nil, httpErr
 	}
 
+	defer res.Body.Close()
+
 	var fileRequest model.JobUploadFile
 	fileRequest.DomainId = in.GetDomainId()
 	fileRequest.Name = in.GetName()

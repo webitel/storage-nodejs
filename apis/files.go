@@ -1,6 +1,7 @@
 package apis
 
 import (
+	"encoding/json"
 	"github.com/webitel/storage/model"
 	"io"
 	"mime"
@@ -8,6 +9,14 @@ import (
 	"net/http"
 	"strings"
 )
+
+type fileResponse struct {
+	Id        int64  `json:"id"`
+	Name      string `json:"name"`
+	Size      int64  `json:"size"`
+	MimeType  string `json:"mime"`
+	SharedUrl string `json:"shared"`
+}
 
 func (api *API) InitFile() {
 	api.PublicRoutes.Files.Handle("/{id}/stream", api.ApiSessionRequired(streamRecordFile)).Methods("GET")
@@ -24,7 +33,7 @@ func uploadAnyFile(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	defer r.Body.Close()
 
-	files := make([]*model.JobUploadFile, 0)
+	files := make([]*fileResponse, 0)
 
 	mediaType, params, err := mime.ParseMediaType(r.Header.Get("Content-Type"))
 	if err != nil {
@@ -56,8 +65,15 @@ func uploadAnyFile(c *Context, w http.ResponseWriter, r *http.Request) {
 				c.Err = err
 				return
 			}
+			sig, _ := c.App.GeneratePreSignetResourceSignature(model.AnyFileRouteName, "download", file.Id, file.DomainId)
 
-			files = append(files, file)
+			files = append(files, &fileResponse{
+				Id:        file.Id,
+				Name:      file.Name,
+				Size:      file.Size,
+				MimeType:  file.MimeType,
+				SharedUrl: sig,
+			})
 			part.Close()
 		}
 	} else {
@@ -72,17 +88,23 @@ func uploadAnyFile(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = err
 			return
 		}
+
+		sig, _ := c.App.GeneratePreSignetResourceSignature(model.AnyFileRouteName, "download", file.Id, file.DomainId)
+		files = append(files, &fileResponse{
+			Id:        file.Id,
+			Name:      file.Name,
+			Size:      file.Size,
+			MimeType:  file.MimeType,
+			SharedUrl: sig,
+		})
 	}
 
 	if c.Err != nil {
 		return
 	}
 
-	response := &ListResponse{
-		Items: files,
-	}
+	data, _ := json.Marshal(files)
+	w.Write(data)
 
-	w.Write([]byte(response.ToJson()))
-
-	//c.App.GenerateSignature() // todo app generate public download
+	// todo app generate public download
 }
