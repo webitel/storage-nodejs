@@ -37,20 +37,21 @@ func (app *App) SyncUpload(src io.ReadCloser, file *model.JobUploadFile) *model.
 	f := &model.File{
 		DomainId:  file.DomainId,
 		Uuid:      file.Uuid,
-		CreatedAt: file.CreatedAt,
+		CreatedAt: model.GetMillis(),
 		BaseFile: model.BaseFile{
 			Size:       file.Size,
 			Name:       file.Name,
 			MimeType:   file.MimeType,
 			Properties: model.StringInterface{},
-			Instance:   file.Instance,
+			Instance:   app.GetInstanceId(),
 		},
 	}
 
-	_, err := app.DefaultFileStore.Write(src, f)
+	size, err := app.DefaultFileStore.Write(src, f)
 	if err != nil {
 		return err
 	}
+	f.Size = size
 
 	res := <-app.Store.File().Create(f)
 	if res.Err != nil {

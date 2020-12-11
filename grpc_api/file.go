@@ -104,11 +104,15 @@ func (api *file) UploadFileUrl(ctx context.Context, in *storage.UploadFileUrlReq
 
 	var fileRequest model.JobUploadFile
 	fileRequest.DomainId = in.GetDomainId()
-	fileRequest.Name = in.GetName()
+	fileRequest.Name = model.NewId() + "_" + in.GetName()
 	fileRequest.MimeType = res.Header.Get("Content-Type")
 	fileRequest.Uuid = in.GetUuid()
 	if fileRequest.Uuid == "" {
 		fileRequest.Uuid = model.NewId() // bad request ?
+	}
+
+	if fileRequest.MimeType == "application/octet-stream" && in.Mime != "" {
+		fileRequest.MimeType = in.Mime
 	}
 
 	if err = api.ctrl.UploadFileStream(res.Body, &fileRequest); err != nil {
@@ -120,10 +124,10 @@ func (api *file) UploadFileUrl(ctx context.Context, in *storage.UploadFileUrlReq
 	}
 
 	return &storage.UploadFileUrlResponse{
-		FileId:   fileRequest.Id,
-		Code:     storage.UploadStatusCode_Ok,
-		FileUrl:  publicUrl,
-		Size:     fileRequest.Size,
-		MimeType: fileRequest.MimeType,
+		Id:   fileRequest.Id,
+		Code: storage.UploadStatusCode_Ok,
+		Url:  publicUrl,
+		Size: fileRequest.Size,
+		Mime: fileRequest.MimeType,
 	}, nil
 }

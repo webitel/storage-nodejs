@@ -22,12 +22,13 @@ message UploadFileUrlRequest {
     string uuid = 2;
     string name = 3;
     string url = 4;
+    string mime = 5;
 }
 
 message UploadFileUrlResponse {
-    int64 file_id = 1;
-    string file_url = 2;
-    string mime_type = 4;
+    int64 id = 1;
+    string url = 2;
+    string mime = 4;
     int64 size = 5;
     UploadStatusCode code = 6;
 }
