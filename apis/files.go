@@ -61,7 +61,7 @@ func uploadAnyFile(c *Context, w http.ResponseWriter, r *http.Request) {
 			file.Uuid = c.Params.Id
 
 			// TODO PERMISSION
-			if err := c.App.AddUploadJobFile(part, file); err != nil {
+			if err := c.App.SyncUpload(part, file); err != nil {
 				c.Err = err
 				return
 			}
@@ -84,7 +84,7 @@ func uploadAnyFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		file.Uuid = c.Params.Id
 
 		// TODO PERMISSION
-		if err := c.App.AddUploadJobFile(r.Body, file); err != nil {
+		if err := c.App.SyncUpload(r.Body, file); err != nil {
 			c.Err = err
 			return
 		}

@@ -29,6 +29,40 @@ func (app *App) AddUploadJobFile(src io.ReadCloser, file *model.JobUploadFile) *
 	return err
 }
 
+func (app *App) SyncUpload(src io.ReadCloser, file *model.JobUploadFile) *model.AppError {
+	if app.UseDefaultStore() {
+		// error
+	}
+
+	f := &model.File{
+		DomainId:  file.DomainId,
+		Uuid:      file.Uuid,
+		CreatedAt: file.CreatedAt,
+		BaseFile: model.BaseFile{
+			Size:       file.Size,
+			Name:       file.Name,
+			MimeType:   file.MimeType,
+			Properties: model.StringInterface{},
+			Instance:   file.Instance,
+		},
+	}
+
+	_, err := app.DefaultFileStore.Write(src, f)
+	if err != nil {
+		return err
+	}
+
+	res := <-app.Store.File().Create(f)
+	if res.Err != nil {
+		return res.Err
+	} else {
+		file.Id = res.Data.(int64)
+	}
+
+	wlog.Debug(fmt.Sprintf("store %s to %s %d bytes", file.GetStoreName(), app.DefaultFileStore.Name(), file.Size))
+	return nil
+}
+
 func (app *App) RemoveUploadJob(id int) *model.AppError {
 	return nil
 }

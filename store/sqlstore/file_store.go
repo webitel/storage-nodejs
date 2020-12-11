@@ -22,6 +22,31 @@ func (self SqlFileStore) CreateIndexesIfNotExists() {
 
 }
 
+func (self SqlFileStore) Create(file *model.File) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		id, err := self.GetMaster().SelectInt(`
+			insert into files(id, name, uuid, profile_id, size, domain_id, mime_type, properties, created_at, instance)
+            values(nextval('storage.upload_file_jobs_id_seq'::regclass), :Name, :Uuid, null, :Size, :DomainId, :Mime, :Props, :CreatedAt, :Inst")
+			returning id
+		`, map[string]interface{}{
+			"Name":      file.Name,
+			"Uuid":      file.Uuid,
+			"Size":      file.Size,
+			"DomainId":  file.DomainId,
+			"Mime":      file.MimeType,
+			"Props":     file.Properties.ToJson(),
+			"CreatedAt": file.CreatedAt,
+			"Inst":      file.Instance,
+		})
+
+		if err != nil {
+			result.Err = model.NewAppError("SqlFileStore.Create", "store.sql_file.create.app_error", nil, err.Error(), http.StatusInternalServerError)
+		} else {
+			result.Data = id
+		}
+	})
+}
+
 //TODO reference tables ?
 func (self SqlFileStore) MoveFromJob(jobId int64, profileId *int, properties model.StringInterface) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
