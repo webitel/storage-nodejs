@@ -51,7 +51,7 @@ func (app *App) SyncUpload(src io.ReadCloser, file *model.JobUploadFile) *model.
 	if err != nil {
 		return err
 	}
-	f.Size = size
+	file.Size = size
 
 	res := <-app.Store.File().Create(f)
 	if res.Err != nil {
