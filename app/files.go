@@ -28,3 +28,19 @@ func (app *App) GetFileWithProfile(domainId, id int64) (*model.File, utils.FileB
 	//is bug ?
 	return &file.File, backend, nil
 }
+
+func (app *App) GetFileByUuidWithProfile(domainId int64, uuid string) (*model.File, utils.FileBackend, *model.AppError) {
+	var file *model.FileWithProfile
+	var backend utils.FileBackend
+	var err *model.AppError
+
+	if file, err = app.Store.File().GetFileByUuidWithProfile(domainId, uuid); err != nil {
+		return nil, nil, err
+	}
+
+	if backend, err = app.GetFileBackendStore(file.ProfileId, file.ProfileUpdatedAt); err != nil {
+		return nil, nil, err
+	}
+	//is bug ?
+	return &file.File, backend, nil
+}

@@ -93,8 +93,28 @@ func (s SqlFileStore) GetFileWithProfile(domainId, id int64) (*model.FileWithPro
 	})
 
 	if err != nil {
-		return nil, model.NewAppError("SqlFileStore.Get", "store.sql_file.get.app_error", nil,
+		return nil, model.NewAppError("SqlFileStore.GetFileWithProfile", "store.sql_file.get_with_profile.app_error", nil,
 			fmt.Sprintf("Id=%d %s", id, err.Error()), extractCodeFromErr(err))
+	}
+	return file, nil
+}
+
+func (s SqlFileStore) GetFileByUuidWithProfile(domainId int64, uuid string) (*model.FileWithProfile, *model.AppError) {
+	var file *model.FileWithProfile
+	err := s.GetReplica().SelectOne(&file, `SELECT f.*, p.updated_at as profile_updated_at
+	FROM files f
+		left join file_backend_profiles p on p.id = f.profile_id
+	WHERE f.uuid = :Uuid
+	  AND f.domain_id = :DomainId
+	order by created_at desc
+	limit 1`, map[string]interface{}{
+		"Uuid":     uuid,
+		"DomainId": domainId,
+	})
+
+	if err != nil {
+		return nil, model.NewAppError("SqlFileStore.GetFileByUuidWithProfile", "store.sql_file.get_by_uuid_with_profile.app_error", nil,
+			fmt.Sprintf("Uuid=%d %s", uuid, err.Error()), extractCodeFromErr(err))
 	}
 	return file, nil
 }
