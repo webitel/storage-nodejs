@@ -243,7 +243,7 @@ func downloadAnyFileByQuery(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	key := fmt.Sprintf("/download?domain_id=%s&uuid=%s&expires=%d", model.AnyFileRouteName, c.Params.Domain, uuid, c.Params.Expires)
+	key := fmt.Sprintf("%s/download?domain_id=%s&uuid=%s&expires=%d", model.AnyFileRouteName, c.Params.Domain, uuid, c.Params.Expires)
 
 	if !c.App.ValidateSignature(key, c.Params.Signature) {
 		c.SetSessionErrSignature()
