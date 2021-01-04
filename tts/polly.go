@@ -1,14 +1,11 @@
 package tts
 
 import (
-	"errors"
-	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/polly"
 	"io"
-	"net/http"
 )
 
 type TTSEngine interface {
@@ -20,6 +17,7 @@ type TTSParams struct {
 	Format         string
 	Voice          string
 	Region         string
+	Language       string
 	Text, TextType string
 }
 
@@ -61,28 +59,4 @@ func Poly(req TTSParams) (io.ReadCloser, *string, error) {
 	} else {
 		return out.AudioStream, out.ContentType, nil
 	}
-}
-
-func Microsoft(req TTSParams) (io.ReadCloser, *string, error) {
-	microsoftToken(req.Key, req.Token, req.Region)
-
-	return nil, nil, errors.New("TODO")
-}
-
-func microsoftToken(key, secret, region string) {
-	req, err := http.NewRequest("POST", fmt.Sprintf("https://%s.api.cognitive.microsoft.com/sts/v1.0/issueToken", region), nil)
-	if err != nil {
-		return
-	}
-
-	req.Header.Set("Context-Type", "application/ssml+xml")
-	req.Header.Set("User-Agent", "WebitelACR")
-
-	res, err := http.DefaultClient.Do(req)
-
-	if err != nil {
-		fmt.Println(err.Error())
-	}
-	defer res.Body.Close()
-
 }

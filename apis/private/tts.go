@@ -50,6 +50,7 @@ func ttsMicrosoft(c *Context, w http.ResponseWriter, r *http.Request) {
 		Region:   query.Get("region"),
 		Text:     query.Get("text"),
 		TextType: query.Get("text_type"),
+		Language: query.Get("language"),
 	}
 
 	out, t, err := tts2.Microsoft(params)
