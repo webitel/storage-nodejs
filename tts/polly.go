@@ -19,6 +19,12 @@ type TTSParams struct {
 	Region         string
 	Language       string
 	Text, TextType string
+
+	//google
+	SpeakingRate     float64
+	Pitch            float64
+	VolumeGainDb     float64
+	EffectsProfileId []string
 }
 
 func Poly(req TTSParams) (io.ReadCloser, *string, error) {
