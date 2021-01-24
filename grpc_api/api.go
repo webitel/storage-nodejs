@@ -23,7 +23,7 @@ func Init(a *app.App, server *grpc.Server) {
 	ctrl := controller.NewController(a)
 	api.backendProfiles = NewBackendProfileApi(ctrl)
 	api.media = NewMediaApi(ctrl)
-	api.file = NewFileApi(ctrl)
+	api.file = NewFileApi(a.Config().ProxyUploadUrl, ctrl)
 
 	storage.RegisterBackendProfileServiceServer(server, api.backendProfiles)
 	storage.RegisterMediaFileServiceServer(server, api.media)

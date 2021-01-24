@@ -8,14 +8,30 @@ import (
 	"github.com/webitel/storage/model"
 	"io"
 	"net/http"
+	"net/url"
 )
 
 type file struct {
 	ctrl *controller.Controller
+	curl *http.Client
 }
 
-func NewFileApi(api *controller.Controller) *file {
-	return &file{api}
+func NewFileApi(proxy *string, api *controller.Controller) *file {
+	c := &file{
+		ctrl: api,
+	}
+	if proxy != nil {
+		proxyUrl, err := url.Parse(*proxy)
+		if err != nil {
+			panic(err.Error())
+		}
+
+		c.curl = &http.Client{Transport: &http.Transport{Proxy: http.ProxyURL(proxyUrl)}}
+	} else {
+		c.curl = http.DefaultClient
+	}
+
+	return c
 }
 
 func (api *file) UploadFile(in storage.FileService_UploadFileServer) error {
@@ -95,7 +111,7 @@ func (api *file) UploadFileUrl(ctx context.Context, in *storage.UploadFileUrlReq
 		return nil, errors.New("bad request")
 	}
 
-	res, httpErr := http.Get(in.GetUrl())
+	res, httpErr := api.curl.Get(in.GetUrl())
 	if httpErr != nil {
 		return nil, httpErr
 	}

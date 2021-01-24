@@ -72,6 +72,7 @@ type Config struct {
 	MediaFileStoreSettings       MediaFileStoreSettings
 	DefaultFileStore             *DefaultFileStore
 	ServerSettings               ServerSettings
+	ProxyUploadUrl               *string
 }
 
 type DiscoverySettings struct {

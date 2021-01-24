@@ -26,6 +26,8 @@ var (
 
 	presignedCertFile = flag.String("presigned_cert", "./key.pem", "Location to pre signed certificate")
 	presignedTimeout  = flag.Int64("presigned_timeout", 1000*60*15, "Pre signed timeout")
+
+	proxyUpload = flag.String("proxy_upload", "", "Proxy upload url")
 )
 
 func loadConfig(fileName string) (*model.Config, *model.AppError) {
@@ -75,6 +77,10 @@ func loadConfig(fileName string) (*model.Config, *model.AppError) {
 			Port:    *grpcServerPort,
 			Network: "tcp",
 		},
+	}
+
+	if proxyUpload != nil && *proxyUpload != "" {
+		cfg.ProxyUploadUrl = proxyUpload
 	}
 
 	if defaultFileStoreType != nil && *defaultFileStoreType != "" {
