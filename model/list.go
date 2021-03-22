@@ -17,6 +17,9 @@ type ListRequest struct {
 	Page    int
 	PerPage int
 	endList bool
+
+	Fields []string
+	Sort   string
 }
 
 func (l *ListRequest) RemoveLastElemIfNeed(slicePtr interface{}) {

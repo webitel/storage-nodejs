@@ -3,8 +3,8 @@ package grpc_api
 import (
 	"context"
 	"errors"
+	"github.com/webitel/protos/storage"
 	"github.com/webitel/storage/controller"
-	"github.com/webitel/storage/grpc_api/storage"
 	"github.com/webitel/storage/model"
 	"io"
 	"net/http"

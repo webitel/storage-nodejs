@@ -82,26 +82,19 @@ from p
 
 func (s SqlFileBackendProfileStore) GetAllPage(domainId int64, search *model.SearchFileBackendProfile) ([]*model.FileBackendProfile, *model.AppError) {
 	var profiles []*model.FileBackendProfile
-	_, err := s.GetMaster().Select(&profiles, `select p.id, call_center.cc_get_lookup(c.id, c.name) as created_by, p.created_at, call_center.cc_get_lookup(u.id, u.name) as updated_by,
-       p.updated_at, p.name, p.description, p.expire_day, p.priority, p.disabled, p.max_size_mb, p.properties,
-       p.type, coalesce(s.size, 0) data_size, coalesce(s.cnt, 0) data_count
-from file_backend_profiles p
-    left join lateral (
-        select sum(s.size) size, sum(s.count) as cnt
-        from files_statistics s
-        where s.profile_id = p.id
-    ) s on true
-    left join directory.wbt_user c on c.id = p.created_by
-    left join directory.wbt_user u on u.id = p.updated_by
-    where p.domain_id = :DomainId  and ( (:Q::varchar isnull or p.name like :Q::varchar) or (:Q::varchar isnull or p.description like :Q::varchar))
-    order by p.priority
-	limit :Limit
-	offset :Offset`, map[string]interface{}{
+
+	f := map[string]interface{}{
 		"DomainId": domainId,
-		"Limit":    search.GetLimit(),
-		"Offset":   search.GetOffset(),
+		"Ids":      pq.Array(search.Ids),
 		"Q":        search.GetQ(),
-	})
+	}
+
+	err := s.ListQuery(&profiles, search.ListRequest,
+		`domain_id = :DomainId
+				and (:Ids::int[] isnull or id = any(:Ids))
+				and (:Q::varchar isnull or (name ilike :Q::varchar ))`,
+		model.FileBackendProfile{}, f)
+
 	if err != nil {
 		return nil, model.NewAppError("SqlBackendProfileStore.GetAllPage", "store.sql_file_backend_profile.get_all.finding.app_error",
 			nil, err.Error(), extractCodeFromErr(err))
@@ -112,32 +105,24 @@ from file_backend_profiles p
 
 func (s SqlFileBackendProfileStore) GetAllPageByGroups(domainId int64, groups []int, search *model.SearchFileBackendProfile) ([]*model.FileBackendProfile, *model.AppError) {
 	var profiles []*model.FileBackendProfile
-	_, err := s.GetMaster().Select(&profiles, `select p.id, call_center.cc_get_lookup(c.id, c.name) as created_by, p.created_at, call_center.cc_get_lookup(u.id, u.name) as updated_by,
-       p.updated_at, p.name, p.description, p.expire_day, p.priority, p.disabled, p.max_size_mb, p.properties,
-       p.type, coalesce(s.size, 0) data_size, coalesce(s.cnt, 0) data_count
-from file_backend_profiles p
-    left join lateral (
-        select sum(s.size) size, sum(s.count) as cnt
-        from files_statistics s
-        where s.profile_id = p.id
-    ) s on true
-    left join directory.wbt_user c on c.id = p.created_by
-    left join directory.wbt_user u on u.id = p.updated_by
-    where p.domain_id = :DomainId and (
-		exists(select 1
-		  from file_backend_profiles_acl a
-		  where a.dc = p.domain_id and a.object = p.id and a.subject = any(:Groups::int[]) and a.access&:Access = :Access)
-	  )   
-    order by p.priority
-	limit :Limit
-	offset :Offset`, map[string]interface{}{
+
+	f := map[string]interface{}{
 		"DomainId": domainId,
-		"Limit":    search.GetLimit(),
-		"Offset":   search.GetOffset(),
+		"Ids":      pq.Array(search.Ids),
 		"Q":        search.GetQ(),
 		"Groups":   pq.Array(groups),
 		"Access":   auth_manager.PERMISSION_ACCESS_READ.Value(),
-	})
+	}
+
+	err := s.ListQuery(&profiles, search.ListRequest,
+		`domain_id = :DomainId
+				and exists(select 1
+				  from file_backend_profiles_acl a
+				  where a.dc = p.domain_id and a.object = p.id and a.subject = any(:Groups::int[]) and a.access&:Access = :Access)
+				and (:Ids::int[] isnull or id = any(:Ids))
+				and (:Q::varchar isnull or (name ilike :Q::varchar ))`,
+		model.FileBackendProfile{}, f)
+
 	if err != nil {
 		return nil, model.NewAppError("SqlBackendProfileStore.GetAllPageByGroups", "store.sql_file_backend_profile.get_all.finding.app_error",
 			nil, err.Error(), extractCodeFromErr(err))

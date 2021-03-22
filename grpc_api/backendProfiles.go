@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/webitel/protos/engine"
+	"github.com/webitel/protos/storage"
 	"github.com/webitel/storage/controller"
-	"github.com/webitel/storage/grpc_api/storage"
 	"github.com/webitel/storage/model"
 )
 
@@ -56,10 +56,13 @@ func (api *backendProfiles) SearchBackendProfile(ctx context.Context, in *storag
 			Q:       in.GetQ(),
 			Page:    int(in.GetPage()),
 			PerPage: int(in.GetSize()),
+			Fields:  in.Fields,
+			Sort:    in.Sort,
 		},
+		Ids: in.Id,
 	}
 
-	list, endOfData, err = api.ctrl.SearchBackendProfile(session, in.GetDomainId(), rec)
+	list, endOfData, err = api.ctrl.SearchBackendProfile(session, session.Domain(0), rec)
 
 	if err != nil {
 		return nil, err

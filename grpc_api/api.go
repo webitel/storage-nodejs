@@ -1,9 +1,9 @@
 package grpc_api
 
 import (
+	"github.com/webitel/protos/storage"
 	"github.com/webitel/storage/app"
 	"github.com/webitel/storage/controller"
-	"github.com/webitel/storage/grpc_api/storage"
 	"google.golang.org/grpc"
 )
 

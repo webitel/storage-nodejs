@@ -3,6 +3,7 @@ package sqlstore
 import (
 	"database/sql"
 	"fmt"
+	"github.com/lib/pq"
 	"github.com/webitel/storage/model"
 	"github.com/webitel/storage/store"
 	"net/http"
@@ -68,20 +69,17 @@ from f
 func (s *SqlMediaFileStore) GetAllPage(domainId int64, search *model.SearchMediaFile) ([]*model.MediaFile, *model.AppError) {
 	var files []*model.MediaFile
 
-	_, err := s.GetMaster().Select(&files, `select f.id, f.name, f.created_at, call_center.cc_get_lookup(c.id, c.name) created_by,
-		   f.updated_at, call_center.cc_get_lookup(u.id, u.name) updated_by, f.mime_type, f.size, properties
-	from  storage.media_files f
-		left join directory.wbt_user c on f.created_by = c.id
-		left join directory.wbt_user u on f.updated_by = u.id
-    where f.domain_id = :DomainId and ( (:Q::varchar isnull or f.name like :Q::varchar) or (:Q::varchar isnull or f.mime_type like :Q::varchar))
-    order by f.created_at desc
-	limit :Limit
-	offset :Offset`, map[string]interface{}{
+	f := map[string]interface{}{
 		"DomainId": domainId,
-		"Limit":    search.GetLimit(),
-		"Offset":   search.GetOffset(),
+		"Ids":      pq.Array(search.Ids),
 		"Q":        search.GetQ(),
-	})
+	}
+
+	err := s.ListQuery(&files, search.ListRequest,
+		`domain_id = :DomainId
+				and (:Ids::int[] isnull or id = any(:Ids))
+				and (:Q::varchar isnull or (name ilike :Q::varchar ))`,
+		model.MediaFile{}, f)
 
 	if err != nil {
 		return nil, model.NewAppError("SqlMediaFileStore.GetAllPage", "store.sql_media_file.get_all.finding.app_error",

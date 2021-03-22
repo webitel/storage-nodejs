@@ -44,6 +44,25 @@ type FileBackendProfile struct {
 
 type SearchFileBackendProfile struct {
 	ListRequest
+	Ids []uint32
+}
+
+func (FileBackendProfile) DefaultOrder() string {
+	return "id"
+}
+
+func (a FileBackendProfile) AllowFields() []string {
+	return []string{"id", "name", "max_size_mb", "type", "expire_day", "disabled",
+		"description", "priority", "properties", "data_size", "data_count",
+		"domain_id", "created_at", "created_by", "updated_at", "updated_by"}
+}
+
+func (a FileBackendProfile) DefaultFields() []string {
+	return []string{"id", "name", "max_size_mb", "type", "expire_day", "disabled"}
+}
+
+func (a FileBackendProfile) EntityName() string {
+	return "file_backend_profiles_view"
 }
 
 type S3Properties struct {

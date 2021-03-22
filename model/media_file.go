@@ -13,6 +13,23 @@ type MediaFile struct {
 
 type SearchMediaFile struct {
 	ListRequest
+	Ids []uint32
+}
+
+func (MediaFile) DefaultOrder() string {
+	return "id"
+}
+
+func (a MediaFile) AllowFields() []string {
+	return []string{"id", "name", "mime_type", "size", "domain_id", "created_at", "created_by", "updated_at", "updated_by"}
+}
+
+func (a MediaFile) DefaultFields() []string {
+	return []string{"id", "name", "mime_type", "size"}
+}
+
+func (a MediaFile) EntityName() string {
+	return "media_files_view"
 }
 
 func (self *MediaFile) PreSave() *AppError {

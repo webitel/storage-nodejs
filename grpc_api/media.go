@@ -3,8 +3,8 @@ package grpc_api
 import (
 	"context"
 	"github.com/webitel/protos/engine"
+	"github.com/webitel/protos/storage"
 	"github.com/webitel/storage/controller"
-	"github.com/webitel/storage/grpc_api/storage"
 	"github.com/webitel/storage/model"
 )
 
@@ -30,10 +30,13 @@ func (api *media) SearchMediaFile(ctx context.Context, in *storage.SearchMediaFi
 			Q:       in.GetQ(),
 			Page:    int(in.GetPage()),
 			PerPage: int(in.GetSize()),
+			Fields:  in.Fields,
+			Sort:    in.Sort,
 		},
+		Ids: in.Id,
 	}
 
-	list, endOfList, err = api.ctrl.SearchMediaFile(session, in.GetDomainId(), req)
+	list, endOfList, err = api.ctrl.SearchMediaFile(session, session.Domain(0), req)
 
 	if err != nil {
 		return nil, err
