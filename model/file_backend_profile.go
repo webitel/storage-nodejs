@@ -32,10 +32,10 @@ type FileBackendProfile struct {
 	DomainRecord
 	Name        string             `db:"name" json:"name"`
 	Description string             `json:"description" db:"description"`
-	ExpireDay   int                `db:"expire_day" json:"expire_day"`
+	ExpireDay   int                `db:"expire_days" json:"expire_days"`
 	Priority    int                `db:"priority" json:"priority"`
 	Disabled    bool               `db:"disabled" json:"disabled"`
-	MaxSizeMb   int                `db:"max_size_mb" json:"max_size_mb"`
+	MaxSizeMb   int                `db:"max_size" json:"max_size"`
 	Properties  StringInterface    `db:"properties" json:"properties"`
 	Type        BackendProfileType `db:"type" json:"type"`
 	DataSize    float64            `db:"data_size" json:"data_size"`
@@ -52,13 +52,13 @@ func (FileBackendProfile) DefaultOrder() string {
 }
 
 func (a FileBackendProfile) AllowFields() []string {
-	return []string{"id", "name", "max_size_mb", "type", "expire_day", "disabled",
+	return []string{"id", "name", "max_size", "type", "expire_days", "disabled",
 		"description", "priority", "properties", "data_size", "data_count",
 		"domain_id", "created_at", "created_by", "updated_at", "updated_by"}
 }
 
 func (a FileBackendProfile) DefaultFields() []string {
-	return []string{"id", "name", "max_size_mb", "type", "expire_day", "disabled"}
+	return []string{"id", "name", "max_size", "type", "expire_days", "disabled"}
 }
 
 func (a FileBackendProfile) EntityName() string {
