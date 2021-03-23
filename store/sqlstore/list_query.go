@@ -42,15 +42,24 @@ func QuoteLiteral(name string) string {
 	return pq.QuoteLiteral(name)
 }
 
-func GetOrderBy(s string) string {
+func GetOrderBy(t, s string) string {
 	if s != "" {
+		sort := ""
+		field := ""
 		if s[0] == '+' {
-			return "order by " + pq.QuoteIdentifier(s[1:]) + " asc"
+			sort = "asc"
+			field = s[1:]
 		} else if s[0] == '-' {
-			return "order by " + pq.QuoteIdentifier(s[1:]) + " desc"
+			sort = "desc"
+			field = s[1:]
 		} else {
-			return "order by " + s
+			field = s
 		}
+
+		return fmt.Sprintf(`order by case when call_center.cc_is_lookup(%s, %s) then (%s::text)::json->>'name' end %s,
+         case when not call_center.cc_is_lookup(%s, %s) then %s end %s`, QuoteLiteral(t), QuoteLiteral(field), QuoteIdentifier(field),
+			sort, QuoteLiteral(t), QuoteLiteral(field), QuoteIdentifier(field), sort)
+
 	}
 
 	return "" //TODO
@@ -81,7 +90,7 @@ func Build(req *model.ListRequest, schema string, where string, e Entity, args m
 	where %s
 	%s
 	offset :Offset
-	limit :Limit`, strings.Join(s, ", "), t, where, GetOrderBy(sort))
+	limit :Limit`, strings.Join(s, ", "), t, where, GetOrderBy(e.EntityName(), sort))
 
 	return query
 }
