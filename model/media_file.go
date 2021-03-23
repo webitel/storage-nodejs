@@ -25,7 +25,7 @@ func (a MediaFile) AllowFields() []string {
 }
 
 func (a MediaFile) DefaultFields() []string {
-	return []string{"id", "name", "mime_type", "size"}
+	return []string{"id", "name", "mime_type", "size", "created_at"}
 }
 
 func (a MediaFile) EntityName() string {
