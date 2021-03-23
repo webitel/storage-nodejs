@@ -52,7 +52,7 @@ func (s SqlFileBackendProfileStore) Create(profile *model.FileBackendProfile) (*
     returning *
 )
 select p.id, call_center.cc_get_lookup(c.id, c.name) as created_by, p.created_at, call_center.cc_get_lookup(u.id, u.name) as updated_by,
-       p.updated_at, p.name, p.description, p.expire_day, p.priority, p.disabled, p.max_size_mb, p.properties,
+       p.updated_at, p.name, p.description, p.expire_day as expire_days, p.priority, p.disabled, p.max_size_mb as max_size, p.properties,
        p.type, p.data_size, p.data_count
 from p
     left join directory.wbt_user c on c.id = p.created_by
@@ -135,7 +135,7 @@ func (s SqlFileBackendProfileStore) GetAllPageByGroups(domainId int64, groups []
 func (s SqlFileBackendProfileStore) Get(id, domainId int64) (*model.FileBackendProfile, *model.AppError) {
 	var profile *model.FileBackendProfile
 	err := s.GetMaster().SelectOne(&profile, `select p.id, call_center.cc_get_lookup(c.id, c.name) as created_by, p.created_at, call_center.cc_get_lookup(u.id, u.name) as updated_by,
-       p.updated_at, p.name, p.description, p.expire_day, p.priority, p.disabled, p.max_size_mb, p.properties,
+       p.updated_at, p.name, p.description, p.expire_day as expire_days, p.priority, p.disabled, p.max_size_mb as max_size, p.properties,
        p.type, coalesce(s.size, 0) data_size, coalesce(s.cnt, 0) data_count, p.domain_id
 from file_backend_profiles p
     left join lateral (
@@ -174,7 +174,7 @@ func (s SqlFileBackendProfileStore) Update(profile *model.FileBackendProfile) (*
 	returning *
 )
 select p.id, call_center.cc_get_lookup(c.id, c.name) as created_by, p.created_at, call_center.cc_get_lookup(u.id, u.name) as updated_by,
-       p.updated_at, p.name, p.description, p.expire_day, p.priority, p.disabled, p.max_size_mb, p.properties,
+       p.updated_at, p.name, p.description, p.expire_day as expire_days, p.priority, p.disabled, p.max_size_mb as max_size, p.properties,
        p.type, coalesce(s.size, 0) data_size, coalesce(s.cnt, 0) data_count
 from p
     left join lateral (
@@ -217,7 +217,7 @@ func (s SqlFileBackendProfileStore) Delete(domainId, id int64) *model.AppError {
 func (s SqlFileBackendProfileStore) GetById(id int) (*model.FileBackendProfile, *model.AppError) {
 	var profile *model.FileBackendProfile
 	err := s.GetMaster().SelectOne(&profile, `select p.id, call_center.cc_get_lookup(c.id, c.name) as created_by, p.created_at, call_center.cc_get_lookup(u.id, u.name) as updated_by,
-       p.updated_at, p.name, p.description, p.expire_day, p.priority, p.disabled, p.max_size_mb, p.properties,
+       p.updated_at, p.name, p.description, p.expire_day as expire_days, p.priority, p.disabled, p.max_size_mb as max_size, p.properties,
        p.type, coalesce(s.size, 0) data_size, coalesce(s.cnt, 0) data_count, p.domain_id
 from file_backend_profiles p
     left join lateral (
