@@ -9,7 +9,8 @@ module.exports = async (req, res, next) => {
         input: {},
         // Select the language and SSML Voice Gender (optional)
         voice: {
-            languageCode: req.query.language || 'en-US',
+            languageCode: parseLanguageCode(req.query.language || 'en-US'),
+            name: req.query.language || 'en-US',
             ssmlGender: (req.query.gender || 'NEUTRAL').toUpperCase()
         },
         // Select the type of audio encoding
@@ -58,6 +59,20 @@ module.exports = async (req, res, next) => {
         return next(e);
     }
 };
+
+const parseLanguageCode = (name = "") => {
+    if (!name) {
+        return ""
+    }
+
+    for (let i = name.indexOf('-') + 1; i < name.length; i++) {
+        if (name[i] === '-') {
+            return name.substr(0, i);
+        }
+    }
+
+    return name
+}
 
 const getCodec = (rate = 8000) => {
     if (rate > 16000) {
