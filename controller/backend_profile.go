@@ -41,7 +41,7 @@ func (c *Controller) SearchBackendProfile(session *auth_manager.Session, domainI
 	var err *model.AppError
 	var endOfList bool
 
-	if permission.Rbac {
+	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permission) {
 		list, err = c.app.GetFileBackendProfilePageByGroups(session.Domain(domainId), session.RoleIds, search)
 	} else {
 		list, endOfList, err = c.app.SearchFileBackendProfiles(session.Domain(domainId), search)
@@ -57,7 +57,7 @@ func (c *Controller) GetBackendProfile(session *auth_manager.Session, id int64, 
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
-	if permission.Rbac {
+	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permission) {
 		var perm bool
 		if perm, err = c.app.FileBackendProfileCheckAccess(session.Domain(domainId), id, session.RoleIds, auth_manager.PERMISSION_ACCESS_READ); err != nil {
 			return nil, err
@@ -80,7 +80,7 @@ func (c *Controller) UpdateBackendProfile(session *auth_manager.Session, profile
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
 	}
 
-	if permission.Rbac {
+	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
 		var perm bool
 		if perm, err = c.app.FileBackendProfileCheckAccess(session.Domain(profile.DomainId), profile.Id, session.RoleIds, auth_manager.PERMISSION_ACCESS_READ); err != nil {
 			return nil, err
@@ -110,7 +110,7 @@ func (c *Controller) PatchBackendProfile(session *auth_manager.Session, domainId
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
 	}
 
-	if permission.Rbac {
+	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
 		var perm bool
 		if perm, err = c.app.FileBackendProfileCheckAccess(session.Domain(domainId), id, session.RoleIds, auth_manager.PERMISSION_ACCESS_READ); err != nil {
 			return nil, err
@@ -136,7 +136,7 @@ func (c *Controller) DeleteBackendProfile(session *auth_manager.Session, domainI
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_DELETE)
 	}
 
-	if permission.Rbac {
+	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_DELETE, permission) {
 		var perm bool
 		if perm, err = c.app.FileBackendProfileCheckAccess(session.Domain(domainId), id, session.RoleIds, auth_manager.PERMISSION_ACCESS_DELETE); err != nil {
 			return nil, err
