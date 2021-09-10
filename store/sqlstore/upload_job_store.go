@@ -21,7 +21,7 @@ func (self *SqlUploadJobStore) CreateIndexesIfNotExists() {
 
 func (self *SqlUploadJobStore) Create(job *model.JobUploadFile) (*model.JobUploadFile, *model.AppError) {
 	job.PreSave()
-	id, err := self.GetMaster().SelectInt(`insert into upload_file_jobs (name, uuid, mime_type, size, instance,
+	id, err := self.GetMaster().SelectInt(`insert into storage.upload_file_jobs (name, uuid, mime_type, size, instance,
                                       created_at, updated_at, domain_id)
 values (:Name, :Uuid, :Mime, :Size, :Instance, :CreatedAt, :UpdatedAt, :DomainId)
 returning id
@@ -48,7 +48,8 @@ func (self *SqlUploadJobStore) GetAllPageByInstance(limit int, instance string) 
 	return store.Do(func(result *store.StoreResult) {
 		var jobs []*model.JobUploadFile
 
-		res, err := self.GetReplica().Query("SELECT id, name, uuid, domain_id, mime_type, size, email_msg, email_sub, instance, attempts FROM upload_file_jobs LIMIT $1", limit)
+		res, err := self.GetReplica().Query("SELECT id, name, uuid, domain_id, mime_type, size, email_msg, email_sub, instance, attempts "+
+			"		FROM storage.upload_file_jobs LIMIT $1", limit)
 		if err != nil {
 			result.Err = model.NewAppError("SqlUploadJobStore.List", "store.sql_upload_job.list.app_error", nil, err.Error(), http.StatusInternalServerError)
 			return
@@ -72,7 +73,7 @@ func (self *SqlUploadJobStore) UpdateWithProfile(limit int, instance string, bet
 	return store.Do(func(result *store.StoreResult) {
 		var jobs []*model.JobUploadFileWithProfile
 
-		_, err := self.GetMaster().Select(&jobs, `update upload_file_jobs uu
+		_, err := self.GetMaster().Select(&jobs, `update storage.upload_file_jobs uu
 set attempts = attempts + 1
   ,state = 1
   ,updated_at = extract(EPOCH from now()) :: BIGINT
@@ -89,7 +90,7 @@ from (
          t.email_sub,
          profile.id as profile_id,
          profile.updated_at profile_updated_at
-       FROM upload_file_jobs as t
+       FROM storage.upload_file_jobs as t
          left join lateral (              select
                                              tmp.domain_id,
                                              tmp.id,
@@ -99,7 +100,7 @@ from (
                                                    p1.id,
                                                    p1.updated_at,
                                                    p1.priority
-                                                 from file_backend_profiles p1
+                                                 from storage.file_backend_profiles p1
                                                  where p1.domain_id = t.domain_id and NOT p1.disabled is TRUE) as tmp
                                            order by tmp.priority desc
                                            FETCH FIRST 1 ROW ONLY              ) profile ON profile.domain_id = t.domain_id
@@ -124,7 +125,7 @@ returning tmp.*`, map[string]interface{}{
 
 func (self *SqlUploadJobStore) SetStateError(id int, errMsg string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		self.GetMaster().Exec(`update upload_file_jobs
+		self.GetMaster().Exec(`update storage.upload_file_jobs
 set state = 0,
   updated_at = $2
 where id = $1`, id, model.GetMillis())

@@ -20,7 +20,7 @@ func NewSqlCdrStore(sqlStore SqlStore) store.CdrStoreData {
 func (self *SqlCdrStore) GetLegADataByUuid(uuid string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var cdrData model.CdrData
-		err := self.GetReplica().SelectOne(&cdrData, `SELECT event FROM cdr_a WHERE uuid = $1`, uuid)
+		err := self.GetReplica().SelectOne(&cdrData, `SELECT event FROM storage.cdr_a WHERE uuid = $1`, uuid)
 		if err != nil {
 			result.Err = model.NewAppError("SqlCdrStore.GetLegADataByUuid", "store.sql_cdr.get_leg_a_data.finding.app_error", nil,
 				fmt.Sprintf("uuid=%s, %s", uuid, err.Error()), http.StatusInternalServerError)
@@ -37,7 +37,7 @@ func (self *SqlCdrStore) GetLegADataByUuid(uuid string) store.StoreChannel {
 func (self *SqlCdrStore) GetLegBDataByUuid(uuid string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var cdrData model.CdrData
-		err := self.GetReplica().SelectOne(&cdrData, `SELECT event FROM cdr_b WHERE uuid = $1`, uuid)
+		err := self.GetReplica().SelectOne(&cdrData, `SELECT event FROM storage.cdr_b WHERE uuid = $1`, uuid)
 		if err != nil {
 			result.Err = model.NewAppError("SqlCdrStore.GetLegBDataByUuid", "store.sql_cdr.get_leg_b_data.finding.app_error", nil,
 				fmt.Sprintf("uuid=%s, %s", uuid, err.Error()), http.StatusInternalServerError)
@@ -59,10 +59,10 @@ func (self *SqlCdrStore) GetByUuidCall(uuid string) store.StoreChannel {
                     (select array_to_json(array_agg(event))
 						from (
 							select event
-                         	FROM cdr_b WHERE cdr_b.parent_uuid = cdr_a.uuid
+                         	FROM storage.cdr_b WHERE cdr_b.parent_uuid = cdr_a.uuid
        					) t
                     ) as legs_b
-                    from cdr_a where uuid = $1
+                    from storage.cdr_a where uuid = $1
                     limit 1`, uuid)
 		if err != nil {
 			result.Err = model.NewAppError("SqlCdrStore.GetByUuidCall", "store.sql_cdr.get_leg_call.finding.app_error", nil,

@@ -141,7 +141,7 @@ func (self *SqlMediaFileStore) GetAllByDomain(domain string, offset, limit int) 
 	return store.Do(func(result *store.StoreResult) {
 		var files []*model.MediaFile
 
-		query := `SELECT * FROM media_files 
+		query := `SELECT * FROM storage.media_files 
 			WHERE domain = :Domain  
 			LIMIT :Limit OFFSET :Offset`
 
@@ -155,7 +155,7 @@ func (self *SqlMediaFileStore) GetAllByDomain(domain string, offset, limit int) 
 
 func (self *SqlMediaFileStore) GetCountByDomain(domain string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		query := `SELECT count(*) FROM media_files 
+		query := `SELECT count(*) FROM storage.media_files 
 			WHERE domain = :Domain`
 
 		if count, err := self.GetReplica().SelectInt(query, map[string]interface{}{"Domain": domain}); err != nil {
@@ -168,7 +168,7 @@ func (self *SqlMediaFileStore) GetCountByDomain(domain string) store.StoreChanne
 
 func (self *SqlMediaFileStore) Get1(id int64, domain string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		query := `SELECT * FROM media_files WHERE id = :Id AND domain = :Domain`
+		query := `SELECT * FROM storage.media_files WHERE id = :Id AND domain = :Domain`
 
 		file := &model.MediaFile{}
 
@@ -187,7 +187,7 @@ func (self *SqlMediaFileStore) Get1(id int64, domain string) store.StoreChannel 
 
 func (self *SqlMediaFileStore) GetByName(name, domain string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		query := `SELECT * FROM media_files WHERE name = :Name AND domain = :Domain`
+		query := `SELECT * FROM storage.media_files WHERE name = :Name AND domain = :Domain`
 
 		file := &model.MediaFile{}
 
@@ -206,7 +206,7 @@ func (self *SqlMediaFileStore) GetByName(name, domain string) store.StoreChannel
 
 func (self *SqlMediaFileStore) DeleteByName(name, domain string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		res, err := self.GetMaster().Exec("DELETE FROM media_files WHERE name = :Name AND domain = :Domain", map[string]interface{}{"Name": name, "Domain": domain})
+		res, err := self.GetMaster().Exec("DELETE FROM storage.media_files WHERE name = :Name AND domain = :Domain", map[string]interface{}{"Name": name, "Domain": domain})
 		if err != nil {
 			result.Err = model.NewAppError("SqlMediaFileStore.DeleteByName", "store.sql_media_file.delete.app_error", nil,
 				fmt.Sprintf("name=%s, err: %s", name, err.Error()), http.StatusInternalServerError)
@@ -222,7 +222,7 @@ func (self *SqlMediaFileStore) DeleteByName(name, domain string) store.StoreChan
 
 func (self *SqlMediaFileStore) DeleteById(id int64) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		res, err := self.GetMaster().Exec("DELETE FROM media_files WHERE id = :Id", map[string]interface{}{"Id": id})
+		res, err := self.GetMaster().Exec("DELETE FROM storage.media_files WHERE id = :Id", map[string]interface{}{"Id": id})
 		if err != nil {
 			result.Err = model.NewAppError("SqlMediaFileStore.DeleteById", "store.sql_media_file.delete.app_error", nil,
 				fmt.Sprintf("id=%d, err: %s", id, err.Error()), http.StatusInternalServerError)

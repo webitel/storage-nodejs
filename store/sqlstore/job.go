@@ -25,7 +25,7 @@ func (jss SqlJobStore) CreateIndexesIfNotExists() {
 
 func (jss SqlJobStore) Save(job *model.Job) (*model.Job, *model.AppError) {
 
-	err := jss.GetMaster().SelectOne(job, `insert into jobs (id, type, priority, schedule_id, schedule_time, create_at, start_at, last_activity_at, status,
+	err := jss.GetMaster().SelectOne(job, `insert into storage.jobs (id, type, priority, schedule_id, schedule_time, create_at, start_at, last_activity_at, status,
                   progress, data)
 values (:Id, :Type, :Priority, :ScheduleId, :ScheduleTime, :CreatedAt, :StartAt, :LastActivityAt, :Status, :Progress, :Data)
 returning *`, job)
@@ -41,7 +41,7 @@ func (jss SqlJobStore) UpdateOptimistically(job *model.Job, currentStatus string
 	return store.Do(func(result *store.StoreResult) {
 		if sqlResult, err := jss.GetMaster().Exec(
 			`UPDATE
-				jobs
+				storage.jobs
 			SET
 				last_activity_at = :LastActivityAt,
 				status = :Status,
@@ -105,7 +105,7 @@ func (jss SqlJobStore) UpdateStatusOptimistically(id string, currentStatus strin
 
 		if sqlResult, err := jss.GetMaster().Exec(
 			`UPDATE
-				jobs
+				storage.jobs
 			SET `+startAtClause+`
 				status = :NewStatus,
 				last_activity_at = :LastActivityAt
@@ -138,7 +138,7 @@ func (jss SqlJobStore) Get(id string) store.StoreChannel {
 			`SELECT
 				*
 			FROM
-				jobs
+				storage.jobs
 			WHERE
 				id = :Id`, map[string]interface{}{"Id": id}); err != nil {
 			if err == sql.ErrNoRows {
@@ -160,7 +160,7 @@ func (jss SqlJobStore) GetAllPage(offset int, limit int) store.StoreChannel {
 			`SELECT
 				*
 			FROM
-				jobs
+				storage.jobs
 			ORDER BY
 				create_at DESC
 			LIMIT
@@ -182,7 +182,7 @@ func (jss SqlJobStore) GetAllByType(jobType string) store.StoreChannel {
 			`SELECT
 				*
 			FROM
-				jobs
+				storage.jobs
 			WHERE
 				type = :Type
 			ORDER BY
@@ -202,7 +202,7 @@ func (jss SqlJobStore) GetAllByTypePage(jobType string, offset int, limit int) s
 			`SELECT
 				*
 			FROM
-				jobs
+				storage.jobs
 			WHERE
 				type = :Type
 			ORDER BY
@@ -226,7 +226,7 @@ func (jss SqlJobStore) GetAllByStatus(status string) store.StoreChannel {
 			`SELECT
 				*
 			FROM
-				jobs
+				storage.jobs
 			WHERE
 				status = :Status
 			ORDER BY
@@ -246,7 +246,7 @@ func (jss SqlJobStore) GetNewestJobByStatusAndType(status string, jobType string
 			`SELECT
 				*
 			FROM
-				jobs
+				storage.jobs
 			WHERE
 				status = :Status
 			AND
@@ -266,7 +266,7 @@ func (jss SqlJobStore) GetCountByStatusAndType(status string, jobType string) st
 		if count, err := jss.GetReplica().SelectInt(`SELECT
 				COUNT(*)
 			FROM
-				jobs
+				storage.jobs
 			WHERE
 				status = :Status
 			AND
@@ -286,7 +286,7 @@ func (jss SqlJobStore) GetAllByStatusAndLessScheduleTime(status string, t int64)
 			`SELECT
 				*
 			FROM
-				jobs
+				storage.jobs
 			WHERE
 				status = :Status AND schedule_time <= :Time
 			ORDER BY
@@ -302,7 +302,7 @@ func (jss SqlJobStore) Delete(id string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		if _, err := jss.GetMaster().Exec(
 			`DELETE FROM
-				jobs
+				storage.jobs
 			WHERE
 				id = :Id`, map[string]interface{}{"Id": id}); err != nil {
 			result.Err = model.NewAppError("SqlJobStore.DeleteByType", "store.sql_job.delete.app_error", nil, "id="+id+", "+err.Error(), http.StatusInternalServerError)

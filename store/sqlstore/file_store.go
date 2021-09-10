@@ -25,7 +25,7 @@ func (self SqlFileStore) CreateIndexesIfNotExists() {
 func (self SqlFileStore) Create(file *model.File) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		id, err := self.GetMaster().SelectInt(`
-			insert into files(id, name, uuid, profile_id, size, domain_id, mime_type, properties, created_at, instance)
+			insert into storage.files(id, name, uuid, profile_id, size, domain_id, mime_type, properties, created_at, instance)
             values(nextval('storage.upload_file_jobs_id_seq'::regclass), :Name, :Uuid, null, :Size, :DomainId, :Mime, :Props, :CreatedAt, :Inst)
 			returning id
 		`, map[string]interface{}{
@@ -51,11 +51,11 @@ func (self SqlFileStore) Create(file *model.File) store.StoreChannel {
 func (self SqlFileStore) MoveFromJob(jobId int64, profileId *int, properties model.StringInterface) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		_, err := self.GetMaster().Exec(`with del as (
-  delete from upload_file_jobs
+  delete from storage.upload_file_jobs
   where id = $1
   returning id, name, uuid, size, domain_id, mime_type, created_at, instance
 )
-insert into files(id, name, uuid, profile_id, size, domain_id, mime_type, properties, created_at, instance)
+insert into storage.files(id, name, uuid, profile_id, size, domain_id, mime_type, properties, created_at, instance)
 select del.id, del.name, del.uuid, $2, del.size, del.domain_id, del.mime_type, $3, del.created_at, del.instance
 from del`, jobId, profileId, properties.ToJson())
 
@@ -84,8 +84,8 @@ func (self SqlFileStore) GetAllPageByDomain(domain string, offset, limit int) st
 func (s SqlFileStore) GetFileWithProfile(domainId, id int64) (*model.FileWithProfile, *model.AppError) {
 	var file *model.FileWithProfile
 	err := s.GetReplica().SelectOne(&file, `SELECT f.*, p.updated_at as profile_updated_at
-	FROM files f
-		left join file_backend_profiles p on p.id = f.profile_id
+	FROM storage.files f
+		left join storage.file_backend_profiles p on p.id = f.profile_id
 	WHERE f.id = :Id
 	  AND f.domain_id = :DomainId`, map[string]interface{}{
 		"Id":       id,
@@ -102,8 +102,8 @@ func (s SqlFileStore) GetFileWithProfile(domainId, id int64) (*model.FileWithPro
 func (s SqlFileStore) GetFileByUuidWithProfile(domainId int64, uuid string) (*model.FileWithProfile, *model.AppError) {
 	var file *model.FileWithProfile
 	err := s.GetReplica().SelectOne(&file, `SELECT f.*, p.updated_at as profile_updated_at
-	FROM files f
-		left join file_backend_profiles p on p.id = f.profile_id
+	FROM storage.files f
+		left join storage.file_backend_profiles p on p.id = f.profile_id
 	WHERE f.uuid = :Uuid
 	  AND f.domain_id = :DomainId
 	order by created_at desc
@@ -122,7 +122,9 @@ func (s SqlFileStore) GetFileByUuidWithProfile(domainId int64, uuid string) (*mo
 func (self SqlFileStore) Get1(domain, uuid string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var files []*model.FileWithProfile
-		_, err := self.GetReplica().Select(&files, `SELECT files.*, p.updated_at as profile_updated_at FROM files JOIN file_backend_profiles p on p.id = files.profile_id WHERE uuid = :Uuid AND files.domain = :Domain`,
+		_, err := self.GetReplica().Select(&files, `SELECT storage.files.*, p.updated_at as profile_updated_at 
+				FROM storage.files JOIN storage.file_backend_profiles p on p.id = storage.files.profile_id 
+				WHERE uuid = :Uuid AND storage.files.domain = :Domain`,
 			map[string]interface{}{"Domain": domain, "Uuid": uuid})
 
 		if err != nil {
@@ -140,7 +142,7 @@ func (self SqlFileStore) DeleteById(id int64) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		if _, err := self.GetMaster().Exec(
 			`DELETE FROM
-				files
+				storage.files
 			WHERE
 				id = :Id`, map[string]interface{}{"Id": id}); err != nil {
 			result.Err = model.NewAppError("SqlFileStore.DeleteById", "store.sql_file.delete.app_error", nil,
@@ -155,7 +157,8 @@ func (self SqlFileStore) FetchDeleted(limit int) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var recordings []*model.FileWithProfile
 
-		query := `SELECT files.*,  p.updated_at as profile_updated_at FROM files JOIN file_backend_profiles p on p.id = files.profile_id 
+		query := `SELECT storage.files.*,  p.updated_at as profile_updated_at 
+			FROM storage.files JOIN storage.file_backend_profiles p on p.id = files.profile_id 
 			WHERE removed is TRUE AND NOT not_exists is TRUE 
 			LIMIT :Limit `
 
@@ -170,7 +173,7 @@ func (self SqlFileStore) FetchDeleted(limit int) store.StoreChannel {
 func (self SqlFileStore) SetNoExistsById(id int64, notExists bool) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		if _, err := self.GetMaster().Exec(
-			`update files
+			`update storage.files
 				set not_exists = :NotExists 
 				where where id = :Id`, map[string]interface{}{"Id": id, "NotExists": notExists}); err != nil {
 			result.Err = model.NewAppError("SqlFileStore.SetNoExistsById", "store.sql_file.update_exists.app_error", nil,

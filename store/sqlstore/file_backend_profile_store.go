@@ -117,7 +117,7 @@ func (s SqlFileBackendProfileStore) GetAllPageByGroups(domainId int64, groups []
 	err := s.ListQuery(&profiles, search.ListRequest,
 		`domain_id = :DomainId
 				and exists(select 1
-				  from file_backend_profiles_acl a
+				  from storage.file_backend_profiles_acl a
 				  where a.dc = p.domain_id and a.object = p.id and a.subject = any(:Groups::int[]) and a.access&:Access = :Access)
 				and (:Ids::int[] isnull or id = any(:Ids))
 				and (:Q::varchar isnull or (name ilike :Q::varchar ))`,
@@ -137,10 +137,10 @@ func (s SqlFileBackendProfileStore) Get(id, domainId int64) (*model.FileBackendP
 	err := s.GetMaster().SelectOne(&profile, `select p.id, call_center.cc_get_lookup(c.id, c.name) as created_by, p.created_at, call_center.cc_get_lookup(u.id, u.name) as updated_by,
        p.updated_at, p.name, p.description, p.expire_day as expire_days, p.priority, p.disabled, p.max_size_mb as max_size, p.properties,
        p.type, coalesce(s.size, 0) data_size, coalesce(s.cnt, 0) data_count, p.domain_id
-from file_backend_profiles p
+from storage.file_backend_profiles p
     left join lateral (
         select sum(s.size) size, sum(s.count) as cnt
-        from files_statistics s
+        from storage.files_statistics s
         where s.profile_id = p.id
     ) s on true
     left join directory.wbt_user c on c.id = p.created_by
@@ -160,7 +160,7 @@ from file_backend_profiles p
 
 func (s SqlFileBackendProfileStore) Update(profile *model.FileBackendProfile) (*model.FileBackendProfile, *model.AppError) {
 	err := s.GetMaster().SelectOne(&profile, `with p as (
-    update file_backend_profiles
+    update storage.file_backend_profiles
     set name = :Name,
         expire_day = :ExpireDay,
         priority = :Priority,
@@ -179,7 +179,7 @@ select p.id, call_center.cc_get_lookup(c.id, c.name) as created_by, p.created_at
 from p
     left join lateral (
         select sum(s.size) size, sum(s.count) as cnt
-        from files_statistics s
+        from storage.files_statistics s
         where s.profile_id = p.id
     ) s on true
     left join directory.wbt_user c on c.id = p.created_by
@@ -206,7 +206,7 @@ from p
 }
 
 func (s SqlFileBackendProfileStore) Delete(domainId, id int64) *model.AppError {
-	if _, err := s.GetMaster().Exec(`delete from file_backend_profiles p where id = :Id and domain_id = :DomainId`,
+	if _, err := s.GetMaster().Exec(`delete from storage.file_backend_profiles p where id = :Id and domain_id = :DomainId`,
 		map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
 		return model.NewAppError("SqlFileBackendProfileStore.Delete", "store.sql_file_backend_profile.delete.app_error", nil,
 			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
@@ -219,10 +219,10 @@ func (s SqlFileBackendProfileStore) GetById(id int) (*model.FileBackendProfile, 
 	err := s.GetMaster().SelectOne(&profile, `select p.id, call_center.cc_get_lookup(c.id, c.name) as created_by, p.created_at, call_center.cc_get_lookup(u.id, u.name) as updated_by,
        p.updated_at, p.name, p.description, p.expire_day as expire_days, p.priority, p.disabled, p.max_size_mb as max_size, p.properties,
        p.type, coalesce(s.size, 0) data_size, coalesce(s.cnt, 0) data_count, p.domain_id
-from file_backend_profiles p
+from storage.file_backend_profiles p
     left join lateral (
         select sum(s.size) size, sum(s.count) as cnt
-        from files_statistics s
+        from storage.files_statistics s
         where s.profile_id = p.id
     ) s on true
     left join directory.wbt_user c on c.id = p.created_by
@@ -243,7 +243,7 @@ func (s SqlFileBackendProfileStore) GetAllPageByDomain(domain string, offset, li
 	return store.Do(func(result *store.StoreResult) {
 		var profiles []*model.FileBackendProfile
 
-		query := `SELECT * FROM file_backend_profiles 
+		query := `SELECT * FROM storage.file_backend_profiles 
 			WHERE domain = :Domain  
 			LIMIT :Limit OFFSET :Offset`
 

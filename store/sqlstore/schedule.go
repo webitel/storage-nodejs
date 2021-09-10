@@ -23,7 +23,7 @@ func (self SqlScheduleStore) GetAllEnablePage(limit, offset int) store.StoreChan
 	return store.Do(func(result *store.StoreResult) {
 		var data []*model.Schedule
 
-		query := `SELECT * FROM schedulers
+		query := `SELECT * FROM storage.schedulers
 			WHERE enabled is TRUE
 			LIMIT :Limit OFFSET :Offset`
 
@@ -39,7 +39,7 @@ func (self SqlScheduleStore) GetAllPageByType(typeName string) store.StoreChanne
 	return store.Do(func(result *store.StoreResult) {
 		var data []*model.Schedule
 
-		query := `SELECT * FROM schedulers
+		query := `SELECT * FROM storage.schedulers
 			WHERE enabled is TRUE AND type = :Type`
 
 		if _, err := self.GetReplica().Select(&data, query, map[string]interface{}{"Type": typeName}); err != nil {
@@ -54,8 +54,9 @@ func (self SqlScheduleStore) GetAllWithNoJobs(limit, offset int) store.StoreChan
 	return store.Do(func(result *store.StoreResult) {
 		var data []*model.Schedule
 
-		query := `SELECT * FROM schedulers
-			WHERE enabled is TRUE AND NOT EXISTS (SELECT null FROM jobs WHERE jobs.status = :JobStatus AND jobs.type = schedulers.type AND jobs.schedule_id = schedulers.id)
+		query := `SELECT * FROM storage.schedulers
+			WHERE enabled is TRUE 
+				AND NOT EXISTS (SELECT null FROM storage.jobs WHERE storage.jobs.status = :JobStatus AND jobs.type = storage.schedulers.type AND storage.jobs.schedule_id = storage.schedulers.id)
 			LIMIT :Limit OFFSET :Offset`
 
 		if _, err := self.GetReplica().Select(&data, query, map[string]interface{}{"Offset": offset, "Limit": limit, "JobStatus": model.JOB_STATUS_PENDING}); err != nil {
