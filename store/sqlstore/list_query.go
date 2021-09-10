@@ -96,7 +96,7 @@ func Build(req *model.ListRequest, schema string, where string, e Entity, args m
 }
 
 func (s *SqlSupplier) ListQuery(out interface{}, req model.ListRequest, where string, e Entity, params map[string]interface{}) error {
-	q := Build(&req, "", where, e, params)
+	q := Build(&req, "storage", where, e, params)
 	_, err := s.GetReplica().Select(out, q, params)
 	if err != nil {
 		return err
