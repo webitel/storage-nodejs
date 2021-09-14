@@ -8,6 +8,7 @@ import (
 )
 
 var (
+	appId                 = flag.String("id", "1", "Service id")
 	translationsDirectory = flag.String("translations_directory", "i18n", "Translations directory")
 	consulHost            = flag.String("consul", "consul:8500", "Host to consul")
 	dataSource            = flag.String("data_source", "postgres://opensips:webitel@postgres:5432/webitel?fallback_application_name=storage&sslmode=disable&connect_timeout=10&search_path=storage", "Data source")
@@ -37,7 +38,7 @@ func loadConfig(fileName string) (*model.Config, *model.AppError) {
 		TranslationsDirectory:        *translationsDirectory,
 		PreSignedCertificateLocation: *presignedCertFile,
 		PreSignedTimeout:             *presignedTimeout,
-		NodeName:                     fmt.Sprintf("%s-%s", model.APP_SERVICE_NAME, model.NewId()),
+		NodeName:                     fmt.Sprintf("%s-%s", model.APP_SERVICE_NAME, *appId),
 		IsDev:                        *dev,
 		LocalizationSettings: model.LocalizationSettings{
 			DefaultClientLocale: model.NewString(model.DEFAULT_LOCALE),
