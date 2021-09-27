@@ -4,6 +4,7 @@ import (
 	"bytes"
 	texttospeech "cloud.google.com/go/texttospeech/apiv1"
 	"context"
+	"google.golang.org/api/option"
 	texttospeechpb "google.golang.org/genproto/googleapis/cloud/texttospeech/v1"
 	"io"
 	"io/ioutil"
@@ -12,8 +13,14 @@ import (
 func Google(params TTSParams) (io.ReadCloser, *string, error) {
 	// Instantiates a client.
 	ctx := context.Background()
+	var err error
+	var client *texttospeech.Client
 
-	client, err := texttospeech.NewClient(ctx)
+	if params.KeyLocation != "" {
+		client, err = texttospeech.NewClient(ctx, option.WithCredentialsFile(params.KeyLocation))
+	} else {
+		client, err = texttospeech.NewClient(ctx)
+	}
 	if err != nil {
 		return nil, nil, err
 	}
@@ -86,6 +93,7 @@ func Google(params TTSParams) (io.ReadCloser, *string, error) {
 	}
 
 	r := ioutil.NopCloser(bytes.NewReader(resp.GetAudioContent()))
+	client.Close() // FIXME
 
 	return r, &v, nil
 }

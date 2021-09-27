@@ -101,6 +101,8 @@ func ttsGoogle(c *Context, w http.ResponseWriter, r *http.Request) {
 		params.EffectsProfileId = strings.Split(tmp, ",")
 	}
 
+	params.KeyLocation = query.Get("keyLocation")
+
 	out, t, err := tts2.Google(params)
 	if err != nil {
 		c.Err = model.NewAppError("TTS", "tts.app_error", nil, err.Error(), http.StatusInternalServerError)

@@ -24,6 +24,7 @@ type TTSParams struct {
 	SpeakingRate     float64
 	Pitch            float64
 	VolumeGainDb     float64
+	KeyLocation      string
 	EffectsProfileId []string
 }
 
