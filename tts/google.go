@@ -65,8 +65,10 @@ func Google(params TTSParams) (io.ReadCloser, *string, error) {
 		req.Voice.SsmlGender = texttospeechpb.SsmlVoiceGender_MALE
 	case "FEMALE":
 		req.Voice.SsmlGender = texttospeechpb.SsmlVoiceGender_FEMALE
-	default:
+	case "NEUTRAL":
 		req.Voice.SsmlGender = texttospeechpb.SsmlVoiceGender_NEUTRAL
+	default:
+		req.Voice.Name = params.Voice
 	}
 
 	v := "audio/ogg"
