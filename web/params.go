@@ -15,6 +15,7 @@ const (
 type Params struct {
 	Domain    string
 	Id        string
+	Name      string
 	Page      int
 	PerPage   int
 	Expires   int64
@@ -28,6 +29,7 @@ func ParamsFromRequest(r *http.Request) *Params {
 	query := r.URL.Query()
 
 	params.Domain = query.Get("domain_id")
+	params.Name = query.Get("name")
 
 	if val, ok := props["id"]; ok {
 		params.Id = val

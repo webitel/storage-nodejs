@@ -107,7 +107,12 @@ func downloadRecordFile(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	defer reader.Close()
 
-	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment;  filename=%s", file.Name))
+	var name = file.Name
+	if c.Params.Name != "" {
+		name = c.Params.Name
+	}
+
+	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment;  filename=%s", name))
 	w.Header().Set("Content-Type", file.MimeType)
 	w.Header().Set("Content-Length", strconv.FormatInt(sendSize, 10))
 
