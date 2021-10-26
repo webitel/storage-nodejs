@@ -44,7 +44,7 @@ func (s SqlFileBackendProfileStore) CheckAccess(domainId, id int64, groups []int
 
 func (s SqlFileBackendProfileStore) Create(profile *model.FileBackendProfile) (*model.FileBackendProfile, *model.AppError) {
 	err := s.GetMaster().SelectOne(&profile, `with p as (
-    insert into file_backend_profiles (name, expire_day, priority, disabled, max_size_mb, properties, type,
+    insert into storage.file_backend_profiles (name, expire_day, priority, disabled, max_size_mb, properties, type,
                                            created_at, updated_at, created_by, updated_by,
                                            domain_id, description)
     values (:Name, :ExpireDay, :Priority, :Disabled, :MaxSize, :Properties, :Type, :CreatedAt, :UpdatedAt, :CreatedBy, :UpdatedBy,
