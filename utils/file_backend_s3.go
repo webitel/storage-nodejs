@@ -13,6 +13,7 @@ import (
 	"io"
 	"net/http"
 	"path"
+	"strconv"
 	"strings"
 )
 
@@ -113,7 +114,7 @@ func (self *S3FileBackend) RemoveFile(directory, name string) *model.AppError {
 func (self *S3FileBackend) Reader(file File, offset int64) (io.ReadCloser, *model.AppError) {
 	var rng *string = nil
 	if offset > 0 {
-		rng = aws.String(fmt.Sprintf("%d/*", offset))
+		rng = aws.String("bytes=" + strconv.FormatInt(offset, 10) + "-")
 	}
 
 	params := &s3.GetObjectInput{
