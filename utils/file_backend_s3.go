@@ -17,6 +17,10 @@ import (
 	"strings"
 )
 
+const (
+	SelCDN = "selcdn.ru"
+)
+
 type S3FileBackend struct {
 	BaseFileBackend
 	name        string
@@ -42,7 +46,7 @@ func (self *S3FileBackend) GetStoreDirectory(domain int64) string {
 func (self *S3FileBackend) getEndpoint() *string {
 	if self.endpoint == "amazonaws.com" {
 		return nil
-	} else if self.region != "" {
+	} else if self.region != "" && self.endpoint != SelCDN {
 		return aws.String(fmt.Sprintf("%s.%s", self.region, self.endpoint))
 	} else {
 		return aws.String(fmt.Sprintf("%s", self.endpoint))
@@ -51,11 +55,13 @@ func (self *S3FileBackend) getEndpoint() *string {
 
 func (self *S3FileBackend) TestConnection() *model.AppError {
 	config := &aws.Config{
-		Region:   aws.String(strings.ToLower(self.region)),
-		Endpoint: self.getEndpoint(),
-		//DisableSSL: aws.Bool(true),
-		//S3ForcePathStyle: aws.Bool(true),
+		Region:      aws.String(strings.ToLower(self.region)),
+		Endpoint:    self.getEndpoint(),
 		Credentials: credentials.NewStaticCredentials(self.accessKey, self.accessToken, ""),
+	}
+
+	if self.endpoint == SelCDN {
+		config.S3ForcePathStyle = aws.Bool(true)
 	}
 
 	sess, err := session.NewSession(config)
