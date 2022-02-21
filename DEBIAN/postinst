@@ -10,10 +10,9 @@ repl()
 if [ ! -f "$SD" ]; then
 	repl
 else
-	read -p "Do you wish to install new storage.service file?" yn
+	read -p "Do you wish to install new storage.service file? " yn
 	case $yn in
-		[Yy]* ) repl; break;;
-		* ) break;;
+		[Yy]* ) repl;;
 	esac
 fi
 
