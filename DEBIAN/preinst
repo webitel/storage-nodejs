@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+FK=/opt/storage/key.pem
+mkdir -p /opt/storage/data /opt/storage/recordings
+
+if [ ! -f "$FK" ]; then
+	openssl genrsa -out $FK 512
+fi
+
+exit 0

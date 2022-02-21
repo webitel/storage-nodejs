@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+SD=/etc/systemd/system/storage.service
+
+repl()
+{
+	curl -o $SD https://git.webitel.com/projects/WEP/repos/webitel/raw/etc/systemd/system/storage.service
+}
+
+if [ ! -f "$SD" ]; then
+	repl
+else
+	read -p "Do you wish to install new storage.service file?" yn
+	case $yn in
+		[Yy]* ) repl; break;;
+		* ) break;;
+	esac
+fi
+
+systemctl enable storage
+systemctl restart storage
+
+exit 0
