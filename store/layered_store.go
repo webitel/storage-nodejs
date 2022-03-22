@@ -75,6 +75,10 @@ func (s *LayeredStore) Schedule() ScheduleStore {
 	return s.DatabaseLayer.Schedule()
 }
 
+func (s *LayeredStore) SyncFile() SyncFileStore {
+	return s.DatabaseLayer.SyncFile()
+}
+
 func (s *LayeredStore) Scroll(scroll *model.SearchEngineScroll) StoreChannel {
 	return s.SearchEngine.Scroll(scroll)
 }

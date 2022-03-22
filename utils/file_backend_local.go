@@ -9,6 +9,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"syscall"
 )
 
 type LocalFileBackend struct {
@@ -65,7 +66,12 @@ func (self *LocalFileBackend) Write(src io.Reader, file File) (int64, *model.App
 
 func (self *LocalFileBackend) Remove(file File) *model.AppError {
 	if err := os.Remove(path.Join(self.directory, file.GetPropertyString("directory"), file.GetStoreName())); err != nil {
-		return model.NewAppError("RemoveFile", "utils.file.locally.removing.app_error", nil, err.Error(), http.StatusInternalServerError)
+		e, ok := err.(*os.PathError)
+		if ok && e.Err == syscall.ENOENT {
+			return model.NewAppError("RemoveFile", "utils.file.locally.removing.not_found", nil, err.Error(), http.StatusNotFound)
+		} else {
+			return model.NewAppError("RemoveFile", "utils.file.locally.removing.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
 	}
 	return nil
 }

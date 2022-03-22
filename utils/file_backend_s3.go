@@ -110,10 +110,32 @@ func (self *S3FileBackend) Write(src io.Reader, file File) (int64, *model.AppErr
 }
 
 func (self *S3FileBackend) Remove(file File) *model.AppError {
+	directory := self.GetStoreDirectory(file.Domain())
+	location := path.Join(directory, file.GetStoreName())
+
+	_, err := self.svc.DeleteObject(&s3.DeleteObjectInput{
+		Bucket: &self.bucket,
+		Key:    aws.String(location),
+	})
+
+	if err != nil {
+		return model.NewAppError("Remove", "utils.file.s3.remove.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
 	return nil
 }
 
 func (self *S3FileBackend) RemoveFile(directory, name string) *model.AppError {
+	location := path.Join(directory, name)
+
+	_, err := self.svc.DeleteObject(&s3.DeleteObjectInput{
+		Bucket: &self.bucket,
+		Key:    aws.String(location),
+	})
+
+	if err != nil {
+		return model.NewAppError("RemoveFile", "utils.file.s3.remove.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 	return nil
 }
 

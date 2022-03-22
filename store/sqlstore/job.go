@@ -28,7 +28,19 @@ func (jss SqlJobStore) Save(job *model.Job) (*model.Job, *model.AppError) {
 	err := jss.GetMaster().SelectOne(job, `insert into storage.jobs (id, type, priority, schedule_id, schedule_time, create_at, start_at, last_activity_at, status,
                   progress, data)
 values (:Id, :Type, :Priority, :ScheduleId, :ScheduleTime, :CreatedAt, :StartAt, :LastActivityAt, :Status, :Progress, :Data)
-returning *`, job)
+returning *`, map[string]interface{}{
+		"Id":             job.Id,
+		"Type":           job.Type,
+		"Priority":       job.Priority,
+		"ScheduleId":     job.ScheduleId,
+		"ScheduleTime":   job.ScheduleTime,
+		"CreatedAt":      job.CreateAt,
+		"StartAt":        job.StartAt,
+		"LastActivityAt": job.LastActivityAt,
+		"Status":         job.Status,
+		"Progress":       job.Progress,
+		"Data":           model.MapToJson(job.Data),
+	})
 
 	if err != nil {
 		return nil, model.NewAppError("SqlJobStore.Save", "store.sql_job.save.app_error", nil, "id="+job.Id+", "+err.Error(), http.StatusInternalServerError)

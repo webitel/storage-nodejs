@@ -37,6 +37,10 @@ func (f *JobUploadFile) GetSize() int64 {
 	return f.Size
 }
 
+func (f *JobUploadFile) GetMimeType() string {
+	return f.MimeType
+}
+
 func (self *JobUploadFile) GetStoreName() string {
 	return fmt.Sprintf("%s_%s", self.Uuid, self.Name)
 }

@@ -38,6 +38,7 @@ type SqlSupplierOldStores struct {
 	job                store.JobStore
 	cdrData            store.CdrStoreData
 	scheduler          store.ScheduleStore
+	syncFile           store.SyncFileStore
 }
 
 type SqlSupplier struct {
@@ -68,6 +69,7 @@ func NewSqlSupplier(settings model.SqlSettings) *SqlSupplier {
 	supplier.oldStores.job = NewSqlJobStore(supplier)
 	supplier.oldStores.cdrData = NewSqlCdrStore(supplier)
 	supplier.oldStores.scheduler = NewSqlScheduleStore(supplier)
+	supplier.oldStores.syncFile = NewSqlSyncFileStore(supplier)
 
 	err := supplier.GetMaster().CreateTablesIfNotExists()
 	if err != nil {
@@ -345,4 +347,8 @@ func (ss *SqlSupplier) Cdr() store.CdrStoreData {
 
 func (ss *SqlSupplier) Schedule() store.ScheduleStore {
 	return ss.oldStores.scheduler
+}
+
+func (ss *SqlSupplier) SyncFile() store.SyncFileStore {
+	return ss.oldStores.syncFile
 }

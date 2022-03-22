@@ -49,6 +49,7 @@ type StoreData interface {
 	MediaFile() MediaFileStore
 	Cdr() CdrStoreData
 	Schedule() ScheduleStore
+	SyncFile() SyncFileStore
 }
 
 type StoreSearchEngine interface {
@@ -62,6 +63,11 @@ type UploadJobStore interface {
 	GetAllPageByInstance(limit int, instance string) StoreChannel
 	UpdateWithProfile(limit int, instance string, betweenAttemptSec int64, defStore bool) StoreChannel
 	SetStateError(id int, errMsg string) StoreChannel
+}
+
+type SyncFileStore interface {
+	FetchRemoveJobs(limit int) ([]*model.SyncJob, *model.AppError)
+	Clean(jobId int64) *model.AppError
 }
 
 type FileBackendProfileStore interface {

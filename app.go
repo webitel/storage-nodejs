@@ -8,6 +8,7 @@ import (
 	"github.com/webitel/wlog"
 
 	_ "github.com/webitel/storage/jobs/file_sync"
+	_ "github.com/webitel/storage/synchronizer"
 	_ "github.com/webitel/storage/uploader"
 
 	"github.com/webitel/storage/apis/private"
@@ -44,6 +45,7 @@ func main() {
 	a.Jobs.StartWorkers()
 
 	a.Uploader.Start()
+	a.Synchronizer.Start()
 
 	grpc_api.Init(a, a.GrpcServer.Server())
 
@@ -66,6 +68,9 @@ func main() {
 	a.Jobs.StopWorkers()
 
 	//a.Broker.Close()
+
+	wlog.Info("Stopping synchronizer server")
+	a.Synchronizer.Stop()
 
 	wlog.Info("Stopping uploader server")
 	a.Uploader.Stop()

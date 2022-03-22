@@ -6,7 +6,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/webitel/engine/auth_manager"
 	presign "github.com/webitel/engine/presign"
-	"github.com/webitel/storage/broker"
 	"github.com/webitel/storage/interfaces"
 	"github.com/webitel/storage/jobs"
 	"github.com/webitel/storage/model"
@@ -32,8 +31,7 @@ type App struct {
 
 	fileBackendCache *utils.Cache
 
-	Store  store.Store
-	Broker broker.Broker
+	Store store.Store
 
 	Log        *wlog.Logger
 	configFile string
@@ -43,6 +41,7 @@ type App struct {
 
 	sessionManager auth_manager.AuthManager
 	Uploader       interfaces.UploadRecordingsFilesInterface
+	Synchronizer   interfaces.SynchronizerFilesInterface
 
 	preSigned presign.PreSign
 
@@ -108,8 +107,6 @@ func New(options ...string) (outApp *App, outErr error) {
 
 	app.cluster = NewCluster(app)
 
-	//app.Broker = broker.NewLayeredBroker(amqp.NewBrokerSupplier(app.Config().BrokerSettings), app)
-
 	if app.newStore == nil {
 		app.newStore = func() store.Store {
 			return store.NewLayeredStore(sqlstore.NewSqlSupplier(app.Config().SqlSettings), store.NewElasticSupplier(app.Config().NoSqlSettings))
@@ -135,6 +132,7 @@ func New(options ...string) (outApp *App, outErr error) {
 
 	app.initJobs()
 	app.initUploader()
+	app.initSynchronizer()
 	return app, outErr
 }
 
@@ -215,10 +213,22 @@ func (a *App) initUploader() {
 	}
 }
 
+func (a *App) initSynchronizer() {
+	if synchronizerFilesInterface != nil {
+		a.Synchronizer = synchronizerFilesInterface(a)
+	}
+}
+
 var uploadRecordingsFilesInterface func(*App) interfaces.UploadRecordingsFilesInterface
 
 func RegisterUploader(f func(*App) interfaces.UploadRecordingsFilesInterface) {
 	uploadRecordingsFilesInterface = f
+}
+
+var synchronizerFilesInterface func(*App) interfaces.SynchronizerFilesInterface
+
+func RegisterSynchronizer(f func(*App) interfaces.SynchronizerFilesInterface) {
+	synchronizerFilesInterface = f
 }
 
 var syncFilesJobInterface func(*App) interfaces.SyncFilesJobInterface
