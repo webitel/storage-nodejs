@@ -250,18 +250,36 @@ func downloadAnyFileByQuery(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	var file *model.File
+	var file utils.File
 	var backend utils.FileBackend
 	var domainId int
 	var reader io.ReadCloser
+	source := q.Get("source")
 
 	domainId, _ = strconv.Atoi(c.Params.Domain)
 
-	if file, backend, c.Err = c.App.GetFileByUuidWithProfile(int64(domainId), uuid); c.Err != nil {
+	switch source {
+	case "media":
+		backend = c.App.MediaFileStore
+		mediaId, _ := strconv.Atoi(uuid)
+		file, c.Err = c.App.GetMediaFile(int64(domainId), mediaId)
+	case "file":
+		fileId, _ := strconv.Atoi(uuid)
+		file, backend, c.Err = c.App.GetFileWithProfile(int64(domainId), int64(fileId))
+	default:
+		file, backend, c.Err = c.App.GetFileByUuidWithProfile(int64(domainId), uuid)
+	}
+
+	if c.Err != nil {
 		return
 	}
 
-	sendSize := file.Size
+	if file == nil {
+		// TODO not found
+		return
+	}
+
+	sendSize := file.GetSize()
 	code := http.StatusOK
 
 	if reader, c.Err = backend.Reader(file, 0); c.Err != nil {
@@ -270,8 +288,8 @@ func downloadAnyFileByQuery(c *Context, w http.ResponseWriter, r *http.Request) 
 
 	defer reader.Close()
 
-	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment;  filename=%s", file.Name))
-	w.Header().Set("Content-Type", file.MimeType)
+	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment;  filename=%s", file.GetStoreName()))
+	w.Header().Set("Content-Type", file.GetMimeType())
 	w.Header().Set("Content-Length", strconv.FormatInt(sendSize, 10))
 
 	w.WriteHeader(code)

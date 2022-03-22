@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/webitel/storage/model"
+	"strings"
 )
 
 var (
@@ -24,8 +25,9 @@ var (
 
 	defaultFileStoreType  = flag.String("file_store_type", "", "Default file store type")
 	defaultFileStoreProps = flag.String("file_store_props", "", "Default file store props")
+	allowMediaMime        = flag.String("allow_media", "video/mp4,audio/mp3,audio/wav,audio/mpeg", "Allow upload media mime type")
 
-	presignedCertFile = flag.String("presigned_cert", "./key.pem", "Location to pre signed certificate")
+	presignedCertFile = flag.String("presigned_cert", "/opt/storage/key.pem", "Location to pre signed certificate")
 	presignedTimeout  = flag.Int64("presigned_timeout", 1000*60*15, "Pre signed timeout")
 
 	proxyUpload = flag.String("proxy_upload", "", "Proxy upload url")
@@ -53,7 +55,7 @@ func loadConfig(fileName string) (*model.Config, *model.AppError) {
 			MaxSizeByte: model.NewInt(100 * 1000000),
 			Directory:   mediaDirectory,
 			PathPattern: mediaStorePattern,
-			AllowMime:   []string{"video/mp4", "audio/mp3", "audio/wav", "audio/mpeg"},
+			AllowMime:   strings.Split(*allowMediaMime, ","),
 		},
 		SqlSettings: model.SqlSettings{
 			DriverName:                  model.NewString("postgres"),

@@ -43,6 +43,7 @@ func (b *BaseFileBackend) setWriteSize(writtenBytes int64) {
 type File interface {
 	Domain() int64
 	GetSize() int64
+	GetMimeType() string
 	GetStoreName() string
 	GetPropertyString(name string) string
 	SetPropertyString(name, value string)

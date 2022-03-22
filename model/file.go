@@ -31,6 +31,10 @@ func (f *BaseFile) GetSize() int64 {
 	return f.Size
 }
 
+func (f *BaseFile) GetMimeType() string {
+	return f.MimeType
+}
+
 type RemoveFile struct {
 	Id        int    `db:"id"`
 	FileId    int64  `db:"file_id"`
