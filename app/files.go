@@ -44,3 +44,7 @@ func (app *App) GetFileByUuidWithProfile(domainId int64, uuid string) (*model.Fi
 	//is bug ?
 	return &file.File, backend, nil
 }
+
+func (app *App) RemoveFiles(domainId int64, ids []int64) *model.AppError {
+	return app.Store.File().MarkRemove(domainId, ids)
+}

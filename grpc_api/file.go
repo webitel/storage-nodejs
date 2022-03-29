@@ -147,3 +147,17 @@ func (api *file) UploadFileUrl(ctx context.Context, in *storage.UploadFileUrlReq
 		Mime: fileRequest.MimeType,
 	}, nil
 }
+
+func (api *file) RemoveFiles(ctx context.Context, in *storage.RemoveFilesRequest) (*storage.RemoveFilesResponse, error) {
+	session, err := api.ctrl.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	err = api.ctrl.DeleteFiles(session, in.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	return &storage.RemoveFilesResponse{}, nil
+}

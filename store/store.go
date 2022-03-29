@@ -88,6 +88,7 @@ type FileStore interface {
 	Create(file *model.File) StoreChannel
 	GetFileWithProfile(domainId, id int64) (*model.FileWithProfile, *model.AppError)
 	GetFileByUuidWithProfile(domainId int64, uuid string) (*model.FileWithProfile, *model.AppError)
+	MarkRemove(domainId int64, ids []int64) *model.AppError
 
 	GetAllPageByDomain(domain string, offset, limit int) StoreChannel
 	MoveFromJob(jobId int64, profileId *int, properties model.StringInterface) StoreChannel

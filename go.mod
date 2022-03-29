@@ -1,6 +1,6 @@
 module github.com/webitel/storage
 
-go 1.15
+go 1.17
 
 require (
 	cloud.google.com/go v0.75.0
@@ -30,7 +30,7 @@ require (
 	github.com/robfig/cron v1.2.0
 	github.com/webitel/engine v0.0.0-20210618144234-cc4ac480c364
 	github.com/webitel/protos/engine v0.0.0-20210618142934-0e88f093dc55
-	github.com/webitel/protos/storage v0.0.0-20210618142934-0e88f093dc55
+	github.com/webitel/protos/storage v0.0.0-20220329105557-4a8c8159325b
 	github.com/webitel/wlog v0.0.0-20190823170623-8cc283b29e3e
 	github.com/yandex-cloud/go-genproto v0.0.0-20220321142955-c0e62d25d344
 	go.uber.org/atomic v1.8.0 // indirect
