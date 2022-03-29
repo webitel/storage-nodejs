@@ -25,6 +25,7 @@ var (
 
 	defaultFileStoreType  = flag.String("file_store_type", "", "Default file store type")
 	defaultFileStoreProps = flag.String("file_store_props", "", "Default file store props")
+	defaultFileExpireDay  = flag.Int("file_store_expire_day", 0, "Default file expire day (0 - never delete)")
 	allowMediaMime        = flag.String("allow_media", "video/mp4,audio/mp3,audio/wav,audio/mpeg", "Allow upload media mime type")
 
 	presignedCertFile = flag.String("presigned_cert", "/opt/storage/key.pem", "Location to pre signed certificate")
@@ -88,7 +89,8 @@ func loadConfig(fileName string) (*model.Config, *model.AppError) {
 
 	if defaultFileStoreType != nil && *defaultFileStoreType != "" {
 		cfg.DefaultFileStore = &model.DefaultFileStore{
-			Type: *defaultFileStoreType,
+			Type:      *defaultFileStoreType,
+			ExpireDay: *defaultFileExpireDay,
 		}
 
 		if defaultFileStoreProps != nil {

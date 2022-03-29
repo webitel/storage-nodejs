@@ -161,6 +161,7 @@ func (app *App) initLocalFileStores() *model.AppError {
 		if app.DefaultFileStore, appErr = utils.NewBackendStore(&model.FileBackendProfile{
 			Name:       "Internal record file store",
 			Type:       model.StorageBackendTypeFromString(fileSettings.Type),
+			ExpireDay:  fileSettings.ExpireDay,
 			Properties: fileSettings.Props,
 		}); appErr != nil {
 			return appErr

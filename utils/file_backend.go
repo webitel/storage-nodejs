@@ -20,6 +20,7 @@ type BaseFileBackend struct {
 	sync.RWMutex
 	syncTime  int64
 	writeSize float64
+	expireDay int
 }
 
 func (b *BaseFileBackend) GetSyncTime() int64 {
@@ -30,6 +31,12 @@ func (b *BaseFileBackend) GetSize() float64 {
 	b.RLock()
 	defer b.RUnlock()
 	return b.writeSize
+}
+
+func (b *BaseFileBackend) ExpireDay() int {
+	b.RLock()
+	defer b.RUnlock()
+	return b.expireDay
 }
 
 // save to megabytes
@@ -56,6 +63,7 @@ type FileBackend interface {
 	Write(src io.Reader, file File) (int64, *model.AppError)
 	GetSyncTime() int64
 	GetSize() float64
+	ExpireDay() int
 	Name() string
 }
 
@@ -66,6 +74,7 @@ func NewBackendStore(profile *model.FileBackendProfile) (FileBackend, *model.App
 			BaseFileBackend: BaseFileBackend{
 				syncTime:  profile.UpdatedAt,
 				writeSize: 0,
+				expireDay: profile.ExpireDay,
 			},
 			name:        profile.Name,
 			directory:   profile.Properties.GetString("directory"),
@@ -76,6 +85,7 @@ func NewBackendStore(profile *model.FileBackendProfile) (FileBackend, *model.App
 			BaseFileBackend: BaseFileBackend{
 				syncTime:  profile.UpdatedAt,
 				writeSize: 0,
+				expireDay: profile.ExpireDay,
 			},
 			name:        profile.Name,
 			pathPattern: profile.Properties.GetString("path_pattern"),

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/webitel/storage/app"
 	"github.com/webitel/storage/interfaces"
+	"github.com/webitel/storage/model"
 	"github.com/webitel/storage/pool"
 	"github.com/webitel/wlog"
 	"sync"
@@ -31,7 +32,7 @@ func init() {
 			betweenAttemptSec: 60,
 			schedule:          make(chan struct{}, 1),
 			stopSignal:        make(chan struct{}),
-			pollingInterval:   time.Second * 2,
+			pollingInterval:   time.Second * 30,
 			pool:              pool.NewPool(5, 10), //FIXME added config
 		}
 	})
@@ -49,8 +50,13 @@ func (s *synchronizer) run() {
 		case <-s.schedule:
 		case <-time.After(s.pollingInterval):
 		start:
+			var err *model.AppError
+			var jobs []*model.SyncJob
+			if err = s.App.SetRemoveFileJobs(); err != nil {
+				wlog.Error(err.Error())
+			}
 
-			jobs, err := s.App.Store.SyncFile().FetchRemoveJobs(s.limit)
+			jobs, err = s.App.FetchRemoveFileJobs(s.limit)
 			if err != nil {
 				wlog.Error(err.Error())
 				continue

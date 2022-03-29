@@ -140,3 +140,11 @@ func (app *App) GetFileBackendStore(id *int, syncTime *int64) (store utils.FileB
 	wlog.Info("Added to cache", wlog.String("name", store.Name()))
 	return store, nil
 }
+
+func (app *App) SetRemoveFileJobs() *model.AppError {
+	return app.Store.SyncFile().SetRemoveJobs(app.DefaultFileStore.ExpireDay())
+}
+
+func (app *App) FetchRemoveFileJobs(limit int) ([]*model.SyncJob, *model.AppError) {
+	return app.Store.SyncFile().FetchRemoveJobs(limit)
+}

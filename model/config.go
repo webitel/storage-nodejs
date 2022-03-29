@@ -93,8 +93,9 @@ type MediaFileStoreSettings struct {
 }
 
 type DefaultFileStore struct {
-	Type  string
-	Props StringInterface
+	Type      string
+	ExpireDay int
+	Props     StringInterface
 }
 
 func (c *Config) IsValid() *AppError {

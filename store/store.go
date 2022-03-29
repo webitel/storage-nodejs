@@ -67,6 +67,7 @@ type UploadJobStore interface {
 
 type SyncFileStore interface {
 	FetchRemoveJobs(limit int) ([]*model.SyncJob, *model.AppError)
+	SetRemoveJobs(localExpDay int) *model.AppError
 	Clean(jobId int64) *model.AppError
 }
 

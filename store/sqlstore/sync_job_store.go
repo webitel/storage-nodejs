@@ -41,6 +41,44 @@ returning j.*`, map[string]interface{}{
 	return res, nil
 }
 
+func (s SqlSyncFileStore) SetRemoveJobs(localExpDay int) *model.AppError {
+	_, err := s.GetMaster().Exec(`insert into storage.remove_file_jobs (file_id)
+select f.id
+from (
+    select (extract(epoch from now() - (p.expire_day || ' day')::interval) * 1000)::int8 as exp, p.id::int4
+    from storage.file_backend_profiles p
+    where p.expire_day > 0
+    union all
+    select (extract(epoch from now() - (:LocalExpire || ' day')::interval) * 1000)::int8 as exp, 0::int4
+    where :LocalExpire > 0
+) p
+inner join lateral (
+   select  f.id as id
+    from storage.files f
+    where coalesce(f.profile_id, 0) = p.id
+        and f.created_at < p.exp
+        and not exists(select 1 from storage.remove_file_jobs j where j.file_id = f.id)
+    order by f.created_at asc
+) f on true
+union all
+select id
+from (
+    select f.id
+    from storage.files f
+    where f.removed
+        and not exists(select 1 from storage.remove_file_jobs j where j.file_id = f.id)
+    order by f.created_at
+) t`, map[string]interface{}{
+		"LocalExpire": localExpDay,
+	})
+
+	if err != nil {
+		return model.NewAppError("SqlSyncFileStore.SetRemoveJobs", "store.sql_sync_file_job.set_removed.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
+}
+
 func (s SqlSyncFileStore) Clean(jobId int64) *model.AppError {
 	_, err := s.GetMaster().Exec(`with del as (
     delete
