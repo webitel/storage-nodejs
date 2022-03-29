@@ -148,7 +148,7 @@ func (api *file) UploadFileUrl(ctx context.Context, in *storage.UploadFileUrlReq
 	}, nil
 }
 
-func (api *file) RemoveFiles(ctx context.Context, in *storage.RemoveFilesRequest) (*storage.RemoveFilesResponse, error) {
+func (api *file) DeleteFiles(ctx context.Context, in *storage.DeleteFilesRequest) (*storage.DeleteFilesResponse, error) {
 	session, err := api.ctrl.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -159,5 +159,5 @@ func (api *file) RemoveFiles(ctx context.Context, in *storage.RemoveFilesRequest
 		return nil, err
 	}
 
-	return &storage.RemoveFilesResponse{}, nil
+	return &storage.DeleteFilesResponse{}, nil
 }
