@@ -1,7 +1,6 @@
 package sqlstore
 
 import (
-	"database/sql"
 	"fmt"
 	"github.com/webitel/storage/model"
 	"github.com/webitel/storage/store"
@@ -117,69 +116,4 @@ func (s SqlFileStore) GetFileByUuidWithProfile(domainId int64, uuid string) (*mo
 			fmt.Sprintf("Uuid=%d %s", uuid, err.Error()), extractCodeFromErr(err))
 	}
 	return file, nil
-}
-
-func (self SqlFileStore) Get1(domain, uuid string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var files []*model.FileWithProfile
-		_, err := self.GetReplica().Select(&files, `SELECT storage.files.*, p.updated_at as profile_updated_at 
-				FROM storage.files JOIN storage.file_backend_profiles p on p.id = storage.files.profile_id 
-				WHERE uuid = :Uuid AND storage.files.domain = :Domain`,
-			map[string]interface{}{"Domain": domain, "Uuid": uuid})
-
-		if err != nil {
-			result.Err = model.NewAppError("SqlFileStore.Get", "store.sql_file.get.app_error", nil, "uuid="+uuid+" "+err.Error(), http.StatusInternalServerError)
-			if err == sql.ErrNoRows {
-				result.Err.StatusCode = http.StatusNotFound
-			}
-		} else {
-			result.Data = files
-		}
-	})
-}
-
-func (self SqlFileStore) DeleteById(id int64) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if _, err := self.GetMaster().Exec(
-			`DELETE FROM
-				storage.files
-			WHERE
-				id = :Id`, map[string]interface{}{"Id": id}); err != nil {
-			result.Err = model.NewAppError("SqlFileStore.DeleteById", "store.sql_file.delete.app_error", nil,
-				fmt.Sprintf("id=%d, err: %s", err.Error()), http.StatusInternalServerError)
-		} else {
-			result.Data = id
-		}
-	})
-}
-
-func (self SqlFileStore) FetchDeleted(limit int) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var recordings []*model.FileWithProfile
-
-		query := `SELECT storage.files.*,  p.updated_at as profile_updated_at 
-			FROM storage.files JOIN storage.file_backend_profiles p on p.id = files.profile_id 
-			WHERE removed is TRUE AND NOT not_exists is TRUE 
-			LIMIT :Limit `
-
-		if _, err := self.GetReplica().Select(&recordings, query, map[string]interface{}{"Limit": limit}); err != nil {
-			result.Err = model.NewAppError("SqlFileStore.FetchDeleted", "store.sql_file.get_deleted.finding.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = recordings
-		}
-	})
-}
-
-func (self SqlFileStore) SetNoExistsById(id int64, notExists bool) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if _, err := self.GetMaster().Exec(
-			`update storage.files
-				set not_exists = :NotExists 
-				where where id = :Id`, map[string]interface{}{"Id": id, "NotExists": notExists}); err != nil {
-			result.Err = model.NewAppError("SqlFileStore.SetNoExistsById", "store.sql_file.update_exists.app_error", nil,
-				fmt.Sprintf("id=%d, err: %s", err.Error()), http.StatusInternalServerError)
-		} else {
-			result.Data = id
-		}
-	})
 }

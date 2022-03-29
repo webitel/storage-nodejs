@@ -7,7 +7,6 @@ import (
 	"github.com/webitel/storage/grpc_api"
 	"github.com/webitel/wlog"
 
-	_ "github.com/webitel/storage/jobs/file_sync"
 	_ "github.com/webitel/storage/synchronizer"
 	_ "github.com/webitel/storage/uploader"
 
@@ -41,9 +40,6 @@ func main() {
 	}
 	private.Init(a, a.InternalSrv.Router)
 
-	a.Jobs.StartSchedulers()
-	a.Jobs.StartWorkers()
-
 	a.Uploader.Start()
 	a.Synchronizer.Start()
 
@@ -60,12 +56,6 @@ func main() {
 	<-interruptChan
 
 	a.Shutdown()
-
-	// Cleanup anything that isn't handled by a defer statement
-	wlog.Info("Stopping job server")
-
-	a.Jobs.StopSchedulers()
-	a.Jobs.StopWorkers()
 
 	//a.Broker.Close()
 

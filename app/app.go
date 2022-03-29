@@ -7,7 +7,6 @@ import (
 	"github.com/webitel/engine/auth_manager"
 	presign "github.com/webitel/engine/presign"
 	"github.com/webitel/storage/interfaces"
-	"github.com/webitel/storage/jobs"
 	"github.com/webitel/storage/model"
 	"github.com/webitel/storage/store"
 	"github.com/webitel/storage/store/sqlstore"
@@ -37,7 +36,7 @@ type App struct {
 	configFile string
 	config     atomic.Value
 	newStore   func() store.Store
-	Jobs       *jobs.JobServer
+	//Jobs       *jobs.JobServer
 
 	sessionManager auth_manager.AuthManager
 	Uploader       interfaces.UploadRecordingsFilesInterface
@@ -130,7 +129,6 @@ func New(options ...string) (outApp *App, outErr error) {
 	app.Srv.Router.NotFoundHandler = http.HandlerFunc(app.Handle404)
 	app.InternalSrv.Router.NotFoundHandler = http.HandlerFunc(app.Handle404)
 
-	app.initJobs()
 	app.initUploader()
 	app.initSynchronizer()
 	return app, outErr
@@ -200,14 +198,6 @@ func (a *App) GetInstanceId() string {
 	return *a.id
 }
 
-func (a *App) initJobs() {
-	a.Jobs = jobs.NewJobServer(a, a.Store)
-
-	if syncFilesJobInterface != nil {
-		a.Jobs.AddMiddleware(model.JOB_TYPE_SYNC_FILES, syncFilesJobInterface(a))
-	}
-}
-
 func (a *App) initUploader() {
 	if uploadRecordingsFilesInterface != nil {
 		a.Uploader = uploadRecordingsFilesInterface(a)
@@ -230,10 +220,4 @@ var synchronizerFilesInterface func(*App) interfaces.SynchronizerFilesInterface
 
 func RegisterSynchronizer(f func(*App) interfaces.SynchronizerFilesInterface) {
 	synchronizerFilesInterface = f
-}
-
-var syncFilesJobInterface func(*App) interfaces.SyncFilesJobInterface
-
-func RegisterSyncFilesJobInterface(f func(*App) interfaces.SyncFilesJobInterface) {
-	syncFilesJobInterface = f
 }

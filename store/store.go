@@ -91,9 +91,6 @@ type FileStore interface {
 
 	GetAllPageByDomain(domain string, offset, limit int) StoreChannel
 	MoveFromJob(jobId int64, profileId *int, properties model.StringInterface) StoreChannel
-	FetchDeleted(limit int) StoreChannel
-	DeleteById(id int64) StoreChannel
-	SetNoExistsById(id int64, notExists bool) StoreChannel
 }
 
 type MediaFileStore interface {
