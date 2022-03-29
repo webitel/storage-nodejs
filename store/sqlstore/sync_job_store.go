@@ -58,7 +58,8 @@ inner join lateral (
     where coalesce(f.profile_id, 0) = p.id
         and f.created_at < p.exp
         and not exists(select 1 from storage.remove_file_jobs j where j.file_id = f.id)
-    order by f.created_at asc
+    order by f.created_at
+	for update skip locked
 ) f on true
 union all
 select id
@@ -68,6 +69,7 @@ from (
     where f.removed
         and not exists(select 1 from storage.remove_file_jobs j where j.file_id = f.id)
     order by f.created_at
+	for update skip locked
 ) t`, map[string]interface{}{
 		"LocalExpire": localExpDay,
 	})
