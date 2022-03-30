@@ -1,6 +1,7 @@
 package tts
 
 import (
+	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -51,7 +52,11 @@ func Poly(req TTSParams) (io.ReadCloser, *string, error) {
 		VoiceId:      aws.String(polly.VoiceIdEmma),
 	}
 
-	if req.Format == "ogg" {
+	if req.SpeakingRate > 0 {
+		params.SampleRate = aws.String(fmt.Sprintf("%v", req.SpeakingRate))
+	}
+
+	if req.Format == "ogg" || req.Format == "wav" {
 		params.SetOutputFormat(polly.OutputFormatOggVorbis)
 	} else {
 		params.SetOutputFormat(polly.OutputFormatMp3)

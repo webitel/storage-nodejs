@@ -29,6 +29,9 @@ func ttsPolly(c *Context, w http.ResponseWriter, r *http.Request) {
 		TextType: query.Get("text_type"),
 	}
 
+	rate, _ := strconv.Atoi(query.Get("rate"))
+	params.SpeakingRate = float64(rate)
+
 	out, t, err := tts2.Poly(params)
 	if err != nil {
 		c.Err = model.NewAppError("TTS", "tts.app_error", nil, err.Error(), http.StatusInternalServerError)
