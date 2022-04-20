@@ -3,12 +3,13 @@ package grpc_api
 import (
 	"context"
 	"errors"
-	"github.com/webitel/protos/storage"
-	"github.com/webitel/storage/controller"
-	"github.com/webitel/storage/model"
 	"io"
 	"net/http"
 	"net/url"
+
+	"github.com/webitel/protos/storage"
+	"github.com/webitel/storage/controller"
+	"github.com/webitel/storage/model"
 )
 
 type file struct {
@@ -123,6 +124,7 @@ func (api *file) UploadFileUrl(ctx context.Context, in *storage.UploadFileUrlReq
 	fileRequest.Name = model.NewId() + "_" + in.GetName()
 	fileRequest.MimeType = res.Header.Get("Content-Type")
 	fileRequest.Uuid = in.GetUuid()
+	fileRequest.Size = res.ContentLength
 	if fileRequest.Uuid == "" {
 		fileRequest.Uuid = model.NewId() // bad request ?
 	}
