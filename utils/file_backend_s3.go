@@ -2,6 +2,12 @@ package utils
 
 import (
 	"fmt"
+	"io"
+	"net/http"
+	"path"
+	"strconv"
+	"strings"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -10,11 +16,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/webitel/storage/model"
 	"github.com/webitel/wlog"
-	"io"
-	"net/http"
-	"path"
-	"strconv"
-	"strings"
 )
 
 const (
@@ -106,7 +107,18 @@ func (self *S3FileBackend) Write(src io.Reader, file File) (int64, *model.AppErr
 	file.SetPropertyString("location", location)
 	wlog.Debug(fmt.Sprintf("[%s] create new file %s", self.name, res.Location))
 
-	return file.GetSize(), nil
+	h, _ := self.svc.HeadObject(&s3.HeadObjectInput{
+		Bucket: params.Bucket,
+		Key:    params.Key,
+	})
+
+	// TODO fixme
+	s := file.GetSize()
+	if h != nil && h.ContentLength != nil {
+		s = *h.ContentLength
+	}
+
+	return s, nil
 }
 
 func (self *S3FileBackend) Remove(file File) *model.AppError {

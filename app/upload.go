@@ -2,9 +2,10 @@ package app
 
 import (
 	"fmt"
+	"io"
+
 	"github.com/webitel/storage/model"
 	"github.com/webitel/wlog"
-	"io"
 )
 
 func (app *App) AddUploadJobFile(src io.ReadCloser, file *model.JobUploadFile) *model.AppError {
