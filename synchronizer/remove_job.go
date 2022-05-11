@@ -2,17 +2,18 @@ package synchronizer
 
 import (
 	"fmt"
+
 	"github.com/webitel/storage/app"
 	"github.com/webitel/storage/model"
 	"github.com/webitel/wlog"
 )
 
-type job struct {
+type removeFileJob struct {
 	file model.SyncJob
 	app  *app.App
 }
 
-func (j *job) Execute() {
+func (j *removeFileJob) Execute() {
 	store, err := j.app.GetFileBackendStore(j.file.ProfileId, j.file.ProfileUpdatedAt)
 	if err != nil {
 		wlog.Error(err.Error())

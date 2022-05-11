@@ -2,7 +2,6 @@ package tts
 
 import (
 	"fmt"
-	_ "github.com/yandex-cloud/go-genproto/yandex/cloud/ai/tts/v3"
 	"io"
 	"net/http"
 	"net/url"

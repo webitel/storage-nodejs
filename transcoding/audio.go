@@ -4,121 +4,89 @@ package main
 //#include "audio.c"
 import "C"
 import (
-	"bytes"
-	"encoding/binary"
-	"fmt"
-	"os"
 	"reflect"
 	"unsafe"
 )
 
 type audioBuffer struct {
-	len  int
-	data *C.int16_t
+	channels C.int
+	len      C.int
+	data     *C.float
 }
 
 type transcoding struct {
-	data []int16
-	buf  *audioBuffer
-}
-
-var (
-	gbuf     = new(bytes.Buffer)
-	gfile, _ = os.Create("gfile.bin")
-)
-
-//export FuncInMain
-func FuncInMain(_ *C.void, frameCount int, buffer *C.int16_t) {
-	//t := (*transcoding)(unsafe.Pointer(&buffer))
-	gbuf.Reset()
-	var list []int16
-	sliceHeader := (*reflect.SliceHeader)(unsafe.Pointer(&list))
-	sliceHeader.Cap = frameCount
-	sliceHeader.Len = frameCount
-	sliceHeader.Data = uintptr(unsafe.Pointer(buffer))
-
-	err := binary.Write(gbuf, binary.LittleEndian, list)
-	if err != nil {
-		panic(err.Error())
-	}
-
-	binary.Write(gfile, binary.BigEndian, gbuf.Bytes())
-}
-
-func (e *transcoding) carray2slice() {
+	buffer *audioBuffer
 }
 
 func (e *transcoding) Decode(path string) {
-	b := &audioBuffer{}
+	var rate C.int = 16000
 
-	C.test_buffer(unsafe.Pointer(b), C.CString(path))
-	e.buf = b
+	buf := &audioBuffer{}
+	C.transcode(unsafe.Pointer(buf), C.CString(path), rate)
+
+	e.buffer = buf
 }
 
 func (e *transcoding) Close() {
-	if e.buf != nil {
-		C.clean_audio_buffer(unsafe.Pointer(e.buf))
-		e.buf = nil
+	if e.buffer != nil {
+		C.clean_audio_buffer(unsafe.Pointer(e.buffer))
+		e.buffer = nil
 	}
 }
 
-func (e *transcoding) Wave() []int16 {
-	var list []int16
+func (e *transcoding) Channels() [][]float32 {
+	res := make([][]float32, e.buffer.channels, e.buffer.channels)
+	channels := (int)(e.buffer.channels)
+	bufLen := (int)(e.buffer.len)
+	length := bufLen / channels
+
+	var list []C.float
 	sliceHeader := (*reflect.SliceHeader)(unsafe.Pointer(&list))
-	sliceHeader.Cap = e.buf.len
-	sliceHeader.Len = e.buf.len
-	sliceHeader.Data = uintptr(unsafe.Pointer(e.buf.data))
-	return list
-}
+	sliceHeader.Cap = bufLen
+	sliceHeader.Len = bufLen
+	sliceHeader.Data = uintptr(unsafe.Pointer(e.buffer.data))
 
-func (e *transcoding) Bytes() (error, []byte) {
-	buf := new(bytes.Buffer)
-	err := binary.Write(buf, binary.LittleEndian, e.Wave())
-	if err != nil {
-		return err, nil
+	for i := 0; i < channels; i++ {
+		res[i] = make([]float32, length, length)
 	}
-	return nil, buf.Bytes()
+
+	for k, v := range list {
+		res[k%channels][(k-(k%channels))/channels] = (float32)(v)
+	}
+
+	list = nil
+
+	return res
 }
 
 var Transcoding transcoding
 
-func test() {
-	d := &transcoding{}
-	d.Decode("https://cloud.webitel.ua/api/storage/recordings/444552/download?access_token=gdpiujx3oiftxg5j8ewrheb13h")
-	defer d.Close()
-
-	arr := d.Wave()
-	f, _ := os.Create("file.bin")
-	binary.Write(f, binary.BigEndian, arr)
-	f.Close()
-	fmt.Println(len(arr))
-	gfile.Close()
-}
-
-func main() {
-	//var i int64
-	//C.dd((*C.int64_t)(unsafe.Pointer(&i)))
-	//fmt.Println(i)
-
-	test()
-	return
-
-	b := &audioBuffer{}
-
-	C.test_buffer(unsafe.Pointer(b), C.CString("https://dev.webitel.com/api/storage/recordings/58492/stream?access_token=7osjt9gqnjg85y1cj6q4ifqusw"))
-	res := carray2slice(b.data, b.len)
-
-	f, _ := os.Create("file.bin")
-	binary.Write(f, binary.BigEndian, res)
-	f.Close()
-	C.clean_audio_buffer(unsafe.Pointer(b))
-}
-
-func carray2slice(array *C.int16_t, len int) []C.int16_t {
-	var list []C.int16_t
+//export ChunkCallback
+func ChunkCallback(ctx *C.void, samples *C.float, len int, channels int) {
+	var list []C.float
 	sliceHeader := (*reflect.SliceHeader)(unsafe.Pointer(&list))
 	sliceHeader.Cap = len
 	sliceHeader.Len = len
-	sliceHeader.Data = uintptr(unsafe.Pointer(array))
-	return list
+	sliceHeader.Data = uintptr(unsafe.Pointer(samples))
+
+	//r := make([]C.float, 0, len/2)
+	//for i := 1; i < len; i = i + 2 {
+	//	r = append(r, list[i])
+	//}
+
+	//binary.Write(gfile, binary.LittleEndian, list)
+}
+
+func main() {
+	C.initTranscoding()
+
+	//var t transcoding
+	//t.Decode("https://cloud.webitel.ua/api/storage/recordings/444552/stream?access_token=gdpiujx3oiftxg5j8ewrheb13h")
+	//c := t.Channels()
+	//buf := new(bytes.Buffer)
+	//binary.Write(buf, binary.LittleEndian, c[1])
+	//gfile.Write(buf.Bytes())
+	//
+	//gfile.Close()
+	//runtime.GC()
 }

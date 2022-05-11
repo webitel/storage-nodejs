@@ -1,9 +1,10 @@
 package sqlstore
 
 import (
+	"net/http"
+
 	"github.com/webitel/storage/model"
 	"github.com/webitel/storage/store"
-	"net/http"
 )
 
 type SqlSyncFileStore struct {
@@ -15,13 +16,14 @@ func NewSqlSyncFileStore(sqlStore SqlStore) store.SyncFileStore {
 	return us
 }
 
-func (s SqlSyncFileStore) FetchRemoveJobs(limit int) ([]*model.SyncJob, *model.AppError) {
+func (s SqlSyncFileStore) FetchJobs(limit int) ([]*model.SyncJob, *model.AppError) {
 	var res []*model.SyncJob
-	_, err := s.GetMaster().Select(&res, `update storage.remove_file_jobs u
+	_, err := s.GetMaster().Select(&res, `update storage.file_jobs u
 set state = 1
 from (
-    select j.id, j.file_id, f.domain_id, f.properties, f.profile_id, p.updated_at as profile_updated_at, f.name, f.size, f.mime_type, f.instance
-    from storage.remove_file_jobs j
+    select j.id, j.file_id, f.domain_id, f.properties, f.profile_id, p.updated_at as profile_updated_at, f.name, f.size, f.mime_type, f.instance,
+		j.action, j.config
+    from storage.file_jobs j
         inner join storage.files f on f.id = j.file_id
         left join storage.file_backend_profiles p on p.id = f.profile_id
     where j.state = 0
@@ -42,8 +44,8 @@ returning j.*`, map[string]interface{}{
 }
 
 func (s SqlSyncFileStore) SetRemoveJobs(localExpDay int) *model.AppError {
-	_, err := s.GetMaster().Exec(`insert into storage.remove_file_jobs (file_id)
-select f.id
+	_, err := s.GetMaster().Exec(`insert into storage.file_jobs (file_id, action)
+select f.id, :Action
 from (
     select (extract(epoch from now() - (p.expire_day || ' day')::interval) * 1000)::int8 as exp, p.id::int4
     from storage.file_backend_profiles p
@@ -57,21 +59,22 @@ inner join lateral (
     from storage.files f
     where coalesce(f.profile_id, 0) = p.id
         and f.created_at < p.exp
-        and not exists(select 1 from storage.remove_file_jobs j where j.file_id = f.id)
+        and not exists(select 1 from storage.file_jobs j where j.file_id = f.id)
     order by f.created_at
 	for update skip locked
 ) f on true
 union all
-select id
+select id, :Action
 from (
     select f.id
     from storage.files f
     where f.removed
-        and not exists(select 1 from storage.remove_file_jobs j where j.file_id = f.id)
+        and not exists(select 1 from storage.file_jobs j where j.file_id = f.id)
     order by f.created_at
 	for update skip locked
 ) t`, map[string]interface{}{
 		"LocalExpire": localExpDay,
+		"Action":      model.SyncJobRemove,
 	})
 
 	if err != nil {
@@ -84,7 +87,7 @@ from (
 func (s SqlSyncFileStore) Clean(jobId int64) *model.AppError {
 	_, err := s.GetMaster().Exec(`with del as (
     delete
-    from storage.remove_file_jobs rj
+    from storage.file_jobs rj
     where rj.id = :Id
     returning rj.file_id
 )

@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+
 	"github.com/webitel/storage/model"
 )
 
@@ -77,6 +78,10 @@ func (s *LayeredStore) Schedule() ScheduleStore {
 
 func (s *LayeredStore) SyncFile() SyncFileStore {
 	return s.DatabaseLayer.SyncFile()
+}
+
+func (s *LayeredStore) CognitiveProfile() CognitiveProfileStore {
+	return s.DatabaseLayer.CognitiveProfile()
 }
 
 func (s *LayeredStore) Scroll(scroll *model.SearchEngineScroll) StoreChannel {

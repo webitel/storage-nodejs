@@ -1,8 +1,9 @@
 package store
 
 import (
-	"github.com/webitel/engine/auth_manager"
 	"time"
+
+	"github.com/webitel/engine/auth_manager"
 
 	"github.com/webitel/storage/model"
 )
@@ -50,6 +51,7 @@ type StoreData interface {
 	Cdr() CdrStoreData
 	Schedule() ScheduleStore
 	SyncFile() SyncFileStore
+	CognitiveProfile() CognitiveProfileStore
 }
 
 type StoreSearchEngine interface {
@@ -66,7 +68,7 @@ type UploadJobStore interface {
 }
 
 type SyncFileStore interface {
-	FetchRemoveJobs(limit int) ([]*model.SyncJob, *model.AppError)
+	FetchJobs(limit int) ([]*model.SyncJob, *model.AppError)
 	SetRemoveJobs(localExpDay int) *model.AppError
 	Clean(jobId int64) *model.AppError
 }
@@ -128,6 +130,16 @@ type JobStore interface {
 	GetNewestJobByStatusAndType(status string, jobType string) StoreChannel
 	GetCountByStatusAndType(status string, jobType string) StoreChannel
 	Delete(id string) StoreChannel
+}
+
+type CognitiveProfileStore interface {
+	CheckAccess(domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError)
+	Create(profile *model.CognitiveProfile) (*model.CognitiveProfile, *model.AppError)
+	GetAllPage(domainId int64, req *model.SearchCognitiveProfile) ([]*model.CognitiveProfile, *model.AppError)
+	GetAllPageByGroups(domainId int64, groups []int, search *model.SearchCognitiveProfile) ([]*model.CognitiveProfile, *model.AppError)
+	Get(id, domainId int64) (*model.CognitiveProfile, *model.AppError)
+	Update(profile *model.CognitiveProfile) (*model.CognitiveProfile, *model.AppError)
+	Delete(domainId, id int64) *model.AppError
 }
 
 type CdrStoreData interface {

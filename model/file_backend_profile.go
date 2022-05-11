@@ -7,9 +7,8 @@ import (
 )
 
 const (
-	ROOT_FILE_BACKEND_DOMAIN  = 0
-	ACTIVE_BACKEND_CACHE_SIZE = 1000
-	CACHE_DIR                 = "./cache"
+	BackendCacheSize = 1000
+	CacheDir         = "./cache"
 )
 
 type BackendProfileType string

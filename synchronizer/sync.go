@@ -2,38 +2,37 @@ package synchronizer
 
 import (
 	"fmt"
+	"sync"
+	"time"
+
 	"github.com/webitel/storage/app"
 	"github.com/webitel/storage/interfaces"
 	"github.com/webitel/storage/model"
 	"github.com/webitel/storage/pool"
 	"github.com/webitel/wlog"
-	"sync"
-	"time"
 )
 
 type synchronizer struct {
-	App               *app.App
-	betweenAttemptSec int64
-	limit             int
-	schedule          chan struct{}
-	pollingInterval   time.Duration
-	stopSignal        chan struct{}
-	pool              interfaces.PoolInterface
-	mx                sync.RWMutex
-	stopped           bool
+	App             *app.App
+	limit           int
+	schedule        chan struct{}
+	pollingInterval time.Duration
+	stopSignal      chan struct{}
+	pool            interfaces.PoolInterface
+	mx              sync.RWMutex
+	stopped         bool
 }
 
 func init() {
 	app.RegisterSynchronizer(func(a *app.App) interfaces.SynchronizerFilesInterface {
 		wlog.Debug("Initialize synchronizer")
 		return &synchronizer{
-			App:               a,
-			limit:             100,
-			betweenAttemptSec: 60,
-			schedule:          make(chan struct{}, 1),
-			stopSignal:        make(chan struct{}),
-			pollingInterval:   time.Second * 30,
-			pool:              pool.NewPool(5, 10), //FIXME added config
+			App:             a,
+			limit:           100,
+			schedule:        make(chan struct{}, 1),
+			stopSignal:      make(chan struct{}),
+			pollingInterval: time.Second * 5,
+			pool:            pool.NewPool(5, 10), //FIXME added config
 		}
 	})
 }
@@ -56,7 +55,7 @@ func (s *synchronizer) run() {
 				wlog.Error(err.Error())
 			}
 
-			jobs, err = s.App.FetchRemoveFileJobs(s.limit)
+			jobs, err = s.App.FetchFileJobs(s.limit)
 			if err != nil {
 				wlog.Error(err.Error())
 				continue
@@ -64,12 +63,13 @@ func (s *synchronizer) run() {
 			count := len(jobs)
 
 			if count > 0 {
-				wlog.Debug(fmt.Sprintf("fetch %d remove file jobs", count))
+				wlog.Debug(fmt.Sprintf("fetch %d file jobs", count))
 				for i = 0; i < count; i++ {
-					s.pool.Exec(&job{
-						app:  s.App,
-						file: *jobs[i],
-					})
+					if task := s.getTask(jobs[i]); task != nil {
+						s.pool.Exec(task)
+					} else {
+						wlog.Error(fmt.Sprintf("bad job action: %v", jobs[i]))
+					}
 				}
 
 				if count == s.limit && !s.isStopped() {
@@ -99,4 +99,23 @@ func (s *synchronizer) Stop() {
 	s.pool.Close()
 	s.pool.Wait()
 	wlog.Debug("Synchronizer stopped.")
+}
+
+func (s *synchronizer) getTask(src *model.SyncJob) interfaces.TaskInterface {
+	switch src.Action {
+	case model.SyncJobRemove:
+		return &removeFileJob{
+			app:  s.App,
+			file: *src,
+		}
+
+	case model.SyncJobSTT:
+		return &SttJob{
+			app:  s.App,
+			file: *src,
+		}
+
+	default:
+		return nil
+	}
 }

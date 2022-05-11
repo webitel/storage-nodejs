@@ -1,11 +1,12 @@
 package app
 
 import (
+	"net/http"
+
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/storage/model"
 	"github.com/webitel/storage/utils"
 	"github.com/webitel/wlog"
-	"net/http"
 )
 
 func (app *App) FileBackendProfileCheckAccess(domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError) {
@@ -145,6 +146,6 @@ func (app *App) SetRemoveFileJobs() *model.AppError {
 	return app.Store.SyncFile().SetRemoveJobs(app.DefaultFileStore.ExpireDay())
 }
 
-func (app *App) FetchRemoveFileJobs(limit int) ([]*model.SyncJob, *model.AppError) {
-	return app.Store.SyncFile().FetchRemoveJobs(limit)
+func (app *App) FetchFileJobs(limit int) ([]*model.SyncJob, *model.AppError) {
+	return app.Store.SyncFile().FetchJobs(limit)
 }

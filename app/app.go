@@ -2,6 +2,10 @@ package app
 
 import (
 	"fmt"
+	"net/http"
+	"sync/atomic"
+	"time"
+
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/webitel/engine/auth_manager"
@@ -12,9 +16,6 @@ import (
 	"github.com/webitel/storage/store/sqlstore"
 	"github.com/webitel/storage/utils"
 	"github.com/webitel/wlog"
-	"net/http"
-	"sync/atomic"
-	"time"
 )
 
 type App struct {
@@ -29,6 +30,7 @@ type App struct {
 	DefaultFileStore utils.FileBackend
 
 	fileBackendCache *utils.Cache
+	sttProfilesCache *utils.Cache
 
 	Store store.Store
 
@@ -59,7 +61,8 @@ func New(options ...string) (outApp *App, outErr error) {
 		InternalSrv: &Server{
 			RootRouter: internalRootRouter,
 		},
-		fileBackendCache: utils.NewLru(model.ACTIVE_BACKEND_CACHE_SIZE),
+		fileBackendCache: utils.NewLru(model.BackendCacheSize),
+		sttProfilesCache: utils.NewLru(model.SttCacheSize),
 	}
 	app.Srv.Router = app.Srv.RootRouter.PathPrefix("/").Subrouter()
 	app.InternalSrv.Router = app.InternalSrv.RootRouter.PathPrefix("/").Subrouter()
@@ -142,7 +145,7 @@ func (app *App) initLocalFileStores() *model.AppError {
 	if app.FileCache, appErr = utils.NewBackendStore(&model.FileBackendProfile{
 		Name:       "Internal file cache",
 		Type:       model.FileDriverLocal,
-		Properties: model.StringInterface{"directory": model.CACHE_DIR, "path_pattern": ""},
+		Properties: model.StringInterface{"directory": model.CacheDir, "path_pattern": ""},
 	}); appErr != nil {
 		return appErr
 	}

@@ -10,12 +10,13 @@ import (
 	"time"
 
 	"encoding/json"
+	"sync/atomic"
+
 	"github.com/go-gorp/gorp"
 	"github.com/webitel/storage/model"
 	"github.com/webitel/storage/store"
 	"github.com/webitel/storage/utils"
 	"github.com/webitel/wlog"
-	"sync/atomic"
 )
 
 const (
@@ -39,6 +40,7 @@ type SqlSupplierOldStores struct {
 	cdrData            store.CdrStoreData
 	scheduler          store.ScheduleStore
 	syncFile           store.SyncFileStore
+	cognitiveProfile   store.CognitiveProfileStore
 }
 
 type SqlSupplier struct {
@@ -70,6 +72,7 @@ func NewSqlSupplier(settings model.SqlSettings) *SqlSupplier {
 	supplier.oldStores.cdrData = NewSqlCdrStore(supplier)
 	supplier.oldStores.scheduler = NewSqlScheduleStore(supplier)
 	supplier.oldStores.syncFile = NewSqlSyncFileStore(supplier)
+	supplier.oldStores.cognitiveProfile = NewSqlCognitiveProfileStore(supplier)
 
 	err := supplier.GetMaster().CreateTablesIfNotExists()
 	if err != nil {
@@ -351,4 +354,8 @@ func (ss *SqlSupplier) Schedule() store.ScheduleStore {
 
 func (ss *SqlSupplier) SyncFile() store.SyncFileStore {
 	return ss.oldStores.syncFile
+}
+
+func (ss *SqlSupplier) CognitiveProfile() store.CognitiveProfileStore {
+	return ss.oldStores.cognitiveProfile
 }

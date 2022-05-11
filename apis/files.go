@@ -2,12 +2,13 @@ package apis
 
 import (
 	"encoding/json"
-	"github.com/webitel/storage/model"
 	"io"
 	"mime"
 	"mime/multipart"
 	"net/http"
 	"strings"
+
+	"github.com/webitel/storage/model"
 )
 
 type fileResponse struct {

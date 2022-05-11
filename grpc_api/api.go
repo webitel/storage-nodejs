@@ -8,11 +8,12 @@ import (
 )
 
 type API struct {
-	app             *app.App
-	ctrl            *controller.Controller
-	backendProfiles *backendProfiles
-	media           *media
-	file            *file
+	app              *app.App
+	ctrl             *controller.Controller
+	backendProfiles  *backendProfiles
+	cognitiveProfile *cognitiveProfile
+	media            *media
+	file             *file
 }
 
 func Init(a *app.App, server *grpc.Server) {
@@ -22,10 +23,13 @@ func Init(a *app.App, server *grpc.Server) {
 
 	ctrl := controller.NewController(a)
 	api.backendProfiles = NewBackendProfileApi(ctrl)
+	api.cognitiveProfile = NewCognitiveProfileApi(ctrl)
 	api.media = NewMediaApi(ctrl)
+	api.file = NewFileApi(a.Config().ProxyUploadUrl, ctrl)
 	api.file = NewFileApi(a.Config().ProxyUploadUrl, ctrl)
 
 	storage.RegisterBackendProfileServiceServer(server, api.backendProfiles)
 	storage.RegisterMediaFileServiceServer(server, api.media)
 	storage.RegisterFileServiceServer(server, api.file)
+	storage.RegisterCognitiveProfileServiceServer(server, api.cognitiveProfile)
 }
