@@ -202,7 +202,7 @@ func getProvider(p string) storage.ProviderType {
 	case storage.ProviderType_Microsoft.String():
 		return storage.ProviderType_Microsoft
 	default:
-		return 0
+		return storage.ProviderType_DefaultProvider
 	}
 }
 func getService(s string) storage.ServiceType {
@@ -212,7 +212,7 @@ func getService(s string) storage.ServiceType {
 	case storage.ServiceType_TTS.String():
 		return storage.ServiceType_TTS
 	default:
-		return 0
+		return storage.ServiceType_DefaultService
 	}
 }
 
