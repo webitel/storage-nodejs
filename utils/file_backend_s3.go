@@ -19,7 +19,8 @@ import (
 )
 
 const (
-	SelCDN = "selcdn.ru"
+	SelCDN        = "selcdn.ru"
+	GoogleStorage = "storage.googleapis.com"
 )
 
 type S3FileBackend struct {
@@ -47,10 +48,19 @@ func (self *S3FileBackend) GetStoreDirectory(domain int64) string {
 func (self *S3FileBackend) getEndpoint() *string {
 	if self.endpoint == "amazonaws.com" {
 		return nil
-	} else if self.region != "" && self.endpoint != SelCDN {
+	} else if self.region != "" && !isS3ForcePathStyle(self.endpoint) {
 		return aws.String(fmt.Sprintf("%s.%s", self.region, self.endpoint))
 	} else {
 		return aws.String(fmt.Sprintf("%s", self.endpoint))
+	}
+}
+
+func isS3ForcePathStyle(name string) bool {
+	switch name {
+	case GoogleStorage, SelCDN:
+		return true
+	default:
+		return false
 	}
 }
 
@@ -61,7 +71,7 @@ func (self *S3FileBackend) TestConnection() *model.AppError {
 		Credentials: credentials.NewStaticCredentials(self.accessKey, self.accessToken, ""),
 	}
 
-	if self.endpoint == SelCDN {
+	if isS3ForcePathStyle(self.endpoint) {
 		config.S3ForcePathStyle = aws.Bool(true)
 	}
 
