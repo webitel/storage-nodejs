@@ -6,6 +6,7 @@ import (
 	"mime"
 	"mime/multipart"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/webitel/storage/model"
@@ -23,6 +24,32 @@ func (api *API) InitFile() {
 	api.PublicRoutes.Files.Handle("/{id}/stream", api.ApiSessionRequired(streamRecordFile)).Methods("GET")
 	api.PublicRoutes.Files.Handle("/{id}/download", api.ApiSessionRequired(downloadRecordFile)).Methods("GET")
 	api.PublicRoutes.Files.Handle("/{id}/upload", api.ApiSessionRequired(uploadAnyFile)).Methods("POST")
+	api.PublicRoutes.Files.Handle("/{id}/transcript", api.ApiSessionRequired(transcriptFile)).Methods("GET")
+}
+
+func transcriptFile(c *Context, w http.ResponseWriter, r *http.Request) {
+	var id int
+	var err error
+
+	c.RequireId()
+
+	if c.Err != nil {
+		return
+	}
+
+	if id, err = strconv.Atoi(c.Params.Id); err != nil {
+		c.SetInvalidUrlParam("id")
+		return
+	}
+
+	var tr *model.FileTranscript
+	if tr, c.Err = c.App.TranscriptFile(int64(id), 1, "uk-UA"); c.Err != nil {
+
+		return
+	}
+
+	data, _ := json.Marshal(tr)
+	w.Write(data)
 }
 
 func uploadAnyFile(c *Context, w http.ResponseWriter, r *http.Request) {

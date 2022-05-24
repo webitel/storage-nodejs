@@ -5,9 +5,10 @@ import (
 	"encoding/base32"
 	"encoding/json"
 	"fmt"
+	"io"
+
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
 	"github.com/pborman/uuid"
-	"io"
 )
 
 type StringInterface map[string]interface{}
@@ -30,6 +31,12 @@ func (s StringInterface) GetString(name string) string {
 		return fmt.Sprintf("%s", v)
 	}
 	return ""
+}
+func (s StringInterface) GetBool(name string) bool {
+	if v, ok := s[name].(bool); ok {
+		return v
+	}
+	return false
 }
 
 type AppError struct {

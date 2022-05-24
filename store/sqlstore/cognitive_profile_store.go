@@ -229,25 +229,32 @@ func (s SqlCognitiveProfileStore) Delete(domainId, id int64) *model.AppError {
 	return nil
 }
 
-func (s SqlCognitiveProfileStore) Get1(id, domainId int64) (*model.SttProfile, *model.AppError) {
-	panic(1)
-}
-
-func (s SqlCognitiveProfileStore) GetById1(id int) (*model.SttProfile, *model.AppError) {
-	var p *model.SttProfile
-	err := s.GetReplica().SelectOne(&p, `select p.id, p.domain_id, p.type, (extract(epoch from p.updated_at) * 1000)::int8 as updated_at, p.config, p.name
-from storage.stt_profiles p
+func (s *SqlCognitiveProfileStore) GetById(id int64) (*model.CognitiveProfile, *model.AppError) {
+	var profile *model.CognitiveProfile
+	err := s.GetMaster().SelectOne(&profile, `SELECT p.id,
+       p.domain_id,
+       p.provider,
+       p.properties,
+       p.created_at,
+       storage.get_lookup(c.id, COALESCE(c.name, c.username::text)::character varying) AS created_by,
+       p.updated_at,
+       storage.get_lookup(u.id, COALESCE(u.name, u.username::text)::character varying) AS updated_by,
+       p.enabled,
+       p.name,
+       p.description,
+       p.service,
+       p."default"
+FROM storage.cognitive_profile_services p
+         LEFT JOIN directory.wbt_user c ON c.id = p.created_by
+         LEFT JOIN directory.wbt_user u ON u.id = p.updated_by
 where p.id = :Id`, map[string]interface{}{
 		"Id": id,
 	})
 
 	if err != nil {
-		return nil, model.NewAppError("SqlSttProfileStore.GetById", "store.sql_stt_profile.get_by_id", nil, err.Error(), extractCodeFromErr(err))
+		return nil, model.NewAppError("SqlCognitiveProfileStore.GetById", "store.sql_cognitive_profile_store.get_by_id.app_error", nil,
+			fmt.Sprintf("id=%d, %s", id, err.Error()), extractCodeFromErr(err))
 	}
 
-	return p, nil
-}
-
-func (s SqlCognitiveProfileStore) Create1(domainId, fileId int64, transcript string, logs []byte) (*model.FileTranscript, *model.AppError) {
-	panic("TODO")
+	return profile, nil
 }

@@ -31,7 +31,7 @@ func init() {
 			limit:           100,
 			schedule:        make(chan struct{}, 1),
 			stopSignal:      make(chan struct{}),
-			pollingInterval: time.Second * 5,
+			pollingInterval: time.Second * 1,
 			pool:            pool.NewPool(5, 10), //FIXME added config
 		}
 	})

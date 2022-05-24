@@ -98,7 +98,21 @@ where f.id = (select del.file_id from del )`, map[string]interface{}{
 	})
 
 	if err != nil {
-		return model.NewAppError("SqlSyncFileStore.Remove", "store.sql_sync_file_job.clean.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("SqlSyncFileStore.Clean", "store.sql_sync_file_job.clean.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
+}
+
+func (s SqlSyncFileStore) Remove(jobId int64) *model.AppError {
+	_, err := s.GetMaster().Exec(`    delete
+    from storage.file_jobs rj
+    where rj.id = :Id`, map[string]interface{}{
+		"Id": jobId,
+	})
+
+	if err != nil {
+		return model.NewAppError("SqlSyncFileStore.Remove", "store.sql_sync_file_job.remove.app_error", nil, err.Error(), extractCodeFromErr(err))
 	}
 
 	return nil

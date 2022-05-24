@@ -37,10 +37,10 @@ type SqlSupplierOldStores struct {
 	file               store.FileStore
 	mediaFile          store.MediaFileStore
 	job                store.JobStore
-	cdrData            store.CdrStoreData
 	scheduler          store.ScheduleStore
 	syncFile           store.SyncFileStore
 	cognitiveProfile   store.CognitiveProfileStore
+	transcriptFile     store.TranscriptFileStore
 }
 
 type SqlSupplier struct {
@@ -69,10 +69,10 @@ func NewSqlSupplier(settings model.SqlSettings) *SqlSupplier {
 	supplier.oldStores.file = NewSqlFileStore(supplier)
 	supplier.oldStores.mediaFile = NewSqlMediaFileStore(supplier)
 	supplier.oldStores.job = NewSqlJobStore(supplier)
-	supplier.oldStores.cdrData = NewSqlCdrStore(supplier)
 	supplier.oldStores.scheduler = NewSqlScheduleStore(supplier)
 	supplier.oldStores.syncFile = NewSqlSyncFileStore(supplier)
 	supplier.oldStores.cognitiveProfile = NewSqlCognitiveProfileStore(supplier)
+	supplier.oldStores.transcriptFile = NewSqlTranscriptFileStore(supplier)
 
 	err := supplier.GetMaster().CreateTablesIfNotExists()
 	if err != nil {
@@ -230,7 +230,7 @@ func (me typeConverter) FromDb(target interface{}) (gorp.CustomScanner, bool) {
 		}
 		return gorp.CustomScanner{Holder: new(model.JSON), Target: target, Binder: binder}, true
 
-	case *[]model.StringInterface:
+	case *[]model.StringInterface, *[]model.TranscriptPhrase, *[]model.TranscriptChannel:
 		binder := func(holder, target interface{}) error {
 			s, ok := holder.(*model.JSON)
 			if !ok {
@@ -344,10 +344,6 @@ func (ss *SqlSupplier) MediaFile() store.MediaFileStore {
 	return ss.oldStores.mediaFile
 }
 
-func (ss *SqlSupplier) Cdr() store.CdrStoreData {
-	return ss.oldStores.cdrData
-}
-
 func (ss *SqlSupplier) Schedule() store.ScheduleStore {
 	return ss.oldStores.scheduler
 }
@@ -358,4 +354,8 @@ func (ss *SqlSupplier) SyncFile() store.SyncFileStore {
 
 func (ss *SqlSupplier) CognitiveProfile() store.CognitiveProfileStore {
 	return ss.oldStores.cognitiveProfile
+}
+
+func (ss *SqlSupplier) TranscriptFile() store.TranscriptFileStore {
+	return ss.oldStores.transcriptFile
 }

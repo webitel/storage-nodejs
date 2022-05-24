@@ -68,10 +68,6 @@ func (s *LayeredStore) MediaFile() MediaFileStore {
 	return s.DatabaseLayer.MediaFile()
 }
 
-func (s *LayeredStore) Cdr() CdrStoreData {
-	return s.DatabaseLayer.Cdr()
-}
-
 func (s *LayeredStore) Schedule() ScheduleStore {
 	return s.DatabaseLayer.Schedule()
 }
@@ -90,4 +86,8 @@ func (s *LayeredStore) Scroll(scroll *model.SearchEngineScroll) StoreChannel {
 
 func (s *LayeredStore) Search(request *model.SearchEngineRequest) StoreChannel {
 	return s.SearchEngine.Search(request)
+}
+
+func (s *LayeredStore) TranscriptFile() TranscriptFileStore {
+	return s.DatabaseLayer.TranscriptFile()
 }

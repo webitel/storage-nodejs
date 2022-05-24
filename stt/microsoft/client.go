@@ -7,13 +7,18 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"regexp"
+	"sort"
+	"strconv"
 	"time"
+
+	"github.com/webitel/storage/model"
 
 	"github.com/pkg/errors"
 )
 
 const (
-	ClientName = "microsoft"
+	ClientName = "Microsoft"
 )
 
 var (
@@ -52,8 +57,25 @@ type Files struct {
 }
 
 type Transcript struct {
+	RecognizedPhrases []struct {
+		Offset   string `json:"offset"`
+		Duration string `json:"duration"`
+		Channel  int    `json:"channel"`
+		NBest    []struct {
+			Words []struct {
+				Word     string `json:"word"`
+				Offset   string `json:"offset"`
+				Duration string `json:"duration"`
+			} `json:"words"`
+			Itn     string `json:"itn"`
+			Display string `json:"display"`
+			Lexical string `json:"lexical"`
+		} `json:"nBest"`
+	} `json:"recognizedPhrases"`
 	CombinedRecognizedPhrases []struct {
 		Lexical string `json:"lexical"`
+		Channel int    `json:"channel"`
+		Display string `json:"display"`
 	} `json:"combinedRecognizedPhrases"`
 }
 
@@ -80,29 +102,37 @@ func NewClient(config Config) (*client, error) {
 	}, nil
 }
 
-func (c *client) Transcript(fileUri, locale string) (string, []byte, error) {
-	ctx, _ := context.WithTimeout(context.Background(), time.Minute*2)
+func (c *client) Transcript(ctx context.Context, fileUri, locale string) (model.FileTranscript, error) {
 	var data []byte
 
 	task, err := c.TranscriptJob(fileUri, locale)
 	if err != nil {
-		return "", nil, err
+		return model.FileTranscript{}, err
 	}
 
 	if _, err = c.WaitFoSuccess(ctx, task); err != nil {
-		return "", nil, err
+		return model.FileTranscript{}, err
 	}
 
 	if task.Properties.Error != nil {
-		return "", nil, errors.New(task.Properties.Error.Message)
+		return model.FileTranscript{}, errors.New(task.Properties.Error.Message)
 	}
 
 	data, err = c.LoadTranscript(task)
 	if err != nil {
-		return "", nil, err
+		return model.FileTranscript{}, err
 	}
 
-	return getText(data), data, nil
+	ph, cs := getTranscript(data)
+
+	res := model.FileTranscript{
+		Log:       data,
+		Phrases:   ph,
+		Channels:  cs,
+		CreatedAt: time.Now(),
+	}
+
+	return res, nil
 }
 
 func (t Task) Finished() bool {
@@ -256,12 +286,82 @@ func (c *client) WaitFoSuccess(ctx context.Context, t *Task) (ok bool, err error
 	}
 }
 
-func getText(data []byte) string {
+func getTranscript(data []byte) ([]model.TranscriptPhrase, []model.TranscriptChannel) {
 	var n Transcript
-	json.Unmarshal(data, &n)
-	if len(n.CombinedRecognizedPhrases) > 0 {
-		return n.CombinedRecognizedPhrases[0].Lexical
+	if err := json.Unmarshal(data, &n); err != nil {
+		//TODO error
+		return nil, nil
 	}
 
-	return ""
+	res := make([]model.TranscriptPhrase, 0, len(n.RecognizedPhrases))
+
+	for _, v := range n.RecognizedPhrases {
+		if len(v.NBest) < 1 || len(v.NBest[0].Words) < 1 {
+			continue
+		}
+
+		words := make([]model.TranscriptWord, 0, len(v.NBest[0].Words))
+
+		for _, w := range v.NBest[0].Words {
+			words = append(words, model.TranscriptWord{
+				Word: w.Word,
+				TranscriptRange: model.TranscriptRange{
+					StartSec: (ParseDuration(w.Offset)).Seconds(),
+					EndSec:   (ParseDuration(w.Offset) + ParseDuration(w.Duration)).Seconds(),
+				},
+			})
+		}
+
+		res = append(res, model.TranscriptPhrase{
+			TranscriptRange: model.TranscriptRange{
+				StartSec: (ParseDuration(v.Offset)).Seconds(),
+				EndSec:   (ParseDuration(v.Offset) + ParseDuration(v.Duration)).Seconds(),
+			},
+			Channel: v.Channel,
+			Itn:     v.NBest[0].Itn,
+			Display: v.NBest[0].Display,
+			Lexical: v.NBest[0].Lexical,
+			Words:   words,
+		})
+	}
+
+	sort.Slice(res, func(i, j int) bool {
+		return res[i].StartSec < res[j].StartSec
+	})
+
+	cs := make([]model.TranscriptChannel, 0, len(n.CombinedRecognizedPhrases))
+	for _, v := range n.CombinedRecognizedPhrases {
+		cs = append(cs, model.TranscriptChannel{
+			Channel: v.Channel,
+			Display: v.Display,
+			Lexical: v.Lexical,
+		})
+	}
+
+	return res, cs
+}
+
+var durationRegex = regexp.MustCompile(`P([\d\.]+Y)?([\d\.]+M)?([\d\.]+D)?T?([\d\.]+H)?([\d\.]+M)?([\d\.]+?S)?`)
+
+// ParseDuration converts a ISO8601 duration into a time.Duration
+func ParseDuration(str string) time.Duration {
+	matches := durationRegex.FindStringSubmatch(str)
+
+	years := parseDurationPart(matches[1], time.Hour*24*365)
+	months := parseDurationPart(matches[2], time.Hour*24*30)
+	days := parseDurationPart(matches[3], time.Hour*24)
+	hours := parseDurationPart(matches[4], time.Hour)
+	minutes := parseDurationPart(matches[5], time.Second*60)
+	seconds := parseDurationPart(matches[6], time.Second)
+
+	return time.Duration(years + months + days + hours + minutes + seconds)
+}
+
+func parseDurationPart(value string, unit time.Duration) time.Duration {
+	if len(value) != 0 {
+		if parsed, err := strconv.ParseFloat(value[:len(value)-1], 64); err == nil {
+			return time.Duration(float64(unit) * parsed)
+		}
+	}
+	return 0
 }

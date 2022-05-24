@@ -25,16 +25,17 @@ const (
 
 type S3FileBackend struct {
 	BaseFileBackend
-	name        string
-	region      string
-	accessKey   string
-	accessToken string
-	bucket      string
-	endpoint    string
-	pathPattern string
-	sess        *session.Session
-	svc         *s3.S3
-	uploader    *s3manager.Uploader
+	name           string
+	region         string
+	accessKey      string
+	accessToken    string
+	bucket         string
+	endpoint       string
+	pathPattern    string
+	sess           *session.Session
+	svc            *s3.S3
+	uploader       *s3manager.Uploader
+	forcePathStyle bool
 }
 
 func (self *S3FileBackend) Name() string {
@@ -48,7 +49,7 @@ func (self *S3FileBackend) GetStoreDirectory(domain int64) string {
 func (self *S3FileBackend) getEndpoint() *string {
 	if self.endpoint == "amazonaws.com" {
 		return nil
-	} else if self.region != "" && !isS3ForcePathStyle(self.endpoint) {
+	} else if self.region != "" && !isS3ForcePathStyle(self.endpoint) && !self.forcePathStyle {
 		return aws.String(fmt.Sprintf("%s.%s", self.region, self.endpoint))
 	} else {
 		return aws.String(fmt.Sprintf("%s", self.endpoint))
@@ -71,7 +72,7 @@ func (self *S3FileBackend) TestConnection() *model.AppError {
 		Credentials: credentials.NewStaticCredentials(self.accessKey, self.accessToken, ""),
 	}
 
-	if isS3ForcePathStyle(self.endpoint) {
+	if isS3ForcePathStyle(self.endpoint) || self.forcePathStyle {
 		config.S3ForcePathStyle = aws.Bool(true)
 	}
 

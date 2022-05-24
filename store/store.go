@@ -48,10 +48,10 @@ type StoreData interface {
 	File() FileStore
 	Job() JobStore
 	MediaFile() MediaFileStore
-	Cdr() CdrStoreData
 	Schedule() ScheduleStore
 	SyncFile() SyncFileStore
 	CognitiveProfile() CognitiveProfileStore
+	TranscriptFile() TranscriptFileStore
 }
 
 type StoreSearchEngine interface {
@@ -71,6 +71,7 @@ type SyncFileStore interface {
 	FetchJobs(limit int) ([]*model.SyncJob, *model.AppError)
 	SetRemoveJobs(localExpDay int) *model.AppError
 	Clean(jobId int64) *model.AppError
+	Remove(jobId int64) *model.AppError
 }
 
 type FileBackendProfileStore interface {
@@ -140,10 +141,10 @@ type CognitiveProfileStore interface {
 	Get(id, domainId int64) (*model.CognitiveProfile, *model.AppError)
 	Update(profile *model.CognitiveProfile) (*model.CognitiveProfile, *model.AppError)
 	Delete(domainId, id int64) *model.AppError
+	GetById(id int64) (*model.CognitiveProfile, *model.AppError)
 }
 
-type CdrStoreData interface {
-	GetLegADataByUuid(uuid string) StoreChannel
-	GetLegBDataByUuid(uuid string) StoreChannel
-	GetByUuidCall(uuid string) StoreChannel
+type TranscriptFileStore interface {
+	GetByFileId(fileId int64, profileId int64) (*model.FileTranscript, *model.AppError)
+	Store(t *model.FileTranscript) (*model.FileTranscript, *model.AppError)
 }

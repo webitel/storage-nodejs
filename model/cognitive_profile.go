@@ -1,6 +1,9 @@
 package model
 
-import "time"
+import (
+	"encoding/json"
+	"time"
+)
 
 type CognitiveProfile struct {
 	Id        int64      `json:"id" db:"id"`
@@ -17,6 +20,7 @@ type CognitiveProfile struct {
 	Description string          `json:"description" db:"description"`
 	Service     string          `json:"service" db:"service"`
 	Default     bool            `json:"default" db:"default"`
+	Instance    interface{}     `json:"-" db:"-"`
 }
 
 type SearchCognitiveProfile struct {
@@ -90,4 +94,13 @@ func (f *CognitiveProfile) Path(path *CognitiveProfilePath) {
 	if path.Default != nil {
 		f.Default = *path.Default
 	}
+}
+
+func (c *CognitiveProfile) GetSyncTime() int64 {
+	return c.UpdatedAt.UnixNano()
+}
+
+func (c *CognitiveProfile) JsonProperties() []byte {
+	data, _ := json.Marshal(c.Properties)
+	return data
 }

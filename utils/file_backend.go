@@ -2,12 +2,13 @@ package utils
 
 import (
 	"fmt"
-	"github.com/webitel/storage/model"
 	"io"
 	"net/http"
 	"regexp"
 	"sync"
 	"time"
+
+	"github.com/webitel/storage/model"
 )
 
 const (
@@ -87,13 +88,14 @@ func NewBackendStore(profile *model.FileBackendProfile) (FileBackend, *model.App
 				writeSize: 0,
 				expireDay: profile.ExpireDay,
 			},
-			name:        profile.Name,
-			pathPattern: profile.Properties.GetString("path_pattern"),
-			bucket:      profile.Properties.GetString("bucket_name"),
-			accessKey:   profile.Properties.GetString("key_id"),
-			accessToken: profile.Properties.GetString("access_key"),
-			endpoint:    profile.Properties.GetString("endpoint"),
-			region:      profile.Properties.GetString("region"),
+			name:           profile.Name,
+			pathPattern:    profile.Properties.GetString("path_pattern"),
+			bucket:         profile.Properties.GetString("bucket_name"),
+			accessKey:      profile.Properties.GetString("key_id"),
+			accessToken:    profile.Properties.GetString("access_key"),
+			endpoint:       profile.Properties.GetString("endpoint"),
+			region:         profile.Properties.GetString("region"),
+			forcePathStyle: profile.Properties.GetBool("force_path_style"),
 		}
 		if err := d.TestConnection(); err != nil {
 			return nil, err

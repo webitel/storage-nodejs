@@ -1,5 +1,11 @@
 package stt
 
+import (
+	"context"
+
+	"github.com/webitel/storage/model"
+)
+
 type Stt interface {
-	Transcript(fileUri, locale string) (string, []byte, error)
+	Transcript(ctx context.Context, fileUri, locale string) (model.FileTranscript, error)
 }
