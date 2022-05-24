@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -61,9 +60,9 @@ func (app *App) GetSttProfile(id *int, syncTime *int64) (p *model.CognitiveProfi
 	return p, nil
 }
 
-func (a *App) TranscriptFile(fileId int64, profileId int, locale string) (*model.FileTranscript, *model.AppError) {
+func (app *App) TranscriptFile(fileId int64, profileId int, locale string) (*model.FileTranscript, *model.AppError) {
 	var fileUri string
-	p, err := a.GetSttProfile(&profileId, nil) //todo
+	p, err := app.GetSttProfile(&profileId, nil) //todo
 	if err != nil {
 		return nil, err
 	}
@@ -77,16 +76,14 @@ func (a *App) TranscriptFile(fileId int64, profileId int, locale string) (*model
 		return nil, model.NewAppError("TranscriptFile", "app.stt.transcript.valid", nil, "Bad client interface", http.StatusInternalServerError)
 	}
 
-	fileUri, err = a.GeneratePreSignetResourceSignature(model.AnyFileRouteName, "download", fileId, p.DomainId)
+	fileUri, err = app.GeneratePreSignetResourceSignature(model.AnyFileRouteName, "download", fileId, p.DomainId)
 	if err != nil {
 		return nil, err
 	}
 
-	//fmt.Println(fmt.Sprintf("https://dev.webitel.com%s", fileUri))
-
 	ctx, _ := context.WithTimeout(context.Background(), time.Hour*2)
 
-	if transcript, e := stt.Transcript(ctx, fmt.Sprintf("https://dev.webitel.com%s", fileUri), locale); e != nil {
+	if transcript, e := stt.Transcript(ctx, app.publicUri(fileUri), locale); e != nil {
 		return nil, model.NewAppError("TranscriptFile", "app.stt.transcript.err", nil, e.Error(), http.StatusInternalServerError)
 	} else {
 		transcript.File = model.Lookup{
@@ -97,6 +94,10 @@ func (a *App) TranscriptFile(fileId int64, profileId int, locale string) (*model
 		}
 		transcript.Locale = locale
 
-		return a.Store.TranscriptFile().Store(&transcript)
+		return app.Store.TranscriptFile().Store(&transcript)
 	}
+}
+
+func (app *App) publicUri(uri string) string {
+	return app.Config().ServiceSettings.PublicHost + uri
 }

@@ -111,7 +111,7 @@ func New(options ...string) (outApp *App, outErr error) {
 
 	if app.newStore == nil {
 		app.newStore = func() store.Store {
-			return store.NewLayeredStore(sqlstore.NewSqlSupplier(app.Config().SqlSettings), store.NewElasticSupplier(app.Config().NoSqlSettings))
+			return store.NewLayeredStore(sqlstore.NewSqlSupplier(app.Config().SqlSettings))
 		}
 	}
 

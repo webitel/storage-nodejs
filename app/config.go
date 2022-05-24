@@ -4,8 +4,9 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/webitel/storage/model"
 	"strings"
+
+	"github.com/webitel/storage/model"
 )
 
 var (
@@ -14,7 +15,6 @@ var (
 	consulHost            = flag.String("consul", "consul:8500", "Host to consul")
 	dataSource            = flag.String("data_source", "postgres://opensips:webitel@postgres:5432/webitel?fallback_application_name=storage&sslmode=disable&connect_timeout=10&search_path=storage", "Data source")
 	amqpSource            = flag.String("amqp", "amqp://webitel:webitel@rabbit:5672?heartbeat=10", "AMQP connection")
-	elasticSource         = flag.String("elastic", "http://10.10.10.200:9200", "Elastic endpoint")
 	grpcServerPort        = flag.Int("grpc_port", 0, "GRPC port")
 	grpcServerAddr        = flag.String("grpc_addr", "", "GRPC host")
 	dev                   = flag.Bool("dev", false, "enable dev mode")
@@ -32,6 +32,7 @@ var (
 	presignedTimeout  = flag.Int64("presigned_timeout", 1000*60*15, "Pre signed timeout")
 
 	proxyUpload = flag.String("proxy_upload", "", "Proxy upload url")
+	publicHost  = flag.String("public_host", "https://dev.webitel.com/", "Public host")
 )
 
 func loadConfig(fileName string) (*model.Config, *model.AppError) {
@@ -51,6 +52,7 @@ func loadConfig(fileName string) (*model.Config, *model.AppError) {
 		ServiceSettings: model.ServiceSettings{
 			ListenAddress:         publicServerAddress,
 			ListenInternalAddress: internalServerAddress,
+			PublicHost:            *publicHost,
 		},
 		MediaFileStoreSettings: model.MediaFileStoreSettings{
 			MaxSizeByte: model.NewInt(100 * 1000000),
@@ -65,10 +67,6 @@ func loadConfig(fileName string) (*model.Config, *model.AppError) {
 			MaxOpenConns:                model.NewInt(5),
 			ConnMaxLifetimeMilliseconds: model.NewInt(3600000),
 			Trace:                       false,
-		},
-		NoSqlSettings: model.NoSqlSettings{
-			Host:  elasticSource,
-			Trace: true,
 		},
 		BrokerSettings: model.BrokerSettings{
 			ConnectionString: amqpSource,
@@ -99,6 +97,10 @@ func loadConfig(fileName string) (*model.Config, *model.AppError) {
 				panic(err)
 			}
 		}
+	}
+
+	if strings.HasSuffix(cfg.ServiceSettings.PublicHost, "/") {
+		cfg.ServiceSettings.PublicHost = cfg.ServiceSettings.PublicHost[:len(cfg.ServiceSettings.PublicHost)-1]
 	}
 
 	return cfg, nil

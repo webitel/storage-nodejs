@@ -33,6 +33,7 @@ func (s *LocalizationSettings) SetDefaults() {
 type ServiceSettings struct {
 	ListenAddress         *string
 	ListenInternalAddress *string
+	PublicHost            string
 }
 
 type SqlSettings struct {
@@ -67,7 +68,6 @@ type Config struct {
 	LocalizationSettings         LocalizationSettings
 	ServiceSettings              ServiceSettings
 	SqlSettings                  SqlSettings
-	NoSqlSettings                NoSqlSettings
 	BrokerSettings               BrokerSettings
 	MediaFileStoreSettings       MediaFileStoreSettings
 	DefaultFileStore             *DefaultFileStore

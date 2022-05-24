@@ -39,7 +39,6 @@ func Must(sc StoreChannel) interface{} {
 
 type Store interface {
 	StoreData
-	StoreSearchEngine
 }
 
 type StoreData interface {
@@ -52,11 +51,6 @@ type StoreData interface {
 	SyncFile() SyncFileStore
 	CognitiveProfile() CognitiveProfileStore
 	TranscriptFile() TranscriptFileStore
-}
-
-type StoreSearchEngine interface {
-	Search(request *model.SearchEngineRequest) StoreChannel
-	Scroll(scroll *model.SearchEngineScroll) StoreChannel
 }
 
 type UploadJobStore interface {
