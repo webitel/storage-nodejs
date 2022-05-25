@@ -3,7 +3,6 @@ package app
 import (
 	"context"
 	"net/http"
-	"time"
 
 	"github.com/webitel/storage/stt"
 
@@ -15,6 +14,10 @@ import (
 
 func (app *App) GetSttProfileById(id int) (*model.CognitiveProfile, *model.AppError) {
 	return app.Store.CognitiveProfile().GetById(int64(id))
+}
+
+func (app *App) JobCallbackUri() string {
+	return app.Config().ServiceSettings.PublicHost + "/api/storage/jobs/callback"
 }
 
 func (app *App) GetSttProfile(id *int, syncTime *int64) (p *model.CognitiveProfile, appError *model.AppError) {
@@ -48,7 +51,7 @@ func (app *App) GetSttProfile(id *int, syncTime *int64) (p *model.CognitiveProfi
 	case microsoft.ClientName:
 		var err error
 
-		if p.Instance, err = microsoft.NewClient(microsoft.ConfigFromJson(p.JsonProperties())); err != nil {
+		if p.Instance, err = microsoft.NewClient(microsoft.ConfigFromJson(*id, app.JobCallbackUri(), p.JsonProperties())); err != nil {
 			// TODO
 		}
 	default:
@@ -81,9 +84,12 @@ func (app *App) TranscriptFile(fileId int64, profileId int, locale string) (*mod
 		return nil, err
 	}
 
-	ctx, _ := context.WithTimeout(context.Background(), time.Hour*2)
+	ctx, cn := context.WithCancel(context.TODO())
 
-	if transcript, e := stt.Transcript(ctx, app.publicUri(fileUri), locale); e != nil {
+	app.jobCallback.Add(fileId, cn)
+	defer app.jobCallback.Remove(fileId)
+
+	if transcript, e := stt.Transcript(ctx, fileId, app.publicUri(fileUri), locale); e != nil {
 		return nil, model.NewAppError("TranscriptFile", "app.stt.transcript.err", nil, e.Error(), http.StatusInternalServerError)
 	} else {
 		transcript.File = model.Lookup{

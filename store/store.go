@@ -136,6 +136,8 @@ type CognitiveProfileStore interface {
 	Update(profile *model.CognitiveProfile) (*model.CognitiveProfile, *model.AppError)
 	Delete(domainId, id int64) *model.AppError
 	GetById(id int64) (*model.CognitiveProfile, *model.AppError)
+
+	SearchTtsProfile(domainId int64, profileId int) (*model.TtsProfile, *model.AppError)
 }
 
 type TranscriptFileStore interface {

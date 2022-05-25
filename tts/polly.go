@@ -2,11 +2,12 @@ package tts
 
 import (
 	"fmt"
+	"io"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/polly"
-	"io"
 )
 
 type TTSEngine interface {
@@ -14,19 +15,23 @@ type TTSEngine interface {
 }
 
 type TTSParams struct {
-	Key, Token     string
-	Format         string
-	Voice          string
-	Region         string
-	Language       string
-	Text, TextType string
+	DomainId    int    `json:"-"`
+	ProfileId   int    `json:"-"`
+	Key         string `json:"key"`
+	Token       string `json:"token"`
+	KeyLocation string `json:"key_location"`
+	Region      string `json:"region"`
+
+	Format         string `json:"-"`
+	Voice          string `json:"-"`
+	Language       string `json:"-"`
+	Text, TextType string `json:"-"`
 
 	//google
-	SpeakingRate     float64
-	Pitch            float64
-	VolumeGainDb     float64
-	KeyLocation      string
-	EffectsProfileId []string
+	SpeakingRate     float64  `json:"-"`
+	Pitch            float64  `json:"-"`
+	VolumeGainDb     float64  `json:"-"`
+	EffectsProfileId []string `json:"-"`
 }
 
 func Poly(req TTSParams) (io.ReadCloser, *string, error) {
