@@ -1,12 +1,13 @@
 package apis
 
 import (
+	"net/http"
+
 	"github.com/gorilla/mux"
 	"github.com/webitel/storage/app"
 	"github.com/webitel/storage/controller"
 	"github.com/webitel/storage/model"
 	"github.com/webitel/storage/web"
-	"net/http"
 )
 
 type RoutesPublic struct {
@@ -17,6 +18,8 @@ type RoutesPublic struct {
 	MediaFiles          *mux.Router // '/media
 	AnyFiles            *mux.Router // for chat
 	Files               *mux.Router // for chat
+	Jobs                *mux.Router
+	Tts                 *mux.Router
 }
 
 type API struct {
@@ -37,12 +40,17 @@ func Init(a *app.App, root *mux.Router) *API {
 	api.PublicRoutes.MediaFiles = api.PublicRoutes.ApiRoot.PathPrefix("/media").Subrouter()
 	api.PublicRoutes.CallRecordingsFiles = api.PublicRoutes.ApiRoot.PathPrefix("/recordings").Subrouter()
 	api.PublicRoutes.Files = api.PublicRoutes.ApiRoot.PathPrefix("/file").Subrouter()
+	api.PublicRoutes.Jobs = api.PublicRoutes.ApiRoot.PathPrefix("/jobs").Subrouter()
+	api.PublicRoutes.Tts = api.PublicRoutes.ApiRoot.PathPrefix("/tts").Subrouter()
+
 	api.PublicRoutes.AnyFiles = api.PublicRoutes.ApiRoot.PathPrefix(model.AnyFileRouteName).Subrouter()
 
 	api.InitMediaFile()
 	api.InitCallRecordingsFiles()
 	api.InitAnyFile()
 	api.InitFile()
+	api.InitJobs()
+	api.InitTts()
 
 	return api
 }

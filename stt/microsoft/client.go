@@ -3,6 +3,9 @@ package microsoft
 import (
 	"bytes"
 	"context"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -19,6 +22,7 @@ import (
 
 const (
 	ClientName = "Microsoft"
+	HookName   = "Webitel STT"
 )
 
 var (
@@ -26,23 +30,32 @@ var (
 )
 
 type client struct {
-	key    string
-	region string
-	http   http.Client
+	id        int
+	key       string
+	region    string
+	http      http.Client
+	host      string
+	signature string
+	cbUri     string
 }
 
 type Config struct {
-	Key    string `json:"key"`
-	Region string `json:"region"`
+	Id       int    `json:"id"`
+	Callback string `json:"callback"`
+	Key      string `json:"key"`
+	Region   string `json:"region"`
 }
 
 type transcriptRequest struct {
 	ContentUrls []string `json:"contentUrls"`
 	Properties  struct {
-		WordLevelTimestampsEnabled bool `json:"wordLevelTimestampsEnabled"`
+		WordLevelTimestampsEnabled bool   `json:"wordLevelTimestampsEnabled"`
+		ProfanityFilterMode        string `json:"profanityFilterMode"`
+		DestinationContainerUrl    string `json:"destinationContainerUrl"`
 	} `json:"properties"`
-	Locale      string `json:"locale"`
-	DisplayName string `json:"displayName"`
+	Locale           string                 `json:"locale"`
+	DisplayName      string                 `json:"displayName"`
+	CustomProperties map[string]interface{} `json:"customProperties"`
 }
 
 type File struct {
@@ -92,20 +105,39 @@ type Task struct {
 			Message string `json:"message"`
 		} `json:"error"`
 	} `json:"properties"`
+	CustomProperties map[string]interface{} `json:"customProperties"`
 }
 
 func NewClient(config Config) (*client, error) {
-	return &client{
-		key:    config.Key,
-		region: config.Region,
-		http:   http.Client{},
-	}, nil
+	h := hmac.New(sha256.New, []byte("bla bla"))
+	c := &client{
+		id:        config.Id,
+		key:       config.Key,
+		region:    config.Region,
+		cbUri:     config.Callback,
+		http:      http.Client{},
+		host:      fmt.Sprintf("https://%s.api.cognitive.microsoft.com", config.Region),
+		signature: hex.EncodeToString(h.Sum(nil)),
+	}
+
+	c.getWebHook()
+
+	return c, nil
 }
 
-func (c *client) Transcript(ctx context.Context, fileUri, locale string) (model.FileTranscript, error) {
+type Hook struct {
+	DisplayName string `json:"displayName"`
+	Status      string `json:"status"`
+	WebUrl      string `json:"webUrl"`
+	Links       struct {
+		Test string `json:"test"`
+	} `json:"links"`
+}
+
+func (c *client) Transcript(ctx context.Context, id int64, fileUri, locale string) (model.FileTranscript, error) {
 	var data []byte
 
-	task, err := c.TranscriptJob(fileUri, locale)
+	task, err := c.TranscriptJob(id, fileUri, locale)
 	if err != nil {
 		return model.FileTranscript{}, err
 	}
@@ -139,22 +171,29 @@ func (t Task) Finished() bool {
 	return t.Status == "Succeeded" || t.Status == "Failed"
 }
 
-func (c *client) TranscriptJob(fileUrl string, locale string) (*Task, error) {
+func (c *client) TranscriptJob(fileId int64, fileUrl string, locale string) (*Task, error) {
 
 	tr := &transcriptRequest{
 		ContentUrls: []string{fileUrl},
 		Properties: struct {
-			WordLevelTimestampsEnabled bool `json:"wordLevelTimestampsEnabled"`
+			WordLevelTimestampsEnabled bool   `json:"wordLevelTimestampsEnabled"`
+			ProfanityFilterMode        string `json:"profanityFilterMode"`
+			DestinationContainerUrl    string `json:"destinationContainerUrl"`
 		}{
-			true,
+			WordLevelTimestampsEnabled: false,
+			ProfanityFilterMode:        "None",
+			DestinationContainerUrl:    "",
 		},
 		Locale:      locale,
 		DisplayName: fmt.Sprintf("Transcription using default model for %s", locale),
+		CustomProperties: map[string]interface{}{
+			"FileId": fileId,
+		},
 	}
 
 	data, _ := json.Marshal(tr)
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("https://%s.api.cognitive.microsoft.com/speechtotext/v3.0/transcriptions", c.region), bytes.NewBuffer(data))
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/speechtotext/v3.0/transcriptions", c.host), bytes.NewBuffer(data))
 	if err != nil {
 		return nil, err
 	}
@@ -284,6 +323,110 @@ func (c *client) WaitFoSuccess(ctx context.Context, t *Task) (ok bool, err error
 			}
 		}
 	}
+}
+
+func (c *client) getWebHook() (interface{}, error) {
+	var data []byte
+
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/speechtotext/v3.0/webhooks", c.host), nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Ocp-Apim-Subscription-Key", c.key)
+
+	res, err := c.http.Do(req)
+	defer res.Body.Close()
+
+	if data, err = ioutil.ReadAll(res.Body); err != nil {
+		return nil, err
+	}
+
+	var hooks struct {
+		Values []Hook `json:"values"`
+	}
+
+	err = json.Unmarshal(data, &hooks)
+	if err != nil {
+		return nil, err
+	}
+
+	var h *Hook
+
+	for _, v := range hooks.Values {
+		if v.DisplayName == HookName {
+			h = &v
+			break
+		}
+	}
+
+	if h == nil {
+		if h, err = c.registerWebHook(c.cbUri); err != nil {
+			return nil, err
+		}
+	}
+
+	err = c.testHook(*h)
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
+}
+
+func (c *client) testHook(h Hook) error {
+
+	req, err := http.NewRequest("POST", h.Links.Test, nil)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Ocp-Apim-Subscription-Key", c.key)
+
+	res, err := c.http.Do(req)
+	defer res.Body.Close()
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *client) registerWebHook(uri string) (*Hook, error) {
+	var data []byte
+
+	in := `{
+  "displayName": "%s",
+  "properties": {
+    "secret": "%s",
+    "profile_id": %d
+  },
+  "webUrl": "%s",
+  "events": {
+    "transcriptionCompletion": true
+  },
+  "description": "I registered this URL to get a POST request for each completed transcription."
+}`
+	in = fmt.Sprintf(in, HookName, c.signature, c.id, uri)
+
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/speechtotext/v3.0/webhooks", c.host), bytes.NewBuffer([]byte(in)))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Ocp-Apim-Subscription-Key", c.key)
+
+	res, err := c.http.Do(req)
+	defer res.Body.Close()
+
+	if data, err = ioutil.ReadAll(res.Body); err != nil {
+		return nil, err
+	}
+
+	var h Hook
+	err = json.Unmarshal(data, &h)
+	if err != nil {
+		return nil, err
+	}
+	return &h, nil
 }
 
 func getTranscript(data []byte) ([]model.TranscriptPhrase, []model.TranscriptChannel) {

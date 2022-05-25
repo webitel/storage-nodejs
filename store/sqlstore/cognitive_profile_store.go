@@ -229,7 +229,7 @@ func (s SqlCognitiveProfileStore) Delete(domainId, id int64) *model.AppError {
 	return nil
 }
 
-func (s *SqlCognitiveProfileStore) GetById(id int64) (*model.CognitiveProfile, *model.AppError) {
+func (s SqlCognitiveProfileStore) GetById(id int64) (*model.CognitiveProfile, *model.AppError) {
 	var profile *model.CognitiveProfile
 	err := s.GetMaster().SelectOne(&profile, `SELECT p.id,
        p.domain_id,
@@ -254,6 +254,25 @@ where p.id = :Id`, map[string]interface{}{
 	if err != nil {
 		return nil, model.NewAppError("SqlCognitiveProfileStore.GetById", "store.sql_cognitive_profile_store.get_by_id.app_error", nil,
 			fmt.Sprintf("id=%d, %s", id, err.Error()), extractCodeFromErr(err))
+	}
+
+	return profile, nil
+}
+
+func (s SqlCognitiveProfileStore) SearchTtsProfile(domainId int64, profileId int) (*model.TtsProfile, *model.AppError) {
+	var profile *model.TtsProfile
+	err := s.GetMaster().SelectOne(&profile, `select p.enabled, p.provider, p.properties
+from storage.cognitive_profile_services p
+where p.domain_id = :DomainId::int8
+    and case when :Id::int = 0 then p."default" else p.id = :Id::int end
+    and p.service = 'TTS'`, map[string]interface{}{
+		"DomainId": domainId,
+		"Id":       profileId,
+	})
+
+	if err != nil {
+		return nil, model.NewAppError("SqlCognitiveProfileStore.SearchTtsProfile", "store.sql_cognitive_profile_store.get_tts.app_error", nil,
+			fmt.Sprintf("profileId=%d, %s", profileId, err.Error()), extractCodeFromErr(err))
 	}
 
 	return profile, nil

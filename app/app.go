@@ -31,6 +31,7 @@ type App struct {
 
 	fileBackendCache *utils.Cache
 	sttProfilesCache *utils.Cache
+	jobCallback      *utils.Cache
 
 	Store store.Store
 
@@ -63,6 +64,7 @@ func New(options ...string) (outApp *App, outErr error) {
 		},
 		fileBackendCache: utils.NewLru(model.BackendCacheSize),
 		sttProfilesCache: utils.NewLru(model.SttCacheSize),
+		jobCallback:      utils.NewLru(model.JobCacheSize),
 	}
 	app.Srv.Router = app.Srv.RootRouter.PathPrefix("/").Subrouter()
 	app.InternalSrv.Router = app.InternalSrv.RootRouter.PathPrefix("/").Subrouter()
