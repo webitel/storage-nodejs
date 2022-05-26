@@ -25,7 +25,8 @@ type CognitiveProfile struct {
 
 type SearchCognitiveProfile struct {
 	ListRequest
-	Ids []int64
+	Ids     []int64
+	Enabled bool
 }
 
 func (CognitiveProfile) DefaultOrder() string {

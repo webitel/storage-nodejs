@@ -61,7 +61,8 @@ func (api *cognitiveProfile) SearchCognitiveProfile(ctx context.Context, in *sto
 			Fields:  in.Fields,
 			Sort:    in.Sort,
 		},
-		Ids: in.Id,
+		Ids:     in.Id,
+		Enabled: in.Enabled,
 	}
 
 	list, endOfData, err = api.ctrl.SearchCognitiveProfile(session, session.Domain(0), rec)
