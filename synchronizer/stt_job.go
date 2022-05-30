@@ -21,13 +21,13 @@ type params struct {
 }
 
 func (s *SttJob) Execute() {
-	var p params
+	var p model.TranscriptOptions
 	json.Unmarshal(s.file.Config, &p)
 
 	n := time.Now()
 
-	if p.Locale != "" && p.ProfileId > 0 {
-		s.transcript(p.Locale, p.ProfileId)
+	if p.Locale != "" && p.ProfileId != nil {
+		s.transcript(p)
 	} else {
 		wlog.Error(fmt.Sprintf("[stt] file %d, error: profile_id & locale is requered", s.file.FileId))
 	}
@@ -40,9 +40,9 @@ func (s *SttJob) Execute() {
 
 }
 
-func (s *SttJob) transcript(local string, profileId int) {
-	wlog.Debug(fmt.Sprintf("[stt] job_id: %d, file_id: %d start transcript to %s", s.file.Id, s.file.FileId, local))
-	t, err := s.app.TranscriptFile(s.file.FileId, profileId, local)
+func (s *SttJob) transcript(params model.TranscriptOptions) {
+	wlog.Debug(fmt.Sprintf("[stt] job_id: %d, file_id: %d start transcript to %s", s.file.Id, s.file.FileId, params.Locale))
+	t, err := s.app.TranscriptFile(s.file.FileId, params)
 	if err != nil {
 		wlog.Error(err.Error())
 	} else {

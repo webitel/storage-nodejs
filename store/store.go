@@ -143,4 +143,6 @@ type CognitiveProfileStore interface {
 type TranscriptFileStore interface {
 	GetByFileId(fileId int64, profileId int64) (*model.FileTranscript, *model.AppError)
 	Store(t *model.FileTranscript) (*model.FileTranscript, *model.AppError)
+
+	CreateJobs(domainId int64, fileIds []int64, params model.TranscriptOptions) ([]*model.FileTranscriptJob, *model.AppError)
 }

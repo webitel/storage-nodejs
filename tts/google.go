@@ -2,12 +2,13 @@ package tts
 
 import (
 	"bytes"
-	texttospeech "cloud.google.com/go/texttospeech/apiv1"
 	"context"
-	"google.golang.org/api/option"
-	texttospeechpb "google.golang.org/genproto/googleapis/cloud/texttospeech/v1"
 	"io"
 	"io/ioutil"
+
+	texttospeech "cloud.google.com/go/texttospeech/apiv1"
+	"google.golang.org/api/option"
+	texttospeechpb "google.golang.org/genproto/googleapis/cloud/texttospeech/v1"
 )
 
 func Google(params TTSParams) (io.ReadCloser, *string, error) {

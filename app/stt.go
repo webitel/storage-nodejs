@@ -3,6 +3,8 @@ package app
 import (
 	"context"
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/webitel/storage/stt"
 
@@ -16,8 +18,8 @@ func (app *App) GetSttProfileById(id int) (*model.CognitiveProfile, *model.AppEr
 	return app.Store.CognitiveProfile().GetById(int64(id))
 }
 
-func (app *App) JobCallbackUri() string {
-	return app.Config().ServiceSettings.PublicHost + "/api/storage/jobs/callback"
+func (app *App) JobCallbackUri(profileId int64) string {
+	return app.Config().ServiceSettings.PublicHost + "/api/storage/jobs/callback?profile_id=" + strconv.Itoa(int(profileId))
 }
 
 func (app *App) GetSttProfile(id *int, syncTime *int64) (p *model.CognitiveProfile, appError *model.AppError) {
@@ -51,7 +53,7 @@ func (app *App) GetSttProfile(id *int, syncTime *int64) (p *model.CognitiveProfi
 	case microsoft.ClientName:
 		var err error
 
-		if p.Instance, err = microsoft.NewClient(microsoft.ConfigFromJson(*id, app.JobCallbackUri(), p.JsonProperties())); err != nil {
+		if p.Instance, err = microsoft.NewClient(microsoft.ConfigFromJson(*id, app.JobCallbackUri(p.Id), p.JsonProperties())); err != nil {
 			// TODO
 		}
 	default:
@@ -63,9 +65,9 @@ func (app *App) GetSttProfile(id *int, syncTime *int64) (p *model.CognitiveProfi
 	return p, nil
 }
 
-func (app *App) TranscriptFile(fileId int64, profileId int, locale string) (*model.FileTranscript, *model.AppError) {
+func (app *App) TranscriptFile(fileId int64, options model.TranscriptOptions) (*model.FileTranscript, *model.AppError) {
 	var fileUri string
-	p, err := app.GetSttProfile(&profileId, nil) //todo
+	p, err := app.GetSttProfile(options.ProfileId, options.ProfileSyncTime)
 	if err != nil {
 		return nil, err
 	}
@@ -84,24 +86,28 @@ func (app *App) TranscriptFile(fileId int64, profileId int, locale string) (*mod
 		return nil, err
 	}
 
-	ctx, cn := context.WithCancel(context.TODO())
+	ctx, _ := context.WithTimeout(context.TODO(), time.Hour*2) // TODO
 
-	app.jobCallback.Add(fileId, cn)
-	defer app.jobCallback.Remove(fileId)
+	//app.jobCallback.Add(fileId, cn)
+	//defer app.jobCallback.Remove(fileId)
 
-	if transcript, e := stt.Transcript(ctx, fileId, app.publicUri(fileUri), locale); e != nil {
+	if transcript, e := stt.Transcript(ctx, fileId, app.publicUri(fileUri), options.Locale); e != nil {
 		return nil, model.NewAppError("TranscriptFile", "app.stt.transcript.err", nil, e.Error(), http.StatusInternalServerError)
 	} else {
 		transcript.File = model.Lookup{
 			Id: int(fileId),
 		}
 		transcript.Profile = model.Lookup{
-			Id: profileId,
+			Id: int(p.Id),
 		}
-		transcript.Locale = locale
+		transcript.Locale = options.Locale
 
 		return app.Store.TranscriptFile().Store(&transcript)
 	}
+}
+
+func (app *App) CreateTranscriptFilesJob(domainId int64, fileIds []int64, options *model.TranscriptOptions) ([]*model.FileTranscriptJob, *model.AppError) {
+	return app.Store.TranscriptFile().CreateJobs(domainId, fileIds, *options)
 }
 
 func (app *App) publicUri(uri string) string {

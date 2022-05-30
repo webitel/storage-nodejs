@@ -42,6 +42,13 @@ type FileTranscript struct {
 	Channels   []TranscriptChannel `json:"channels" db:"channels"`
 }
 
+type FileTranscriptJob struct {
+	Id        int64 `json:"id" db:"id"`
+	FileId    int64 `json:"file_id" db:"file_id"`
+	CreatedAt int64 `json:"created_at" db:"created_at"`
+	State     uint8 `json:"state" db:"state"`
+}
+
 func (f *FileTranscript) TidyTranscript() string {
 	t := ""
 

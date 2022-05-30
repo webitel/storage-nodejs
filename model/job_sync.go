@@ -2,7 +2,7 @@ package model
 
 const (
 	SyncJobRemove = "remove"
-	SyncJobSTT    = "stt"
+	SyncJobSTT    = "STT"
 )
 
 type SyncJob struct {

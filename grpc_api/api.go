@@ -14,6 +14,7 @@ type API struct {
 	cognitiveProfile *cognitiveProfile
 	media            *media
 	file             *file
+	fileTranscript   *fileTranscript
 }
 
 func Init(a *app.App, server *grpc.Server) {
@@ -26,10 +27,11 @@ func Init(a *app.App, server *grpc.Server) {
 	api.cognitiveProfile = NewCognitiveProfileApi(ctrl)
 	api.media = NewMediaApi(ctrl)
 	api.file = NewFileApi(a.Config().ProxyUploadUrl, ctrl)
-	api.file = NewFileApi(a.Config().ProxyUploadUrl, ctrl)
+	api.fileTranscript = NewFileTranscriptApi(ctrl)
 
 	storage.RegisterBackendProfileServiceServer(server, api.backendProfiles)
 	storage.RegisterMediaFileServiceServer(server, api.media)
 	storage.RegisterFileServiceServer(server, api.file)
 	storage.RegisterCognitiveProfileServiceServer(server, api.cognitiveProfile)
+	storage.RegisterFileTranscriptServiceServer(server, api.fileTranscript)
 }

@@ -69,6 +69,7 @@ func (s *synchronizer) run() {
 						s.pool.Exec(task)
 					} else {
 						wlog.Error(fmt.Sprintf("bad job action: %v", jobs[i]))
+						s.App.Store.SyncFile().Remove(jobs[i].Id)
 					}
 				}
 

@@ -42,8 +42,9 @@ func transcriptFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//TODO
 	var tr *model.FileTranscript
-	if tr, c.Err = c.App.TranscriptFile(int64(id), 1, "uk-UA"); c.Err != nil {
+	if tr, c.Err = c.App.TranscriptFile(int64(id), model.TranscriptOptions{}); c.Err != nil {
 
 		return
 	}

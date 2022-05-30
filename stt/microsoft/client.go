@@ -120,7 +120,7 @@ func NewClient(config Config) (*client, error) {
 		signature: hex.EncodeToString(h.Sum(nil)),
 	}
 
-	c.getWebHook()
+	//c.getWebHook()
 
 	return c, nil
 }
@@ -165,6 +165,10 @@ func (c *client) Transcript(ctx context.Context, id int64, fileUri, locale strin
 	}
 
 	return res, nil
+}
+
+func (c *client) Callback(req map[string]interface{}) error {
+	panic("TODO")
 }
 
 func (t Task) Finished() bool {
@@ -317,7 +321,7 @@ func (c *client) WaitFoSuccess(ctx context.Context, t *Task) (ok bool, err error
 		select {
 		case <-ctx.Done():
 			return
-		case <-time.After(time.Second * 2):
+		case <-time.After(time.Second * 10):
 			if ok, err = c.Finished(t); ok || err != nil {
 				return
 			}

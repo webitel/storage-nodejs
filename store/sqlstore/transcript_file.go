@@ -1,6 +1,7 @@
 package sqlstore
 
 import (
+	"github.com/lib/pq"
 	"github.com/webitel/storage/model"
 	"github.com/webitel/storage/store"
 )
@@ -69,4 +70,37 @@ from t
 	}
 
 	return t, nil
+}
+
+func (s SqlTranscriptFileStore) CreateJobs(domainId int64, fileIds []int64, params model.TranscriptOptions) ([]*model.FileTranscriptJob, *model.AppError) {
+	var jobs []*model.FileTranscriptJob
+	_, err := s.GetMaster().Select(&jobs, `insert into storage.file_jobs (state, file_id, action, config)
+select 0 as state,
+       fid,
+       p.service,
+       json_build_object('locale', :Locale::varchar,
+           'profile_id', p.id,
+           'profile_sync_time', (extract(epoch from p.updated_at) * 1000 )::int8) as config
+from storage.cognitive_profile_services p,
+     unnest((:FileIds)::int8[]) fid
+where p.domain_id = :DomainId::int8
+    and p.id = :Id::int4
+    and p.enabled
+    and p.service = :Service::varchar
+returning storage.file_jobs.id,
+    storage.file_jobs.file_id,
+    (extract(epoch from storage.file_jobs.created_at) * 1000)::int8 as created_at,
+    storage.file_jobs.state`, map[string]interface{}{
+		"DomainId": domainId,
+		"FileIds":  pq.Array(fileIds),
+		"Id":       params.ProfileId,
+		"Locale":   params.Locale,
+		"Service":  model.SyncJobSTT,
+	})
+
+	if err != nil {
+		return nil, model.NewAppError("SqlTranscriptFileStore.CreateJobs", "store.sql_stt_file.create.jobs.app_error", nil, err.Error(), extractCodeFromErr(err))
+	}
+
+	return jobs, nil
 }

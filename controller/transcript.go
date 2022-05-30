@@ -1,0 +1,19 @@
+package controller
+
+import (
+	"github.com/webitel/engine/auth_manager"
+	"github.com/webitel/storage/model"
+)
+
+func (c *Controller) TranscriptFiles(session *auth_manager.Session, ids []int64, ops *model.TranscriptOptions) ([]*model.FileTranscriptJob, *model.AppError) {
+	permission := session.GetPermission(model.PERMISSION_SCOPE_RECORD_FILE)
+	if !permission.CanRead() {
+		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+	}
+
+	if !permission.CanUpdate() {
+		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+	}
+
+	return c.app.CreateTranscriptFilesJob(session.Domain(0), ids, ops)
+}
