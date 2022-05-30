@@ -52,3 +52,38 @@ func (api *fileTranscript) CreateFileTranscript(ctx context.Context, in *storage
 
 	return res, nil
 }
+
+func (api *fileTranscript) GetFileTranscriptPhrases(ctx context.Context, in *storage.GetFileTranscriptPhrasesRequest) (*storage.ListPhrases, error) {
+	session, err := api.ctrl.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var list []*model.TranscriptPhrase
+	var endOfList bool
+
+	req := &model.ListRequest{
+		Page:    int(in.GetPage()),
+		PerPage: int(in.GetSize()),
+	}
+
+	list, endOfList, err = api.ctrl.TranscriptFilePhrases(session, in.GetId(), req)
+
+	if err != nil {
+		return nil, err
+	}
+
+	items := make([]*storage.TranscriptPhrase, 0, len(list))
+	for _, v := range list {
+		items = append(items, &storage.TranscriptPhrase{
+			StartSec: float32(v.StartSec),
+			EndSec:   float32(v.EndSec),
+			Channel:  v.Channel,
+			Phrase:   v.Display,
+		})
+	}
+	return &storage.ListPhrases{
+		Next:  !endOfList,
+		Items: items,
+	}, nil
+}

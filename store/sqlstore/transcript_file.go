@@ -104,3 +104,33 @@ returning storage.file_jobs.id,
 
 	return jobs, nil
 }
+
+func (s SqlTranscriptFileStore) GetPhrases(domainId, id int64, search *model.ListRequest) ([]*model.TranscriptPhrase, *model.AppError) {
+	var phrases []*model.TranscriptPhrase
+	_, err := s.GetReplica().Select(&phrases, `select p->'start_sec' as start_sec,
+       p->'end_sec' as end_sec,
+       p->>'channel' as channel,
+       p->>'display' as phrase
+from storage.file_transcript t
+    left join lateral (
+        select p
+        from jsonb_array_elements(t.phrases) p
+        order by p->'start_sec'
+        limit :Limit
+        offset :Offset
+    ) p on true
+where id = :Id
+    and p notnull
+    and exists(select 1 from storage.files f where f.id = t.file_id and f.domain_id = :DomainId)`, map[string]interface{}{
+		"Limit":    search.GetLimit(),
+		"Offset":   search.GetOffset(),
+		"Id":       id,
+		"DomainId": domainId,
+	})
+
+	if err != nil {
+		return nil, model.NewAppError("SqlTranscriptFileStore.GetPhrases", "store.sql_stt_file.transcript.phrases.error", nil, err.Error(), extractCodeFromErr(err))
+	}
+
+	return phrases, nil
+}

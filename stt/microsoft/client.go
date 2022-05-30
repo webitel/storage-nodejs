@@ -73,7 +73,7 @@ type Transcript struct {
 	RecognizedPhrases []struct {
 		Offset   string `json:"offset"`
 		Duration string `json:"duration"`
-		Channel  int    `json:"channel"`
+		Channel  uint32 `json:"channel"`
 		NBest    []struct {
 			Words []struct {
 				Word     string `json:"word"`
@@ -443,7 +443,7 @@ func getTranscript(data []byte) ([]model.TranscriptPhrase, []model.TranscriptCha
 	res := make([]model.TranscriptPhrase, 0, len(n.RecognizedPhrases))
 
 	for _, v := range n.RecognizedPhrases {
-		if len(v.NBest) < 1 || len(v.NBest[0].Words) < 1 {
+		if len(v.NBest) < 1 {
 			continue
 		}
 

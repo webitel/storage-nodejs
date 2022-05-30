@@ -6,8 +6,8 @@ import (
 )
 
 type TranscriptRange struct {
-	StartSec float64 `json:"start_sec"`
-	EndSec   float64 `json:"end_sec"`
+	StartSec float64 `json:"start_sec" db:"start_sec"`
+	EndSec   float64 `json:"end_sec" db:"end_sec" `
 }
 
 type TranscriptWord struct {
@@ -17,17 +17,17 @@ type TranscriptWord struct {
 
 type TranscriptPhrase struct {
 	TranscriptRange
-	Channel int              `json:"channel"`
-	Itn     string           `json:"itn"`
-	Display string           `json:"display"`
-	Lexical string           `json:"lexical"`
-	Words   []TranscriptWord `json:"words"`
+	Channel uint32           `json:"channel" db:"channel"`
+	Itn     string           `json:"itn" db:"-"`
+	Display string           `json:"display" db:"phrase"`
+	Lexical string           `json:"lexical" db:"-"`
+	Words   []TranscriptWord `json:"words" db:"-"`
 }
 
 type TranscriptChannel struct {
-	Channel int    `json:"channel"`
-	Display string `json:"display"`
-	Lexical string `json:"lexical"`
+	Channel int    `json:"channel" db:"channel"`
+	Display string `json:"display" db:"display"`
+	Lexical string `json:"lexical" db:"lexical"`
 }
 
 type FileTranscript struct {

@@ -110,6 +110,16 @@ func (app *App) CreateTranscriptFilesJob(domainId int64, fileIds []int64, option
 	return app.Store.TranscriptFile().CreateJobs(domainId, fileIds, *options)
 }
 
+func (app *App) TranscriptFilePhrases(domainId, id int64, search *model.ListRequest) ([]*model.TranscriptPhrase, bool, *model.AppError) {
+	phrases, err := app.Store.TranscriptFile().GetPhrases(domainId, id, search)
+	if err != nil {
+		return nil, false, err
+	}
+
+	search.RemoveLastElemIfNeed(&phrases)
+	return phrases, search.EndOfList(), nil
+}
+
 func (app *App) publicUri(uri string) string {
 	return app.Config().ServiceSettings.PublicHost + uri
 }
