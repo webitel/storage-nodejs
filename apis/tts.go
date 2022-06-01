@@ -9,7 +9,7 @@ import (
 )
 
 func (api *API) InitTts() {
-	api.PublicRoutes.Tts.Handle("/", api.ApiSessionRequired(tts)).Methods("GET")
+	api.PublicRoutes.Tts.Handle("/stream", api.ApiSessionRequired(tts)).Methods("GET")
 }
 
 func tts(c *Context, w http.ResponseWriter, r *http.Request) {
