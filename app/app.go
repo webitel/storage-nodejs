@@ -105,7 +105,9 @@ func New(options ...string) (outApp *App, outErr error) {
 		app.preSigned = preSign
 	}
 
-	app.initLocalFileStores()
+	if err := app.initLocalFileStores(); err != nil {
+		return nil, err
+	}
 
 	wlog.Info("Server is initializing...")
 
