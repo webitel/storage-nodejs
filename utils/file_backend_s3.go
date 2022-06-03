@@ -78,7 +78,7 @@ func (self *S3FileBackend) TestConnection() *model.AppError {
 
 	sess, err := session.NewSession(config)
 	if err != nil {
-		panic(err.Error())
+		return model.NewAppError("S3FileBackend", "utils.file.s3.test_connection.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	self.sess = sess
