@@ -58,12 +58,7 @@ func (self *S3FileBackend) getEndpoint() *string {
 }
 
 func isS3ForcePathStyle(name string) bool {
-	switch name {
-	case GoogleStorage, SelCDN:
-		return true
-	default:
-		return false
-	}
+	return name == GoogleStorage || strings.HasSuffix(name, SelCDN)
 }
 
 func (self *S3FileBackend) TestConnection() *model.AppError {

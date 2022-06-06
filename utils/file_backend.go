@@ -98,7 +98,7 @@ func NewBackendStore(profile *model.FileBackendProfile) (FileBackend, *model.App
 			forcePathStyle: profile.Properties.GetBool("force_path_style"),
 		}
 		if err := d.TestConnection(); err != nil {
-			return nil, err
+			return d, err
 		}
 		return d, nil
 	}
