@@ -14,10 +14,10 @@ require (
 	github.com/pborman/uuid v1.2.1
 	github.com/pkg/errors v0.9.1
 	github.com/robfig/cron v1.2.0
-	github.com/webitel/engine v0.0.0-20220608094108-1cc2752f10b9
+	github.com/webitel/engine v0.0.0-20220608103957-6516cd898acd
 	github.com/webitel/protos/engine v0.0.0-20220606114117-702ad5d192a0
 	github.com/webitel/protos/storage v0.0.0-20220606114117-702ad5d192a0
-	github.com/webitel/wlog v0.0.0-20190823170623-8cc283b29e3e
+	github.com/webitel/wlog v0.0.0-20220608103744-93b33e61bd28
 	google.golang.org/api v0.80.0
 	google.golang.org/genproto v0.0.0-20220607223854-30acc4cbd2aa
 	google.golang.org/grpc v1.47.0

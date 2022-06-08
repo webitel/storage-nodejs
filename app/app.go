@@ -9,7 +9,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/webitel/engine/auth_manager"
-	presign "github.com/webitel/engine/presign"
+	"github.com/webitel/engine/presign"
 	"github.com/webitel/storage/interfaces"
 	"github.com/webitel/storage/model"
 	"github.com/webitel/storage/store"
