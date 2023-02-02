@@ -36,7 +36,7 @@ function getDefaultSetting(providerName) {
 
     return defProviders.get(provider);
 }
-    
+
 module.exports = (req, res, next) => {
     let provider = req.params.provider === 'default' ? defProviderName : req.params.provider;
     if (PROVIDERS.hasOwnProperty(provider) && PROVIDERS[provider] instanceof Function) {
@@ -147,7 +147,7 @@ const PROVIDERS = {
                 lang: req.query.language || 'en-US'
             };
             const body =  new Buffer(`<speak version='1.0' xml:lang='${voice.lang}'>
-                        <voice xml:lang='${voice.lang}' xml:gender='${voice.gender}' name='Microsoft Server Speech Text to Speech Voice (${microsoftLocalesNameMaping(voice.lang, voice.gender)})'>${req.query.text}
+                        <voice xml:lang='${voice.lang}' xml:gender='${voice.gender}' name='${microsoftLocalesNameMaping(voice.lang, voice.gender)}'>${req.query.text}
                         </voice>
                       </speak>`);
             let requestParams = {
@@ -282,7 +282,9 @@ function microsoftLocalesNameMaping(locale, gender) {
             return "en-AU, Catherine";
 
         case 'id-ID':
-            return 'id-ID, Andika';
+            if (isFemale(gender))
+                return "id-ID-GadisNeural";
+            else return "id-ID-ArdiNeural";
 
 
         case 'en-CA':
@@ -303,8 +305,8 @@ function microsoftLocalesNameMaping(locale, gender) {
 
         case 'en-US':
             if (isFemale(gender))
-                return "en-US, ZiraRUS";
-            else return "en-US, BenjaminRUS";
+                return "en-US-AmberNeural";
+            else return "en-US-BrandonNeural";
 
         case 'es-ES':
             if (isFemale(gender))
@@ -404,7 +406,9 @@ function microsoftLocalesNameMaping(locale, gender) {
             else return "zh-TW, Zhiwei, Apollo";
 
         case 'vi-VN':
-            return "vi-VN, An";
+            if (isFemale(gender))
+                return "vi-VN-HoaiMyNeural";
+            else return "vi-VN-NamMinhNeural";
 
         default:
             log.error(`unknown local: ${locale}`);
